@@ -1,7 +1,9 @@
 import AssistWorkspace, { TopicConfig } from "@/components/AssistWorkspace";
+import { SAMPLE_REPAIR } from "@/lib/sample";
 
 const config: TopicConfig = {
   topic: "repair",
+  sampleResult: SAMPLE_REPAIR,
   emoji: "🏠",
   title: "집 수리 — 살림 응급실",
   subtitle: "응급처치 · 책임 판단 · 집주인 문구",

@@ -55,7 +55,12 @@ export async function POST(req: NextRequest): Promise<NextResponse<AssistRespons
     );
   }
 
-  let body: { topic?: string; text?: string; imageDataUrl?: string | null };
+  let body: {
+    topic?: string;
+    text?: string;
+    imageDataUrl?: string | null;
+    disallowClarify?: boolean;
+  };
   try {
     body = await req.json();
   } catch {
@@ -65,6 +70,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<AssistRespons
   const topic = body.topic as Topic;
   const text = (body.text || "").trim();
   const imageDataUrl = body.imageDataUrl;
+  const disallowClarify = body.disallowClarify === true;
 
   if (!VALID_TOPICS.includes(topic)) {
     return NextResponse.json({ ok: false, error: "알 수 없는 주제입니다." }, { status: 400 });
@@ -108,11 +114,17 @@ export async function POST(req: NextRequest): Promise<NextResponse<AssistRespons
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+  let system = systemPromptFor(topic);
+  if (disallowClarify) {
+    system +=
+      "\n\n[중요] 사용자가 이미 추가 정보를 제공했습니다. 더 이상 되묻지 말고, 곧바로 최종 결과 JSON만 출력하세요.";
+  }
+
   try {
     const message = await client.messages.create({
       model: MODEL,
       max_tokens: 2048,
-      system: systemPromptFor(topic),
+      system,
       messages: [{ role: "user", content }],
     });
 
@@ -127,6 +139,21 @@ export async function POST(req: NextRequest): Promise<NextResponse<AssistRespons
         { ok: false, error: "결과를 해석하지 못했어요. 잠시 후 다시 시도해주세요." },
         { status: 502 }
       );
+    }
+
+    const p = parsed as Record<string, unknown>;
+
+    // 되묻기 — repair 에서만, 1회 한정 (disallowClarify면 무시)
+    if (topic === "repair" && !disallowClarify && p.needsClarification === true) {
+      const question =
+        typeof p.clarifyingQuestion === "string" ? p.clarifyingQuestion : "";
+      const chips = Array.isArray(p.clarifyingChips)
+        ? (p.clarifyingChips.filter((c) => typeof c === "string") as string[])
+        : [];
+      if (question) {
+        return NextResponse.json({ ok: true, clarify: { question, chips } });
+      }
+      // 질문이 비면 되묻기 무시하고 결과로 진행
     }
 
     // kind 보정 (모델이 누락할 경우 topic 기준으로 채움)

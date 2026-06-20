@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ClipboardCheck,
   Scale,
@@ -23,9 +23,11 @@ import type {
   AdminResult,
   UtilityResult,
   Verdict,
+  Urgency,
   UtilityStatus,
 } from "@/lib/types";
 import SafetyBanner from "./SafetyBanner";
+import { CONTACTS_VERIFIED, DISPUTE_HELP } from "@/lib/contacts";
 
 export default function ResultCards({ result }: { result: AssistResult }) {
   if (result.kind === "repair") return <RepairCards r={result} />;
@@ -34,29 +36,57 @@ export default function ResultCards({ result }: { result: AssistResult }) {
   return null;
 }
 
-/* ── 공통 섹션 래퍼 ── */
+/* ── 공통 섹션 래퍼 (collapsible 지원) ── */
 function Section({
   index,
   icon,
   title,
   children,
+  collapsible = false,
+  defaultOpen = true,
 }: {
   index?: string;
   icon: React.ReactNode;
   title: string;
   children: React.ReactNode;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
 }) {
+  const head = (
+    <>
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
+        {icon}
+      </span>
+      <h2 className="flex items-center gap-2 text-base font-bold text-ink">
+        {index && <span className="text-brand">{index}</span>}
+        {title}
+      </h2>
+      {collapsible && (
+        <ChevronDown
+          size={18}
+          className="ml-auto shrink-0 text-muted transition-transform group-open:rotate-180"
+        />
+      )}
+    </>
+  );
+
+  if (collapsible) {
+    return (
+      <details
+        open={defaultOpen}
+        className="card group animate-fade-up p-5 [&_summary::-webkit-details-marker]:hidden"
+      >
+        <summary className="flex cursor-pointer list-none items-center gap-2.5">
+          {head}
+        </summary>
+        <div className="mt-3">{children}</div>
+      </details>
+    );
+  }
+
   return (
     <section className="card animate-fade-up p-5">
-      <div className="mb-3 flex items-center gap-2.5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-tint text-brand">
-          {icon}
-        </span>
-        <h2 className="flex items-center gap-2 text-base font-bold text-ink">
-          {index && <span className="text-brand">{index}</span>}
-          {title}
-        </h2>
-      </div>
+      <div className="mb-3 flex items-center gap-2.5">{head}</div>
       {children}
     </section>
   );
@@ -64,16 +94,27 @@ function Section({
 
 /* ───────────────── 집 수리 (메인) ───────────────── */
 function RepairCards({ r }: { r: RepairResult }) {
+  const [tone, setTone] = useState<"polite" | "firm">("polite");
+  const msg =
+    (tone === "polite" ? r.message_polite : r.message_firm) ||
+    "문구를 생성하지 못했어요. 다시 시도해 주세요.";
+  const emergency =
+    r.emergency && r.emergency.length > 0
+      ? r.emergency
+      : ["우선 안전을 확인하고, 문제 부위를 사진으로 남겨두세요."];
   return (
     <div className="space-y-4">
       {r.safety && <SafetyBanner safety={r.safety} />}
+
+      {/* 긴급도 신호등 + 지금 당장 할 한 가지 */}
+      <UrgencySignal urgency={r.urgency} firstAction={r.firstAction} />
 
       {/* 핵심 결론을 스크롤 없이 먼저 — 큰 책임 판단 배너 */}
       <VerdictHero responsibility={r.responsibility} />
 
       <Section index="①" icon={<ClipboardCheck size={18} />} title="지금 당장 할 수 있는 것">
         <ul className="space-y-2.5">
-          {(r.emergency || []).map((item, i) => (
+          {emergency.map((item, i) => (
             <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-ink">
               <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
               <span>{item}</span>
@@ -86,17 +127,93 @@ function RepairCards({ r }: { r: RepairResult }) {
         <span className="inline-flex items-center gap-1.5 rounded-full bg-bg px-3 py-1 text-xs font-semibold text-muted ring-1 ring-line">
           <BookOpen size={12} /> 참고: 민법 제623조
         </span>
-        <p className="mt-3 text-sm leading-relaxed text-ink">{r.responsibility?.reason}</p>
+        <p className="mt-3 text-sm leading-relaxed text-ink">
+          {r.responsibility?.reason || "근거 정보를 충분히 불러오지 못했어요. 다시 시도해 주세요."}
+        </p>
         <div className="mt-3 flex items-start gap-2 rounded-xl bg-bg p-3 text-xs leading-relaxed text-muted">
           <ShieldCheck size={14} className="mt-0.5 shrink-0 text-muted" />
-          <p>{r.responsibility?.disclaimer}</p>
+          <p>
+            {r.responsibility?.disclaimer ||
+              "본 판단은 참고용이며 법적 자문이 아닙니다. 분쟁 시 주택임대차분쟁조정위원회 또는 변호사 상담을 권장합니다."}
+          </p>
         </div>
       </Section>
 
-      <Section index="③" icon={<MessageSquareText size={18} />} title="집주인에게 보낼 연락 문구">
-        <ToneMessage polite={r.message_polite} firm={r.message_firm} />
+      <Section
+        index="③"
+        icon={<MessageSquareText size={18} />}
+        title="집주인에게 보낼 연락 문구"
+        collapsible
+        defaultOpen={false}
+      >
+        <ToneMessage tone={tone} setTone={setTone} message={msg} />
         {r.certified_mail_suggested && <CertifiedMailAccordion />}
       </Section>
+
+      {/* 다음 단계 미니 체크리스트 */}
+      <NextSteps />
+
+      {/* 한 손 사용 — 하단 고정 액션 바 (복사·문자·저장) */}
+      <MessageActionBar message={msg} />
+      <div className="no-print h-2" aria-hidden />
+    </div>
+  );
+}
+
+function UrgencySignal({
+  urgency,
+  firstAction,
+}: {
+  urgency?: Urgency;
+  firstAction?: string;
+}) {
+  if (!urgency && !firstAction) return null;
+  const map: Record<
+    Urgency,
+    { label: string; dot: string; box: string; text: string }
+  > = {
+    emergency: {
+      label: "지금 조치 필요",
+      dot: "bg-danger",
+      box: "border-danger/30 bg-danger-tint",
+      text: "text-danger",
+    },
+    soon: {
+      label: "곧 해결하세요",
+      dot: "bg-warn",
+      box: "border-warn/40 bg-warn-tint",
+      text: "text-[#9A6B00]",
+    },
+    routine: {
+      label: "급하지 않아요",
+      dot: "bg-ok",
+      box: "border-ok/30 bg-ok-tint",
+      text: "text-ok",
+    },
+  };
+  const u = urgency && map[urgency] ? map[urgency] : map.routine;
+  return (
+    <div className={`animate-fade-up rounded-2xl border p-4 ${u.box}`}>
+      <div className="flex items-center gap-2.5">
+        {/* 신호등 */}
+        <span className="flex items-center gap-1" aria-hidden>
+          {(["emergency", "soon", "routine"] as const).map((lvl) => (
+            <span
+              key={lvl}
+              className={`h-2.5 w-2.5 rounded-full ${
+                lvl === urgency ? map[lvl].dot : "bg-line"
+              }`}
+            />
+          ))}
+        </span>
+        <span className={`text-sm font-bold ${u.text}`}>{u.label}</span>
+      </div>
+      {firstAction && (
+        <p className="mt-2.5 text-sm leading-relaxed text-ink">
+          <span className="font-bold">먼저 이것부터: </span>
+          {firstAction}
+        </p>
+      )}
     </div>
   );
 }
@@ -124,12 +241,19 @@ function VerdictHero({ responsibility }: { responsibility?: RepairResult["respon
   };
   const verdict = responsibility?.verdict;
   const v = verdict && map[verdict] ? map[verdict] : map.depends;
+  const confidence =
+    verdict === "depends"
+      ? "단정하기 어려운 사안이에요"
+      : "비교적 분명한 편이에요";
   return (
     <div className={`animate-fade-up rounded-2xl border p-5 ${v.box}`}>
       <p className="mb-2 text-xs font-semibold text-muted">이 문제, 누구 책임일까요?</p>
-      <span className={`inline-flex rounded-full px-3.5 py-1.5 text-sm font-bold ${v.badge}`}>
-        {v.label}
-      </span>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className={`inline-flex rounded-full px-3.5 py-1.5 text-sm font-bold ${v.badge}`}>
+          {v.label}
+        </span>
+        <span className="text-xs font-medium text-muted">· {confidence}</span>
+      </div>
       {responsibility?.summary && (
         <p className="mt-3 text-base font-semibold leading-snug text-ink">
           {responsibility.summary}
@@ -139,9 +263,15 @@ function VerdictHero({ responsibility }: { responsibility?: RepairResult["respon
   );
 }
 
-function ToneMessage({ polite, firm }: { polite: string; firm: string }) {
-  const [tone, setTone] = useState<"polite" | "firm">("polite");
-  const msg = tone === "polite" ? polite : firm;
+function ToneMessage({
+  tone,
+  setTone,
+  message,
+}: {
+  tone: "polite" | "firm";
+  setTone: (t: "polite" | "firm") => void;
+  message: string;
+}) {
   return (
     <div>
       <div className="mb-3 inline-flex rounded-xl bg-bg p-1">
@@ -150,7 +280,7 @@ function ToneMessage({ polite, firm }: { polite: string; firm: string }) {
             key={t}
             type="button"
             onClick={() => setTone(t)}
-            className={`rounded-lg px-4 py-1.5 text-sm font-semibold transition-colors ${
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
               tone === t ? "bg-card text-brand shadow-sm" : "text-muted"
             }`}
           >
@@ -159,14 +289,14 @@ function ToneMessage({ polite, firm }: { polite: string; firm: string }) {
         ))}
       </div>
       <div className="whitespace-pre-wrap rounded-xl border border-line bg-bg p-4 text-sm leading-relaxed text-ink">
-        {msg}
+        {message}
       </div>
-      <MessageActions message={msg} />
     </div>
   );
 }
 
-function MessageActions({ message }: { message: string }) {
+// 하단 고정 액션 바 — 엄지로 닿는 위치, 인쇄 시 숨김
+function MessageActionBar({ message }: { message: string }) {
   const [toast, setToast] = useState<string | null>(null);
 
   function showToast(t: string) {
@@ -211,26 +341,95 @@ function MessageActions({ message }: { message: string }) {
 
   return (
     <>
-      <div className="no-print mt-3 grid grid-cols-3 gap-2">
-        <button type="button" onClick={copyText} className="btn-ghost text-sm">
-          <Copy size={16} /> 복사
-        </button>
-        <button type="button" onClick={sendSms} className="btn-ghost text-sm">
-          <Send size={16} /> 문자로
-        </button>
-        <button type="button" onClick={save} className="btn-ghost text-sm">
-          <Printer size={16} /> 저장
-        </button>
+      <div
+        className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card/95 backdrop-blur"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <div className="container-app grid grid-cols-3 gap-2 py-3">
+          <button type="button" onClick={copyText} className="btn-ghost text-sm">
+            <Copy size={16} /> 복사
+          </button>
+          <button type="button" onClick={sendSms} className="btn-primary text-sm">
+            <Send size={16} /> 문자로
+          </button>
+          <button type="button" onClick={save} className="btn-ghost text-sm">
+            <Printer size={16} /> 저장
+          </button>
+        </div>
       </div>
       {toast && (
         <div
           role="status"
-          className="no-print fixed inset-x-0 bottom-6 z-50 mx-auto flex w-fit items-center gap-2 rounded-full bg-ink/90 px-4 py-2.5 text-sm font-medium text-white shadow-lift backdrop-blur animate-fade-up"
+          className="no-print fixed inset-x-0 bottom-24 z-50 mx-auto flex w-fit items-center gap-2 rounded-full bg-ink/90 px-4 py-2.5 text-sm font-medium text-white shadow-lift backdrop-blur animate-fade-up"
         >
           <Check size={15} className="text-brand" /> {toast}
         </div>
       )}
     </>
+  );
+}
+
+// 다음 단계 — 체크는 localStorage 에만 저장
+const REPAIR_STEPS = [
+  "집주인에게 위 문구 전송하기",
+  "회신 없으면 3~7일 뒤 한 번 더 요청하기",
+  "사진·대화 기록을 보관해두기",
+  "그래도 미해결이면 주택임대차분쟁조정위원회에 문의하기",
+];
+
+function NextSteps() {
+  const STORAGE = "nest:nextsteps:repair:v1";
+  const [checked, setChecked] = useState<boolean[]>(() => REPAIR_STEPS.map(() => false));
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE);
+      if (raw) {
+        const a = JSON.parse(raw);
+        if (Array.isArray(a)) setChecked(REPAIR_STEPS.map((_, i) => !!a[i]));
+      }
+    } catch {
+      /* noop */
+    }
+  }, []);
+
+  function toggle(i: number) {
+    setChecked((prev) => {
+      const next = prev.map((v, idx) => (idx === i ? !v : v));
+      try {
+        localStorage.setItem(STORAGE, JSON.stringify(next));
+      } catch {
+        /* noop */
+      }
+      return next;
+    });
+  }
+
+  return (
+    <Section icon={<ListChecks size={18} />} title="다음 단계">
+      <ul className="space-y-1">
+        {REPAIR_STEPS.map((s, i) => (
+          <li key={i}>
+            <label className="flex cursor-pointer items-start gap-3 rounded-lg py-1.5">
+              <input
+                type="checkbox"
+                checked={checked[i]}
+                onChange={() => toggle(i)}
+                className="mt-0.5 h-5 w-5 shrink-0 rounded border-line accent-brand"
+              />
+              <span
+                className={`text-sm leading-relaxed ${
+                  checked[i] ? "text-muted line-through" : "text-ink"
+                }`}
+              >
+                {s}
+              </span>
+            </label>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 text-xs text-muted">체크 상태는 이 기기에만 저장돼요.</p>
+    </Section>
   );
 }
 
@@ -253,10 +452,10 @@ function CertifiedMailAccordion() {
           있어요. 인터넷우체국이나 가까운 우체국에서 보낼 수 있습니다.
         </p>
         <p>
-          분쟁이 풀리지 않으면 <b className="text-ink">주택임대차분쟁조정위원회</b>에 조정을 신청할
-          수 있어요. 비용 부담이 적고 변호사 없이도 진행할 수 있습니다.
-          {/* 연락처/링크는 최신 확인 필요 — 화면 표기 시 검증된 정보 사용 */}
+          분쟁이 풀리지 않으면 <b className="text-ink">{DISPUTE_HELP.label}</b>에 조정을 신청할 수
+          있어요. 비용 부담이 적고 변호사 없이도 진행할 수 있습니다. {DISPUTE_HELP.note}
         </p>
+        <p className="text-[11px] text-muted">연락처·접수처는 변경될 수 있어요 ({CONTACTS_VERIFIED}).</p>
       </div>
     </details>
   );

@@ -61,12 +61,17 @@ app/
   utility/page.tsx         # 공과금
   api/assist/route.ts      # Claude 호출(공통, topic 분기)
 components/
-  AssistWorkspace.tsx      # 공통 엔진(입력→API→결과, 단계적 로딩·빈 상태)
-  ResultCards.tsx          # 결과 렌더(책임 배너·문구 액션·공과금 차트 등)
+  AssistWorkspace.tsx      # 공통 엔진(입력→되묻기→결과, 단계적 로딩·예시·빈 상태)
+  ResultCards.tsx          # 결과 렌더(긴급도 신호등·책임 배너·하단 액션바·다음단계·공과금 차트)
   PhotoUpload.tsx SafetyBanner.tsx NestMark.tsx
+  RecentProblems.tsx       # 최근 본 문제(localStorage)
+  Onboarding.tsx           # 첫 방문 1회 사용법 오버레이
 lib/
   prompts.ts               # topic별 시스템 프롬프트
   types.ts                 # 공통 타입
+  history.ts               # 최근 기록(localStorage 전용)
+  contacts.ts              # 응급/분쟁 연락처 + 확인 시점
+  sample.ts                # 데모용 샘플 결과(곰팡이)
 PROMPTS.md                 # 제출용 핵심 프롬프트 정리
 ```
 

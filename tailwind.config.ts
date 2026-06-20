@@ -28,6 +28,11 @@ const config: Config = {
           DEFAULT: "#B91C1C", // 치명적 위험 — 진한 배경용
           tint: "#FEECEC",
         },
+        // 긴급도 'routine'(급하지 않음) 표시용 그린 (브랜드 레드와 구분)
+        ok: {
+          DEFAULT: "#15803D",
+          tint: "#E9F6EE",
+        },
       },
       fontFamily: {
         sans: [

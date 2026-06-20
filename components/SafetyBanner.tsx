@@ -1,5 +1,6 @@
 import { AlertTriangle, PhoneCall } from "lucide-react";
 import type { SafetyInfo } from "@/lib/types";
+import { CONTACTS_VERIFIED } from "@/lib/contacts";
 
 // 안전 경고 배너 — 브랜드 레드와 충돌 피하려 앰버/진한레드 사용 (브리프 4·7-2)
 export default function SafetyBanner({ safety }: { safety: SafetyInfo }) {
@@ -31,20 +32,25 @@ export default function SafetyBanner({ safety }: { safety: SafetyInfo }) {
           </p>
           <p className="text-sm leading-relaxed text-ink">{safety.message}</p>
           {safety.contacts && safety.contacts.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-1">
-              {safety.contacts.map((c, i) => (
-                <span
-                  key={i}
-                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
-                    danger
-                      ? "bg-danger text-white"
-                      : "bg-white text-[#9A6B00] ring-1 ring-warn/40"
-                  }`}
-                >
-                  <PhoneCall size={13} /> {c}
-                </span>
-              ))}
-            </div>
+            <>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {safety.contacts.map((c, i) => (
+                  <span
+                    key={i}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
+                      danger
+                        ? "bg-danger text-white"
+                        : "bg-white text-[#9A6B00] ring-1 ring-warn/40"
+                    }`}
+                  >
+                    <PhoneCall size={13} /> {c}
+                  </span>
+                ))}
+              </div>
+              <p className="pt-0.5 text-[11px] text-muted">
+                연락처는 변경될 수 있어요 ({CONTACTS_VERIFIED}, 최신 확인 권장).
+              </p>
+            </>
           )}
         </div>
       </div>

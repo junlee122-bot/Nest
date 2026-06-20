@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ChevronRight, Camera, Sparkles, Send } from "lucide-react";
 import NestMark from "@/components/NestMark";
+import RecentProblems from "@/components/RecentProblems";
+import Onboarding from "@/components/Onboarding";
 
 const steps = [
   { icon: Camera, title: "사진·한 줄로 입력", desc: "곰팡이·누수 등 문제를 찍거나 적어요" },
@@ -42,6 +44,9 @@ const cards = [
 export default function Home() {
   return (
     <main className="min-h-dvh pb-16">
+      {/* 첫 방문 1회 사용법 오버레이 */}
+      <Onboarding />
+
       {/* 히어로 */}
       <section className="flow-bg">
         <div className="container-app pb-8 pt-14 text-center">
@@ -142,6 +147,9 @@ export default function Home() {
           </p>
         </div>
       </section>
+
+      {/* 최근 본 문제 (이 기기 localStorage 전용) */}
+      <RecentProblems />
 
       {/* 푸터 — 책임 한정 + 개인정보 (당선 취소 방지) */}
       <footer className="container-app pt-10">

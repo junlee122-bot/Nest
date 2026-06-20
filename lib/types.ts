@@ -24,9 +24,14 @@ export interface Responsibility {
   disclaimer: string;
 }
 
+// 긴급도 신호등
+export type Urgency = "emergency" | "soon" | "routine";
+
 // ── 메인: 집 수리 결과 (3단 카드) ──────────────────────────────
 export interface RepairResult {
   kind: "repair";
+  urgency: Urgency; // 긴급도 신호등
+  firstAction: string; // 지금 당장 할 단 한 가지
   emergency: string[]; // ① 지금 당장 할 수 있는 것
   safety: SafetyInfo; // 안전 경고 배너
   responsibility: Responsibility; // ② 누구 책임?
@@ -71,6 +76,13 @@ export interface AssistRequest {
   topic: Topic;
   text: string;
   imageDataUrl?: string | null; // "data:image/png;base64,..."
+  disallowClarify?: boolean; // 되묻기 1회 제한용 — true면 추가 질문 없이 최종 결과
+}
+
+// 되묻기(추가 질문)
+export interface Clarify {
+  question: string;
+  chips: string[];
 }
 
 export interface AssistResponseOk {
@@ -78,9 +90,17 @@ export interface AssistResponseOk {
   result: AssistResult;
 }
 
+export interface AssistResponseClarify {
+  ok: true;
+  clarify: Clarify;
+}
+
 export interface AssistResponseErr {
   ok: false;
   error: string;
 }
 
-export type AssistResponse = AssistResponseOk | AssistResponseErr;
+export type AssistResponse =
+  | AssistResponseOk
+  | AssistResponseClarify
+  | AssistResponseErr;
