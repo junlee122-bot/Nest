@@ -130,39 +130,86 @@ export async function getUserAccounts(token: ObToken): Promise<ObAccount[]> {
   }));
 }
 
-// 거래내역조회 (핀테크이용번호 기준)
-export async function getTransactions(
-  token: ObToken,
-  fintechUseNum: string,
-  fromDate: string,
-  toDate: string
-): Promise<ObTransaction[]> {
-  if (!OB.orgCode) throw new Error("org_code_missing");
-  const p = new URLSearchParams({
-    bank_tran_id: bankTranId(),
-    fintech_use_num: fintechUseNum,
-    inquiry_type: "A", // 전체
-    inquiry_base: "D", // 기준일자
-    from_date: fromDate,
-    to_date: toDate,
-    sort_order: "D", // 최신순
-    tran_dtime: yyyymmddhhmmss(new Date()),
-  });
-  const url = `${OB.baseUrl}/${OB.apiVersion}/account/transaction_list/fin_num?${p.toString()}`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token.access_token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`tx_http_${res.status}`);
-  const j = await res.json();
-  if (j.rsp_code && j.rsp_code !== "A0000") throw new Error(`tx_${j.rsp_code}`);
-  const list = Array.isArray(j.res_list) ? j.res_list : [];
-  return list.map((t: Record<string, unknown>) => ({
+function mapTx(t: Record<string, unknown>): ObTransaction {
+  return {
     date: String(t.tran_date ?? ""),
     amount: parseInt(String(t.tran_amt ?? "0").replace(/[^0-9]/g, ""), 10) || 0,
     content: String(t.print_content ?? t.branch_name ?? ""),
     inout: String(t.inout_type ?? ""),
-  }));
+  };
+}
+
+// 거래내역조회 (핀테크이용번호 기준) — 페이지당 최대 25건, next_page_yn 기반 페이지네이션
+export async function getTransactions(
+  token: ObToken,
+  fintechUseNum: string,
+  fromDate: string,
+  toDate: string,
+  maxPages = 6 // PoC: 최대 6페이지(약 150건)까지 수집
+): Promise<ObTransaction[]> {
+  if (!OB.orgCode) throw new Error("org_code_missing");
+  const out: ObTransaction[] = [];
+  let pageIndex = 1;
+  let beforeTrace: string | undefined;
+
+  for (let i = 0; i < maxPages; i++) {
+    const p = new URLSearchParams({
+      bank_tran_id: bankTranId(),
+      fintech_use_num: fintechUseNum,
+      inquiry_type: "A", // 전체
+      inquiry_base: "D", // 기준일자
+      from_date: fromDate,
+      to_date: toDate,
+      sort_order: "D", // 최신순
+      tran_dtime: yyyymmddhhmmss(new Date()),
+      page_index: String(pageIndex),
+    });
+    if (beforeTrace) p.set("befor_inquiry_trace_info", beforeTrace);
+
+    const url = `${OB.baseUrl}/${OB.apiVersion}/account/transaction_list/fin_num?${p.toString()}`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token.access_token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`tx_http_${res.status}`);
+    const j = await res.json();
+    if (j.rsp_code && j.rsp_code !== "A0000") throw new Error(`tx_${j.rsp_code}`);
+
+    const list = Array.isArray(j.res_list) ? j.res_list : [];
+    for (const t of list) out.push(mapTx(t as Record<string, unknown>));
+
+    if (j.next_page_yn !== "Y") break; // 다음 페이지 없음
+    beforeTrace =
+      typeof j.befor_inquiry_trace_info === "string" ? j.befor_inquiry_trace_info : undefined;
+    pageIndex += 1;
+  }
+  return out;
+}
+
+// 잔액조회 (선택) — best-effort, 실패 시 null
+export async function getBalance(
+  token: ObToken,
+  fintechUseNum: string
+): Promise<number | null> {
+  if (!OB.orgCode) return null;
+  const p = new URLSearchParams({
+    bank_tran_id: bankTranId(),
+    fintech_use_num: fintechUseNum,
+    tran_dtime: yyyymmddhhmmss(new Date()),
+  });
+  const url = `${OB.baseUrl}/${OB.apiVersion}/account/balance/fin_num?${p.toString()}`;
+  try {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token.access_token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const j = await res.json();
+    if (j.rsp_code && j.rsp_code !== "A0000") return null;
+    return parseInt(String(j.balance_amt ?? "").replace(/[^0-9]/g, ""), 10) || null;
+  } catch {
+    return null;
+  }
 }
 
 // 최근 N일 날짜 범위
