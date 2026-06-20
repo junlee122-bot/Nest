@@ -27,9 +27,22 @@ export interface Responsibility {
 // 긴급도 신호등
 export type Urgency = "emergency" | "soon" | "routine";
 
+// 수리 문제 유형 (업체 검색어·긴급 연락처 매핑용)
+export type RepairCategory =
+  | "leak"
+  | "boiler"
+  | "mold"
+  | "toilet"
+  | "doorlock"
+  | "electric"
+  | "gas"
+  | "pest"
+  | "etc";
+
 // ── 메인: 집 수리 결과 (3단 카드) ──────────────────────────────
 export interface RepairResult {
   kind: "repair";
+  category?: RepairCategory; // 문제 유형 (업체 연결용)
   urgency: Urgency; // 긴급도 신호등
   firstAction: string; // 지금 당장 할 단 한 가지
   emergency: string[]; // ① 지금 당장 할 수 있는 것

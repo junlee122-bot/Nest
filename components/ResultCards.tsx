@@ -16,6 +16,9 @@ import {
   Check,
   ChevronDown,
   ShieldCheck,
+  MapPin,
+  Phone,
+  Wrench,
 } from "lucide-react";
 import type {
   AssistResult,
@@ -27,7 +30,13 @@ import type {
   UtilityStatus,
 } from "@/lib/types";
 import SafetyBanner from "./SafetyBanner";
-import { CONTACTS_VERIFIED, DISPUTE_HELP } from "@/lib/contacts";
+import { CONTACTS_VERIFIED, DISPUTE_HELP, emergencyContactsFor } from "@/lib/contacts";
+import {
+  naverMapSearchUrl,
+  kakaoMapSearchUrl,
+  categoryLabel,
+  SPONSORED_PROVIDERS,
+} from "@/lib/services";
 
 export default function ResultCards({ result }: { result: AssistResult }) {
   if (result.kind === "repair") return <RepairCards r={result} />;
@@ -152,6 +161,9 @@ function RepairCards({ r }: { r: RepairResult }) {
 
       {/* 다음 단계 미니 체크리스트 */}
       <NextSteps />
+
+      {/* 도움받기 — verdict/urgency 맥락에 맞춰 업체·긴급 연결 */}
+      <HelpConnect r={r} />
 
       {/* 한 손 사용 — 하단 고정 액션 바 (복사·문자·저장) */}
       <MessageActionBar message={msg} />
@@ -429,6 +441,164 @@ function NextSteps() {
         ))}
       </ul>
       <p className="mt-2 text-xs text-muted">체크 상태는 이 기기에만 저장돼요.</p>
+    </Section>
+  );
+}
+
+/* ── 도움받기 (수리 업체·긴급 연결) ── */
+function HelpConnect({ r }: { r: RepairResult }) {
+  const [region, setRegion] = useState("");
+  const cat = r.category;
+  const label = categoryLabel(cat);
+
+  const findButtons = (
+    <div>
+      <input
+        type="text"
+        value={region}
+        onChange={(e) => setRegion(e.target.value)}
+        placeholder="동네(구/동) — 예: 마포구 (선택)"
+        className="w-full rounded-xl border border-line bg-bg p-3 text-sm text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+      />
+      <div className="mt-2 space-y-2">
+        <a
+          href={naverMapSearchUrl(cat, region)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-primary w-full"
+        >
+          <MapPin size={17} /> 내 주변 {label} 업체 찾기
+        </a>
+        <a
+          href={kakaoMapSearchUrl(cat, region)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-ghost w-full text-sm"
+        >
+          카카오맵으로 찾기
+        </a>
+      </div>
+      {/* 향후 제휴/스폰서 업체 자리 — 데모에는 비어 있음 */}
+      {SPONSORED_PROVIDERS.length > 0 && (
+        <div className="mt-2 space-y-2">
+          {SPONSORED_PROVIDERS.map((p) => (
+            <div key={p.name} className="rounded-xl border border-line p-3 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-ink">{p.name}</span>
+                {p.badge && (
+                  <span className="rounded-full bg-brand-tint px-2 py-0.5 text-xs font-bold text-brand">
+                    {p.badge}
+                  </span>
+                )}
+              </div>
+              {p.region && <p className="text-xs text-muted">{p.region}</p>}
+              {p.tel && (
+                <a href={`tel:${p.tel.replace(/[^0-9+]/g, "")}`} className="text-xs text-brand">
+                  {p.tel}
+                </a>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const trustLine = (
+    <p className="mt-3 text-xs leading-relaxed text-muted">
+      둥지는 특정 업체를 보증하지 않아요. 견적·계약은 직접 확인하세요. 위치·연락처는 저장하지 않아요.
+    </p>
+  );
+
+  // 긴급: 공식 긴급 연락처(tel:)를 최우선, 그 다음 업체 찾기
+  if (r.urgency === "emergency") {
+    const contacts = emergencyContactsFor(cat);
+    return (
+      <Section icon={<Phone size={18} />} title="도움받기 — 긴급 연락">
+        <p className="text-sm leading-relaxed text-ink">
+          위험할 수 있어요. 직접 손대지 말고 먼저 공식 기관에 연락하세요.
+        </p>
+        <div className="mt-3 space-y-2">
+          {contacts.map((c, i) =>
+            c.tel ? (
+              <a
+                key={i}
+                href={`tel:${c.tel.replace(/[^0-9+]/g, "")}`}
+                className="btn-primary w-full justify-between"
+              >
+                <span className="flex items-center gap-2">
+                  <Phone size={16} /> {c.label}
+                </span>
+                <span className="font-bold">{c.tel}</span>
+              </a>
+            ) : (
+              <p key={i} className="rounded-xl bg-bg p-3 text-sm text-muted">
+                {c.label}
+              </p>
+            )
+          )}
+        </div>
+        <p className="mt-2 text-[11px] text-muted">
+          연락처는 변경될 수 있어요 ({CONTACTS_VERIFIED}, 최신 확인 권장).
+        </p>
+        <div className="mt-4 border-t border-line pt-4">
+          <p className="mb-2 text-sm font-semibold text-ink">급한 수리 업체 찾기</p>
+          {findButtons}
+        </div>
+        {trustLine}
+      </Section>
+    );
+  }
+
+  // 세입자 부담: 업체 찾기가 1순위
+  if (r.responsibility?.verdict === "tenant") {
+    return (
+      <Section icon={<Wrench size={18} />} title="도움받기 — 직접 해결">
+        <p className="mb-1 text-sm leading-relaxed text-ink">
+          이 문제는 보통 세입자가 직접 처리하는 사안이에요. 가까운 업체를 찾아보세요.
+        </p>
+        {findButtons}
+        {trustLine}
+      </Section>
+    );
+  }
+
+  // 집주인 책임(비긴급): 집주인 문구가 1순위 — 업체 찾기는 '대안'으로 접어둠
+  if (r.responsibility?.verdict === "landlord") {
+    return (
+      <Section icon={<Wrench size={18} />} title="도움받기 — 집주인이 응답 없을 때">
+        <p className="text-sm leading-relaxed text-ink">
+          이 문제는 보통 <b>집주인 수선의무</b>예요. 먼저 위 문구로 집주인에게 요청하세요. 집주인이
+          응답이 없거나 급할 땐 직접 수리할 수 있고, 그 비용은 집주인에게 청구할 수 있어요(민법
+          제626조). <b>견적서·영수증을 꼭 보관하세요.</b>
+        </p>
+        <details className="group mt-3 [&_summary::-webkit-details-marker]:hidden">
+          <summary className="flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-brand">
+            직접 업체 찾아보기
+            <ChevronDown size={15} className="transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="mt-3">{findButtons}</div>
+        </details>
+        {trustLine}
+      </Section>
+    );
+  }
+
+  // 사안에 따라 다름(depends): 상의 우선 + 업체 점검은 보조
+  return (
+    <Section icon={<Wrench size={18} />} title="도움받기">
+      <p className="text-sm leading-relaxed text-ink">
+        원인에 따라 책임이 갈리는 사안이에요. 집주인과 상의가 우선이며, 필요하면 업체에 점검을 의뢰해
+        원인을 확인할 수 있어요.
+      </p>
+      <details className="group mt-3 [&_summary::-webkit-details-marker]:hidden">
+        <summary className="flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-brand">
+          업체 찾아보기
+          <ChevronDown size={15} className="transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="mt-3">{findButtons}</div>
+      </details>
+      {trustLine}
     </Section>
   );
 }

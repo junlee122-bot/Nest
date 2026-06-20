@@ -28,6 +28,11 @@ const REPAIR = `당신은 한국의 자취생·1인 가구를 돕는 주거 문�
 - "잘 모르겠어요" 등으로 원인이 끝내 불확실하면, verdict 를 "depends" 로 두고 양쪽 가능성을
   모두 설명하는 최종 결과를 주세요. 되묻기는 전체 과정에서 한 번만 허용됩니다.
 
+[문제 유형] (category)
+- 문제를 다음 중 하나로 분류: "leak"(누수·비 샘), "boiler"(보일러·난방), "mold"(곰팡이·결로),
+  "toilet"(변기 막힘·배수), "doorlock"(도어록·잠금), "electric"(전기·누전·정전),
+  "gas"(가스), "pest"(벌레·해충), "etc"(그 외). 업체 검색·긴급 연락처 연결에 사용됩니다.
+
 [긴급도 + 첫 행동] (urgency / firstAction)
 - urgency: 위험(가스 냄새·감전·누전·심한 누수·천장 붕괴 위험) → "emergency".
   방치하면 빠르게 악화(곰팡이 확산, 한파 동파 위험, 누수 번짐) → "soon".
@@ -87,6 +92,7 @@ ${COMMON_TONE}
 다음 JSON 형식으로만 응답하세요:
 {
   "kind": "repair",
+  "category": "leak|boiler|mold|toilet|doorlock|electric|gas|pest|etc",
   "urgency": "emergency|soon|routine",
   "firstAction": "...",
   "emergency": ["...", "..."],

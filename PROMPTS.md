@@ -35,6 +35,10 @@
 { "needsClarification": true, "clarifyingQuestion": "...", "clarifyingChips": ["...", "...", "잘 모르겠어요"] }
 사용자가 추가 정보를 제공했으면(입력에 '추가 정보:' 포함) 되묻지 말고 최종 결과를 출력. 되묻기는 1회.
 
+[문제 유형] (category)
+- "leak"(누수)·"boiler"(보일러)·"mold"(곰팡이/결로)·"toilet"(변기/배수)·"doorlock"(도어록)·
+  "electric"(전기/누전)·"gas"(가스)·"pest"(벌레)·"etc"(그 외) 중 하나. 업체 검색·긴급 연락처 연결용.
+
 [긴급도 + 첫 행동] (urgency / firstAction)
 - urgency: 위험(가스·감전·누전·심한 누수)="emergency", 방치 시 악화(곰팡이 확산·동파)="soon",
   그 외="routine". firstAction: 지금 당장 할 단 한 가지를 한 문장으로.
