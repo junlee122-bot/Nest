@@ -1,0 +1,42 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-bg text-ink antialiased;
+    font-feature-settings: "tnum";
+  }
+  /* 흐르는 곡선 모티프(Intelligent Flow)를 절제해서 — 히어로 배경 */
+  .flow-bg {
+    background-image:
+      radial-gradient(60% 50% at 85% 0%, rgba(230, 0, 45, 0.10), transparent 70%),
+      radial-gradient(50% 40% at 0% 10%, rgba(230, 0, 45, 0.05), transparent 70%);
+  }
+}
+
+@layer components {
+  .container-app {
+    @apply mx-auto w-full max-w-app px-5;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 font-semibold text-white shadow-card transition-colors hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-card px-4 py-2.5 font-medium text-ink transition-colors hover:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-card shadow-card;
+  }
+  .chip {
+    @apply inline-flex items-center rounded-full border border-line bg-card px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:border-brand hover:text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand;
+  }
+  .skeleton {
+    @apply rounded-md bg-gradient-to-r from-line via-bg to-line bg-[length:200%_100%] animate-shimmer;
+  }
+}

@@ -1,0 +1,149 @@
+import { NextRequest, NextResponse } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
+import { systemPromptFor } from "@/lib/prompts";
+import type {
+  AssistResponse,
+  AssistResult,
+  Topic,
+} from "@/lib/types";
+
+// API 키는 서버에서만 사용 — 클라이언트 번들에 절대 노출되지 않습니다 (브리프 8/9장).
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
+const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-8";
+const VALID_TOPICS: Topic[] = ["repair", "admin", "utility"];
+const ALLOWED_MEDIA = ["image/jpeg", "image/png", "image/gif", "image/webp"] as const;
+type AllowedMedia = (typeof ALLOWED_MEDIA)[number];
+
+// "data:image/png;base64,XXXX" → { media_type, data }
+function parseDataUrl(
+  dataUrl: string
+): { media_type: AllowedMedia; data: string } | null {
+  const m = /^data:([^;]+);base64,([\s\S]+)$/.exec(dataUrl);
+  if (!m) return null;
+  const media_type = m[1] as AllowedMedia;
+  if (!ALLOWED_MEDIA.includes(media_type)) return null;
+  return { media_type, data: m[2] };
+}
+
+// 모델이 JSON 외 텍스트를 섞어도 안전하게 객체를 추출 (브리프 5-2 폴백)
+function extractJson(text: string): unknown | null {
+  const trimmed = text.trim();
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    // 첫 { 부터 마지막 } 까지 잘라 재시도
+    const start = trimmed.indexOf("{");
+    const end = trimmed.lastIndexOf("}");
+    if (start !== -1 && end !== -1 && end > start) {
+      try {
+        return JSON.parse(trimmed.slice(start, end + 1));
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+}
+
+export async function POST(req: NextRequest): Promise<NextResponse<AssistResponse>> {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json(
+      { ok: false, error: "서버에 API 키가 설정되지 않았습니다. 관리자에게 문의해주세요." },
+      { status: 500 }
+    );
+  }
+
+  let body: { topic?: string; text?: string; imageDataUrl?: string | null };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ ok: false, error: "잘못된 요청입니다." }, { status: 400 });
+  }
+
+  const topic = body.topic as Topic;
+  const text = (body.text || "").trim();
+  const imageDataUrl = body.imageDataUrl;
+
+  if (!VALID_TOPICS.includes(topic)) {
+    return NextResponse.json({ ok: false, error: "알 수 없는 주제입니다." }, { status: 400 });
+  }
+  if (!text && !imageDataUrl) {
+    return NextResponse.json(
+      { ok: false, error: "상황을 한 줄로 적거나 사진을 올려주세요." },
+      { status: 400 }
+    );
+  }
+  if (text.length > 2000) {
+    return NextResponse.json(
+      { ok: false, error: "내용이 너무 깁니다. 2000자 이내로 줄여주세요." },
+      { status: 400 }
+    );
+  }
+
+  // 사용자 메시지 구성 (멀티모달)
+  const content: Anthropic.MessageParam["content"] = [];
+  if (imageDataUrl) {
+    const parsed = parseDataUrl(imageDataUrl);
+    if (!parsed) {
+      return NextResponse.json(
+        { ok: false, error: "지원하지 않는 이미지 형식입니다. (JPG/PNG/GIF/WEBP)" },
+        { status: 400 }
+      );
+    }
+    content.push({
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: parsed.media_type,
+        data: parsed.data,
+      },
+    });
+  }
+  content.push({
+    type: "text",
+    text: text || "사진 속 상황을 분석해 주세요.",
+  });
+
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+  try {
+    const message = await client.messages.create({
+      model: MODEL,
+      max_tokens: 2048,
+      system: systemPromptFor(topic),
+      messages: [{ role: "user", content }],
+    });
+
+    const textOut = message.content
+      .filter((b): b is Anthropic.TextBlock => b.type === "text")
+      .map((b) => b.text)
+      .join("\n");
+
+    const parsed = extractJson(textOut);
+    if (!parsed || typeof parsed !== "object") {
+      return NextResponse.json(
+        { ok: false, error: "결과를 해석하지 못했어요. 잠시 후 다시 시도해주세요." },
+        { status: 502 }
+      );
+    }
+
+    // kind 보정 (모델이 누락할 경우 topic 기준으로 채움)
+    const result = { kind: topic, ...(parsed as object) } as AssistResult;
+    return NextResponse.json({ ok: true, result });
+  } catch (err) {
+    const e = err as { status?: number; message?: string };
+    if (e?.status === 429) {
+      return NextResponse.json(
+        { ok: false, error: "지금 요청이 많아요. 잠시 후 다시 시도해주세요." },
+        { status: 429 }
+      );
+    }
+    console.error("[assist] error:", e?.message || err);
+    return NextResponse.json(
+      { ok: false, error: "둥지가 잠시 응답하지 못했어요. 잠시 후 다시 시도해주세요." },
+      { status: 500 }
+    );
+  }
+}
