@@ -136,6 +136,29 @@ export default function Home() {
         })}
       </section>
 
+      {/* 베타: 주거비 자동분석 (오픈뱅킹 테스트베드) — 메인과 시각적으로 분리 */}
+      <section className="container-app pt-4">
+        <Link href="/money" className="block">
+          <div className="flex items-center gap-4 rounded-2xl border border-dashed border-brand/40 bg-brand-tint/40 p-4 transition hover:-translate-y-0.5 hover:shadow-lift">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-2xl">
+              💳
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <h2 className="font-bold text-ink">주거비 자동분석</h2>
+                <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold text-white">
+                  BETA
+                </span>
+              </div>
+              <p className="mt-1 text-sm leading-snug text-muted">
+                오픈뱅킹 테스트베드(모의계좌)로 월세·공과금 자동 집계
+              </p>
+            </div>
+            <ChevronRight size={20} className="shrink-0 text-brand/50" />
+          </div>
+        </Link>
+      </section>
+
       {/* 발전 로드맵 (유용성·발전가능성 노출 — 심사 30점) */}
       <section className="container-app pt-8">
         <div className="card p-5">

@@ -14,9 +14,13 @@
 - **📋 이사·행정 길잡이**: 전입신고·확정일자·보증보험·공과금 명의변경 맞춤 체크리스트
 - **💡 공과금 점검**: 요금 입력 → 1인 가구 평균 대비 진단 + 절약 팁 (출처 표기)
 - **🛒 혼밥 장보기 코치**: 로드맵 (v2)
+- **💳 주거비 자동분석 (베타)**: 금융결제원 **오픈뱅킹 테스트베드(모의계좌)** 기반 PoC.
+  거래내역을 월세·관리비·전기·가스·수도·통신비로 자동 분류·집계. `/money` 라우트로 **격리**되고,
+  화면에 "테스트베드(모의데이터)"를 명확히 표기. 환경변수 미설정 시 "베타 준비중"으로 안전 표시.
 
-설계는 "**엔진 1개 + 테마 입구 4개**" — 입력 UI·API 호출·결과 렌더는 공통 컴포넌트로
-재사용하고, 주제별로 시스템 프롬프트만 교체합니다.
+설계는 "**엔진 1개 + 테마 입구 4개**" — 집수리/행정/공과금 입력 UI·API 호출·결과 렌더는 공통
+컴포넌트로 재사용하고, 주제별로 시스템 프롬프트만 교체합니다. (주거비 분석 베타는 메인 앱의
+'개인정보 미수집' 가치와 섞이지 않도록 별도 페이지로 분리.)
 
 ## 기술 스택
 
@@ -44,6 +48,7 @@ npm run dev   # http://localhost:3000
 | --- | --- | --- |
 | `ANTHROPIC_API_KEY` | ✅ | Claude API 키 (서버에서만 사용, 레포에 커밋 금지) |
 | `ANTHROPIC_MODEL` | – | 사용할 모델 ID (기본 `claude-opus-4-8`) |
+| `OPENBANKING_*` | – | 주거비 분석 베타용(오픈뱅킹 테스트베드). 미설정 시 `/money`는 "베타 준비중" 표시. `.env.example` 참고 |
 
 ## 배포 (Vercel)
 
@@ -59,19 +64,25 @@ app/
   repair/page.tsx          # 집 수리 (메인)
   admin/page.tsx           # 이사·행정
   utility/page.tsx         # 공과금
+  money/page.tsx           # 주거비 자동분석 (베타, 오픈뱅킹 테스트베드)
   api/assist/route.ts      # Claude 호출(공통, topic 분기)
+  api/openbanking/         # connect(인가) · callback(토큰) · analyze(분류) — 서버 전용
 components/
   AssistWorkspace.tsx      # 공통 엔진(입력→되묻기→결과, 단계적 로딩·예시·빈 상태)
   ResultCards.tsx          # 결과 렌더(긴급도 신호등·책임 배너·하단 액션바·다음단계·공과금 차트)
   PhotoUpload.tsx SafetyBanner.tsx NestMark.tsx
   RecentProblems.tsx       # 최근 본 문제(localStorage)
   Onboarding.tsx           # 첫 방문 1회 사용법 오버레이
+  MoneyBeta.tsx            # 주거비 분석 베타 UI(연결·결과·고지)
 lib/
   prompts.ts               # topic별 시스템 프롬프트
   types.ts                 # 공통 타입
   history.ts               # 최근 기록(localStorage 전용)
   contacts.ts              # 응급/분쟁 연락처 + 확인 시점
+  services.ts              # 수리 업체 지도검색 딥링크 + 스폰서 자리
   sample.ts                # 데모용 샘플 결과(곰팡이)
+  openbanking.ts           # 오픈뱅킹 테스트베드 OAuth·조회 (서버 전용)
+  housing.ts               # 거래내역 → 주거비 카테고리 분류
 PROMPTS.md                 # 제출용 핵심 프롬프트 정리
 ```
 
@@ -82,6 +93,11 @@ PROMPTS.md                 # 제출용 핵심 프롬프트 정리
 - API 키는 **서버 라우트(`app/api/assist`)에서만** 사용하며 클라이언트 번들/레포에 노출되지 않습니다.
 - 책임 판단·문구는 **참고용이며 법적 자문이 아닙니다.** 분쟁 시 주택임대차분쟁조정위원회 또는
   변호사 상담을 권장합니다 (결과·푸터에 명시).
+- 수리 업체 연결은 사설 업체를 등록·보증하지 않고 **지도 앱 검색 + 공식 연락처**로만 연결하며,
+  위치·연락처를 수집·저장하지 않습니다.
+- **주거비 분석 베타**는 오픈뱅킹 **테스트베드(모의계좌)** 로만 동작합니다. `client_secret`·토큰은
+  서버 라우트에서만 사용하고(클라이언트 노출 금지), 토큰은 httpOnly 쿠키에 데모 세션 동안만
+  임시 보관하며 DB에 영구 저장하지 않습니다. 실계좌·실금융정보는 다루지 않습니다.
 - 폰트: [Pretendard](https://github.com/orioncactus/pretendard) (SIL Open Font License 1.1)
 - 아이콘: [lucide-react](https://lucide.dev) (ISC License)
 - 공과금 평균은 한국전력·도시가스·통계청 등 공개 기준의 참고 범위이며, 결과 화면에 출처를 표기합니다.
