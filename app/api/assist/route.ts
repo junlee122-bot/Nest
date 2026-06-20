@@ -96,6 +96,12 @@ export async function POST(req: NextRequest): Promise<NextResponse<AssistRespons
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
   let system = systemPromptFor(topic);
+  if (topic === "repair") {
+    const m = new Date().getMonth() + 1;
+    const season =
+      m === 12 || m <= 2 ? "겨울" : m <= 5 ? "봄(환절기)" : m <= 8 ? "여름·장마철" : "가을(환절기)";
+    system += `\n\n[현재 시기] 지금은 ${m}월(${season})입니다. 이 시기 특성을 진단·urgency·firstAction에 반영하세요.`;
+  }
   if (disallowClarify) {
     system +=
       "\n\n[중요] 사용자가 이미 추가 정보를 제공했습니다. 더 이상 되묻지 말고, 곧바로 최종 결과 JSON만 출력하세요.";

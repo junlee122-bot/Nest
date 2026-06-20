@@ -93,6 +93,7 @@ export interface ContractFinding {
   legal_basis: string[]; // 근거 법조문
   why: string; // 왜 불리한지
   action: string; // 대응
+  case_note?: string; // 사례/판례 한 줄(룰북 기반)
 }
 
 export interface ContractResult {
@@ -130,6 +131,8 @@ export interface ShoppingItem {
   qty: string;
   est_price: number;
   used_in: string[]; // 어느 메뉴에 쓰이는지
+  category?: string; // 마트 코너 (채소·과일/정육·계란/유제품/냉동·가공/양념·기타)
+  fresh_label?: string; // 상하기 쉬운 재료의 대략 기한 (예: "3일 내")
 }
 export interface GroceryPlanResult {
   mode: "plan";

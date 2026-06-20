@@ -11,6 +11,7 @@ import {
   Info,
 } from "lucide-react";
 import NestMark from "./NestMark";
+import ShareButton from "./ShareButton";
 
 interface Category {
   key: string;
@@ -253,9 +254,12 @@ function MoneyResult({ data, onRetry }: { data: AnalyzeData; onRetry: () => void
         </div>
       )}
 
-      <button onClick={onRetry} className="btn-ghost w-full">
-        다시 분석
-      </button>
+      <div className="grid grid-cols-2 gap-2">
+        <button onClick={onRetry} className="btn-ghost">
+          다시 분석
+        </button>
+        <ShareButton text={`[둥지] 주거비 분석 — 총 ${won(data.total || 0)}`} className="btn-ghost" />
+      </div>
     </div>
   );
 }

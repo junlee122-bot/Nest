@@ -12,8 +12,10 @@ import {
   Copy,
   Check,
   CircleCheck,
+  ChevronDown,
 } from "lucide-react";
 import NestMark from "./NestMark";
+import ShareButton from "./ShareButton";
 import { SAMPLE_CONTRACT, SAMPLE_CONTRACT_TEXT } from "@/lib/sample";
 import type { ContractResponse, ContractResult, RiskLevel } from "@/lib/types";
 
@@ -219,6 +221,10 @@ function ContractResultView({
 }) {
   const o = OVERALL[result.overall_risk] || OVERALL.none;
   const none = result.overall_risk === "none" || result.findings.length === 0;
+  const highN = result.findings.filter((f) => f.risk === "high").length;
+  const medN = result.findings.filter((f) => f.risk === "medium").length;
+  const gradeLabel =
+    result.overall_risk === "high" ? "높음" : result.overall_risk === "medium" ? "주의" : result.overall_risk === "low" ? "낮음" : "양호";
 
   return (
     <div className="space-y-4">
@@ -236,15 +242,29 @@ function ContractResultView({
           ) : (
             <Scale size={18} className={o.text} />
           )}
-          <span className={`text-sm font-bold ${o.text}`}>{o.label}</span>
-          {!none && (
-            <span className="ml-auto text-xs font-semibold text-muted">
-              {result.findings.length}개 항목
-            </span>
-          )}
+          <span className="text-xs font-semibold text-muted">이 계약서 위험도</span>
+          <span className={`text-base font-extrabold ${o.text}`}>{gradeLabel}</span>
         </div>
+        <p className={`mt-1 text-sm font-bold ${o.text}`}>{o.label}</p>
+        {!none && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            <span className="rounded-full bg-card px-2.5 py-1 text-xs font-bold text-ink ring-1 ring-line">
+              독소조항 {result.findings.length}건
+            </span>
+            {highN > 0 && (
+              <span className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white">
+                높음 {highN}
+              </span>
+            )}
+            {medN > 0 && (
+              <span className="rounded-full bg-warn px-2.5 py-1 text-xs font-bold text-white">
+                주의 {medN}
+              </span>
+            )}
+          </div>
+        )}
         {result.summary && (
-          <p className="mt-2 text-sm leading-relaxed text-ink">{result.summary}</p>
+          <p className="mt-3 text-sm leading-relaxed text-ink">{result.summary}</p>
         )}
       </div>
 
@@ -274,9 +294,15 @@ function ContractResultView({
         <p>{result.disclaimer}</p>
       </div>
 
-      <button onClick={onReset} className="btn-ghost w-full">
-        다른 계약서 검토하기
-      </button>
+      <div className="grid grid-cols-2 gap-2">
+        <button onClick={onReset} className="btn-ghost">
+          다른 계약서 검토
+        </button>
+        <ShareButton
+          text={`[둥지] 계약서 검토 — ${o.label} · 독소조항 ${result.findings.length}건`}
+          className="btn-ghost"
+        />
+      </div>
     </div>
   );
 }
@@ -329,6 +355,18 @@ function FindingCard({
             <CopyChip text={finding.action} />
           </div>
         </div>
+      )}
+
+      {finding.case_note && (
+        <details className="group mt-3 [&_summary::-webkit-details-marker]:hidden">
+          <summary className="flex cursor-pointer list-none items-center gap-1.5 text-xs font-semibold text-brand">
+            더 알아보기
+            <ChevronDown size={14} className="transition-transform group-open:rotate-180" />
+          </summary>
+          <p className="mt-2 rounded-xl bg-bg p-3 text-xs leading-relaxed text-muted">
+            {finding.case_note}
+          </p>
+        </details>
       )}
     </section>
   );

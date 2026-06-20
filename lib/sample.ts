@@ -111,6 +111,7 @@ export const SAMPLE_CONTRACT: ContractResult = {
       legal_basis: ["주택임대차보호법 제6조의3", "주택임대차보호법 제10조"],
       why: "갱신요구권은 1회 보장된 권리예요. 이를 포기시키는 약정은 임차인에게 불리해 효력이 없을 가능성이 높아요.",
       action: "이 조항 삭제를 요구하세요. 포기 각서를 써도 효력이 없을 가능성이 큽니다.",
+      case_note: "갱신요구권 포기 각서를 써도 효력이 없다고 보는 것이 일반적이에요.",
     },
     {
       clause_text: "임대인은 필요 시 보증금과 월세를 언제든 인상할 수 있다.",
@@ -118,6 +119,7 @@ export const SAMPLE_CONTRACT: ContractResult = {
       legal_basis: ["주택임대차보호법 제7조", "주택임대차보호법 제10조의2"],
       why: "증액은 5%를 넘을 수 없고 1년 이내 다시 올릴 수 없어요. ‘언제든 인상’ 조항은 한도를 벗어나 불리할 수 있어요.",
       action: "‘증액은 5% 이내, 1년 내 재증액 불가’로 명시하도록 요구하세요.",
+      case_note: "5%를 넘겨 더 낸 차임·보증금은 나중에 반환을 청구할 수 있어요(주임법 §10의2).",
     },
     {
       clause_text: "본 주택의 모든 수리와 하자는 임차인이 부담한다.",
@@ -125,6 +127,7 @@ export const SAMPLE_CONTRACT: ContractResult = {
       legal_basis: ["민법 제623조", "주택임대차보호법 제10조"],
       why: "누수·보일러·구조 결함 같은 큰 수선까지 임차인에게 떠넘기는 특약은 무효 소지가 있어요.",
       action: "‘대규모 수선은 임대인 부담’ 단서를 넣도록 요구하세요.",
+      case_note: "누수·보일러 같은 대규모 수선은 특약이 있어도 임대인 부담으로 보는 경우가 많아요.",
     },
     {
       clause_text: "퇴거 시 도배·장판 등 모든 부분을 새것처럼 원상복구한다.",
@@ -132,6 +135,7 @@ export const SAMPLE_CONTRACT: ContractResult = {
       legal_basis: ["민법 제615조·제654조", "약관규제법 제9조"],
       why: "생활하면서 생기는 자연 마모까지 부담시키는 건 다툼 소지가 있어요. 정형 계약서라면 무효 소지가 있어요.",
       action: "‘통상의 자연 마모는 원상복구 대상에서 제외’ 문구를 요구하세요.",
+      case_note: "도배·장판의 통상적 자연 마모는 임차인 부담이 아니라는 게 일반적이에요.",
     },
     {
       clause_text: "보증금은 다음 임차인이 들어온 후에 반환한다.",
@@ -139,6 +143,7 @@ export const SAMPLE_CONTRACT: ContractResult = {
       legal_basis: ["주택임대차보호법 제4조제2항"],
       why: "보증금 반환을 새 세입자 입주에 연동해 미루는 조항은 임차인에게 불리해요.",
       action: "‘계약 종료 시 보증금 반환’으로 명확히 하도록 요구하세요.",
+      case_note: "보증금 반환은 계약 종료에 따른 것이지 새 세입자와 연동되는 게 아니에요.",
     },
     {
       clause_text: "본 계약 관련 분쟁은 임대인 주소지 법원에서만 해결한다.",
@@ -146,6 +151,7 @@ export const SAMPLE_CONTRACT: ContractResult = {
       legal_basis: ["약관규제법 제14조"],
       why: "세입자에게 현저히 불리한 관할 합의는 정형 계약서라면 무효 소지가 있어요.",
       action: "관할 조항 삭제 또는 임차주택 소재지 법원으로 변경을 요구하세요.",
+      case_note: "세입자에게만 불리한 관할 합의는 효력이 부정될 수 있어요.",
     },
   ],
   disclaimer:
@@ -179,13 +185,13 @@ export const SAMPLE_GROCERY_PLAN: GroceryPlanResult = {
     },
   ],
   shopping_list: [
-    { item: "계란", qty: "10구", est_price: 3500, used_in: ["계란 김치볶음밥", "계란말이 덮밥"] },
-    { item: "두부", qty: "2모", est_price: 2400, used_in: ["두부 된장찌개", "두부김치"] },
-    { item: "김치", qty: "1봉(소)", est_price: 4000, used_in: ["계란 김치볶음밥", "김치 참치 비빔밥", "두부김치"] },
-    { item: "대파", qty: "1단(소)", est_price: 2000, used_in: ["계란말이 덮밥", "된장찌개"] },
-    { item: "애호박", qty: "1개", est_price: 1500, used_in: ["애호박 된장찌개"] },
-    { item: "참치캔", qty: "1개", est_price: 2000, used_in: ["김치 참치 비빔밥"] },
-    { item: "쌀", qty: "1kg(소포장)", est_price: 4000, used_in: ["전 끼니"] },
+    { item: "계란", qty: "10구", est_price: 3500, used_in: ["계란 김치볶음밥", "계란말이 덮밥"], category: "정육·계란", fresh_label: "" },
+    { item: "두부", qty: "2모", est_price: 2400, used_in: ["두부 된장찌개", "두부김치"], category: "유제품", fresh_label: "3일 내" },
+    { item: "김치", qty: "1봉(소)", est_price: 4000, used_in: ["계란 김치볶음밥", "김치 참치 비빔밥", "두부김치"], category: "양념·기타", fresh_label: "" },
+    { item: "대파", qty: "1단(소)", est_price: 2000, used_in: ["계란말이 덮밥", "된장찌개"], category: "채소·과일", fresh_label: "3일 내" },
+    { item: "애호박", qty: "1개", est_price: 1500, used_in: ["애호박 된장찌개"], category: "채소·과일", fresh_label: "3일 내" },
+    { item: "참치캔", qty: "1개", est_price: 2000, used_in: ["김치 참치 비빔밥"], category: "냉동·가공", fresh_label: "" },
+    { item: "쌀", qty: "1kg(소포장)", est_price: 4000, used_in: ["전 끼니"], category: "양념·기타", fresh_label: "" },
   ],
   total_est_price: 19400,
   budget_note: "예산이 더 빠듯하면 참치캔을 빼고 계란으로 단백질을 채우면 약 2,000원을 더 아낄 수 있어요.",

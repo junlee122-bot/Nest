@@ -181,7 +181,7 @@ intro: 한두 문장 친근한 안내. tips: 추가 팁 2~4개.
 출력 JSON:
 { "overall_risk": "high|medium|low|none", "summary": "...",
   "findings": [ { "clause_text": "...", "risk": "high|medium|low",
-    "legal_basis": ["주택임대차보호법 제10조"], "why": "...", "action": "..." } ],
+    "legal_basis": ["주택임대차보호법 제10조"], "why": "...", "action": "...", "case_note": "사례 한 줄(선택)" } ],
   "disclaimer": "..." }
 
 근거 법령(출처: 국가법령정보센터): 주택임대차보호법(시행 2026.1.2)·민법 일부·약관규제법(시행
@@ -197,7 +197,8 @@ intro: 한두 문장 친근한 안내. tips: 추가 팁 2~4개.
 입력: 1주 예산·기간·끼니 범위·식성/제약·조리 난이도. 핵심: 1인 소분·소량, 한 재료를 여러 끼니에
 돌려쓰기(used_in), 식단에서 쓰는 만큼만 장보기(남기지 않기), 예상 식비 합계 + 예산 초과 시 대안.
 출력 JSON: { "mode":"plan", "plan_days":[{"day","meals":[{"slot","name","why"}]}],
-"shopping_list":[{"item","qty","est_price","used_in":[]}], "total_est_price", "budget_note", "tips":[] }
+"shopping_list":[{"item","qty","est_price","used_in":[],"category","fresh_label"}], "total_est_price", "budget_note", "tips":[] }
+(category=마트 코너, fresh_label=상하기 쉬운 재료의 대략 기한 "3일 내" 등·참고용)
 
 ### 5-B) 남은 재료 처리 (mode: use)
 입력: 가진 재료. 핵심: 가진 재료 최대 소진 메뉴 우선, 추가 구매 최소(missing), 상하기 쉬운 재료

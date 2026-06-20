@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -15,6 +15,7 @@ import {
   CircleAlert,
 } from "lucide-react";
 import NestMark from "./NestMark";
+import ShareButton from "./ShareButton";
 import { SAMPLE_GROCERY_PLAN, SAMPLE_GROCERY_USE } from "@/lib/sample";
 import type {
   GroceryMode,
@@ -209,14 +210,24 @@ export default function GroceryCoach() {
             ) : (
               <UseView r={result as GroceryUseResult} />
             )}
-            <button onClick={reset} className="no-print btn-ghost w-full">
-              새로 짜기
-            </button>
+            <div className="no-print grid grid-cols-2 gap-2">
+              <button onClick={reset} className="btn-ghost">
+                새로 짜기
+              </button>
+              <ShareButton
+                text={
+                  result.mode === "plan"
+                    ? `[둥지] 장보기 — 예상 식비 ${won((result as GroceryPlanResult).total_est_price)}`
+                    : `[둥지] 장보기 — 남은 재료 메뉴 ${(result as GroceryUseResult).recipes?.length || 0}개`
+                }
+                className="btn-ghost"
+              />
+            </div>
           </>
         )}
 
         <p className="px-1 text-center text-xs leading-relaxed text-muted">
-          가격·식비는 지역·시점에 따라 다른 <b>예상치(참고용)</b>예요. 입력 내용은 저장하지 않습니다.
+          가격·식비·유통기한은 지역·시점에 따라 다른 <b>예상치(참고용)</b>예요. 입력 내용은 저장하지 않습니다.
         </p>
       </div>
     </main>
@@ -355,9 +366,21 @@ function UseForm({
   );
 }
 
+const CHANNEL_ORDER = ["채소·과일", "정육·계란", "유제품", "냉동·가공", "양념·기타", "기타"];
+
 /* ── 결과: 식단 ── */
 function PlanView({ r }: { r: GroceryPlanResult }) {
   const [checked, setChecked] = useState<Record<number, boolean>>({});
+  // 마트 동선대로 코너별 그룹핑 (원래 index 보존 → 체크 상태 유지)
+  const grouped = useMemo(() => {
+    const m = new Map<string, { it: (typeof r.shopping_list)[number]; idx: number }[]>();
+    (r.shopping_list || []).forEach((it, idx) => {
+      const cat = it.category && CHANNEL_ORDER.includes(it.category) ? it.category : "기타";
+      if (!m.has(cat)) m.set(cat, []);
+      m.get(cat)!.push({ it, idx });
+    });
+    return CHANNEL_ORDER.filter((c) => m.has(c)).map((c) => ({ cat: c, items: m.get(c)! }));
+  }, [r]);
   return (
     <div className="space-y-4">
       {/* 예상 식비 */}
@@ -415,31 +438,43 @@ function PlanView({ r }: { r: GroceryPlanResult }) {
             <Printer size={15} /> 저장
           </button>
         </div>
-        <ul className="space-y-1">
-          {(r.shopping_list || []).map((it, i) => (
-            <li key={i}>
-              <label className="flex cursor-pointer items-start gap-3 rounded-lg py-1.5">
-                <input
-                  type="checkbox"
-                  checked={!!checked[i]}
-                  onChange={() => setChecked((p) => ({ ...p, [i]: !p[i] }))}
-                  className="mt-1 h-5 w-5 shrink-0 rounded border-line accent-brand"
-                />
-                <span className="flex-1">
-                  <span className="flex items-center justify-between gap-2">
-                    <span className={`text-sm font-medium ${checked[i] ? "text-muted line-through" : "text-ink"}`}>
-                      {it.item} <span className="text-xs text-muted">· {it.qty}</span>
-                    </span>
-                    <span className="shrink-0 text-sm font-bold text-ink">{won(it.est_price)}</span>
-                  </span>
-                  {it.used_in?.length > 0 && (
-                    <span className="mt-0.5 block text-xs text-muted">→ {it.used_in.join(", ")}</span>
-                  )}
-                </span>
-              </label>
-            </li>
+        <div className="space-y-3">
+          {grouped.map((g) => (
+            <div key={g.cat}>
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-muted">{g.cat}</p>
+              <ul className="space-y-1">
+                {g.items.map(({ it, idx }) => (
+                  <li key={idx}>
+                    <label className="flex cursor-pointer items-start gap-3 rounded-lg py-1.5">
+                      <input
+                        type="checkbox"
+                        checked={!!checked[idx]}
+                        onChange={() => setChecked((p) => ({ ...p, [idx]: !p[idx] }))}
+                        className="mt-1 h-5 w-5 shrink-0 rounded border-line accent-brand"
+                      />
+                      <span className="flex-1">
+                        <span className="flex items-center justify-between gap-2">
+                          <span className={`text-sm font-medium ${checked[idx] ? "text-muted line-through" : "text-ink"}`}>
+                            {it.item} <span className="text-xs text-muted">· {it.qty}</span>
+                            {it.fresh_label && (
+                              <span className="ml-1.5 rounded-full bg-warn-tint px-1.5 py-0.5 text-[10px] font-bold text-[#9A6B00]">
+                                {it.fresh_label}
+                              </span>
+                            )}
+                          </span>
+                          <span className="shrink-0 text-sm font-bold text-ink">{won(it.est_price)}</span>
+                        </span>
+                        {it.used_in?.length > 0 && (
+                          <span className="mt-0.5 block text-xs text-muted">→ {it.used_in.join(", ")}</span>
+                        )}
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
         <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
           <span className="text-sm font-bold text-ink">합계 (예상)</span>
           <span className="text-base font-extrabold text-brand">{won(r.total_est_price)}</span>

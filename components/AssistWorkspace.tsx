@@ -6,8 +6,22 @@ import { ArrowLeft, Send, Loader2, AlertCircle, HelpCircle } from "lucide-react"
 import PhotoUpload from "./PhotoUpload";
 import ResultCards from "./ResultCards";
 import NestMark from "./NestMark";
+import ShareButton from "./ShareButton";
 import { addHistory, deriveTitle, getHistoryEntry } from "@/lib/history";
 import type { AssistResponse, AssistResult, Clarify, Topic } from "@/lib/types";
+
+const REPAIR_FOLLOWUPS = [
+  "그래도 안 되면?",
+  "집주인이 무시하면?",
+  "비용은 누가 내나요?",
+  "전문가를 불러야 하나요?",
+];
+
+function shareSummary(r: AssistResult): string {
+  if (r.kind === "repair") return `[둥지] 집수리 진단 — ${r.responsibility?.summary || "결과 확인"}`;
+  if (r.kind === "admin") return `[둥지] 이사·행정 체크리스트 (${r.checklist?.length || 0}단계)`;
+  return `[둥지] 공과금 점검 — ${r.summary || "결과 확인"}`;
+}
 
 export interface TopicConfig {
   topic: Topic;
@@ -175,6 +189,12 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
     focusInput();
   }
 
+  // 후속 질문(집수리): 같은 맥락에 질문을 더해 다시 호출
+  function followUp(q: string) {
+    const base = text.trim();
+    runAssist(`${base}\n\n추가 질문: ${q}`, { disallowClarify: true });
+  }
+
   return (
     <main className={`min-h-dvh ${stickyBar ? "pb-28" : "pb-16"}`}>
       {/* 헤더 */}
@@ -232,7 +252,10 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
 
           {/* 예시 칩 */}
           {config.chips.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-2">
+            <p className="mt-3 text-xs font-semibold text-muted">이런 걸 물어보세요</p>
+          )}
+          {config.chips.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
               {config.chips.map((c) => (
                 <button
                   key={c}
@@ -334,13 +357,29 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
               </div>
             )}
             <ResultCards result={result} />
-            <div className="no-print grid grid-cols-2 gap-2">
-              <button onClick={otherProblem} className="btn-ghost">
-                다른 문제 물어보기
+
+            {/* 후속 질문 (집수리) */}
+            {config.topic === "repair" && result.kind === "repair" && (
+              <div className="no-print card p-4">
+                <p className="mb-2 text-xs font-bold text-muted">이어서 물어보기</p>
+                <div className="flex flex-wrap gap-2">
+                  {REPAIR_FOLLOWUPS.map((q) => (
+                    <button key={q} type="button" onClick={() => followUp(q)} className="chip">
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="no-print grid grid-cols-3 gap-2">
+              <button onClick={otherProblem} className="btn-ghost text-sm">
+                다른 문제
               </button>
-              <button onClick={similarProblem} className="btn-ghost">
-                비슷한 문제 더 보기
+              <button onClick={similarProblem} className="btn-ghost text-sm">
+                비슷한 문제
               </button>
+              <ShareButton text={shareSummary(result)} />
             </div>
             <p className="px-1 pt-1 text-center text-xs leading-relaxed text-muted">
               둥지는 AI 도우미입니다. 안내는 참고용이며 법적 자문이 아닙니다. 업로드한 사진·내용은

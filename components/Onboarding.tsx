@@ -84,8 +84,19 @@ export default function Onboarding() {
           ))}
         </ol>
 
-        <button type="button" onClick={dismiss} className="btn-primary mt-6 w-full">
+        <p className="mt-4 text-center text-xs leading-relaxed text-muted">
+          로그인·회원가입 없이 바로 사용 · 입력은 저장하지 않아요
+        </p>
+
+        <button type="button" onClick={dismiss} className="btn-primary mt-3 w-full">
           시작하기
+        </button>
+        <button
+          type="button"
+          onClick={dismiss}
+          className="mt-2 w-full text-center text-xs font-medium text-muted hover:text-ink"
+        >
+          건너뛰기
         </button>
       </div>
     </div>
