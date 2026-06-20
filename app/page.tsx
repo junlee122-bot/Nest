@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Camera, Sparkles, Send } from "lucide-react";
+import NestMark from "@/components/NestMark";
+
+const steps = [
+  { icon: Camera, title: "사진·한 줄로 입력", desc: "곰팡이·누수 등 문제를 찍거나 적어요" },
+  { icon: Sparkles, title: "AI가 3단 진단", desc: "응급처치 · 책임 판단 · 집주인 문구" },
+  { icon: Send, title: "바로 복사·전송", desc: "집주인에게 보낼 문구를 그대로 사용" },
+] as const;
 
 const cards = [
   {
@@ -38,10 +45,8 @@ export default function Home() {
       {/* 히어로 */}
       <section className="flow-bg">
         <div className="container-app pb-8 pt-14 text-center">
-          <div className="mb-4 inline-flex items-center gap-2">
-            <span className="text-4xl" aria-hidden>
-              🐣
-            </span>
+          <div className="mb-4 inline-flex items-center gap-2.5">
+            <NestMark size={40} className="text-brand" />
             <span className="text-2xl font-extrabold tracking-tight text-ink">
               둥지<span className="ml-1.5 text-base font-semibold text-muted">Nest</span>
             </span>
@@ -53,6 +58,28 @@ export default function Home() {
             집에서 생긴 문제, 어디에 물어볼지 막막했죠? 둥지가 응급처치부터 집주인에게 보낼 말까지
             대신 챙겨드릴게요.
           </p>
+        </div>
+      </section>
+
+      {/* 어떻게 작동하나요 — 3단계 미니 스트립 */}
+      <section className="container-app pb-2">
+        <div className="card p-4">
+          <ol className="grid grid-cols-3 gap-2">
+            {steps.map((s, i) => (
+              <li key={s.title} className="flex flex-col items-center gap-2 text-center">
+                <span className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-brand-tint text-brand">
+                  <s.icon size={20} />
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">
+                    {i + 1}
+                  </span>
+                </span>
+                <div>
+                  <p className="text-xs font-bold leading-tight text-ink">{s.title}</p>
+                  <p className="mt-0.5 text-[11px] leading-snug text-muted">{s.desc}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
@@ -126,6 +153,10 @@ export default function Home() {
           <p>
             로그인·회원가입이 없으며 개인정보를 수집·저장하지 않습니다. 업로드한 사진·내용은 AI 처리
             후 폐기됩니다.
+          </p>
+          <p>
+            참고 자료: 책임 판단은 민법 제623조 및 관련 판례, 공과금은 한국전력공사·도시가스·통계청 등
+            공개 자료를 바탕으로 합니다.
           </p>
           <p className="pt-1 text-muted/70">
             © 2026 둥지 Nest · 2026 K-AI 콘텐츠 공모전 출품작

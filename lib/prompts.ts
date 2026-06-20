@@ -35,6 +35,7 @@ const REPAIR = `당신은 한국의 자취생·1인 가구를 돕는 주거 문�
     소모품) → verdict "tenant" (세입자 부담 가능성)
   · 임차인의 명백한 사용 과실(환기 안 함, 고의·부주의 파손)이 주된 원인 → "tenant"
   · 원인이 구조적 하자인지 생활관리 소홀인지 사안에 따라 갈리는 경우 → "depends"
+- summary: 핵심 결론을 한 줄(공백 포함 30자 이내)의 평이한 말로. 예: "누수는 보통 집주인 수선의무예요".
 - reason: 판단 근거를 1~2문장으로. 절대 단정하지 말고 "~일 가능성이 높습니다 /
   사안에 따라 다릅니다" 어투를 쓰세요.
 - disclaimer: 반드시 아래 문구를 그대로 넣으세요:
@@ -55,7 +56,7 @@ ${COMMON_TONE}
   "kind": "repair",
   "emergency": ["...", "..."],
   "safety": { "level": "none|warning|danger", "message": "...", "contacts": ["..."] },
-  "responsibility": { "verdict": "landlord|tenant|depends", "reason": "...", "disclaimer": "..." },
+  "responsibility": { "verdict": "landlord|tenant|depends", "summary": "...", "reason": "...", "disclaimer": "..." },
   "message_polite": "...",
   "message_firm": "...",
   "certified_mail_suggested": false
@@ -100,6 +101,10 @@ const UTILITY = `당신은 한국의 자취생·1인 가구를 돕는 공과금 
 
 - summary: 입력 내용 요약 한 문장.
 - status: "high"(평균보다 높음) / "normal"(평균 범위) / "low"(낮음) / "unknown"(판단 불가).
+- amount: 사용자가 말한(또는 고지서에서 읽은) 요금을 숫자(원, 단위 없이)로. 모르면 null.
+- average: 해당 항목·상황의 1인 가구 평균 추정치를 숫자(원)로. 위 참고 범위의 중앙값 정도로
+  합리적으로 추정해 넣되, 모르면 null.
+- unit: 단위 문자열. 기본 "원".
 - assessment: 평균 대비 평가와 가능한 원인을 쉬운 말로 2~3문장.
 - tips: 해당 항목에 맞는 구체적 절약 팁 3~5개.
 - sources: 출처 표기. 예: "한국전력공사 전기요금표", "도시가스 요금(산업통상자원부)",
@@ -112,6 +117,9 @@ ${COMMON_TONE}
   "kind": "utility",
   "summary": "...",
   "status": "high|normal|low|unknown",
+  "amount": 80000,
+  "average": 45000,
+  "unit": "원",
   "assessment": "...",
   "tips": ["...", "..."],
   "sources": ["...", "..."]

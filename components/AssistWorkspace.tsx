@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Send, Loader2, AlertCircle } from "lucide-react";
 import PhotoUpload from "./PhotoUpload";
 import ResultCards from "./ResultCards";
+import NestMark from "./NestMark";
 import type { AssistResponse, AssistResult, Topic } from "@/lib/types";
 
 export interface TopicConfig {
@@ -17,6 +18,7 @@ export interface TopicConfig {
   chips: string[];
   showPhoto: boolean;
   loadingText: string;
+  loadingStages?: string[]; // 단계적 로딩 문구 (없으면 loadingText 한 줄)
 }
 
 export default function AssistWorkspace({ config }: { config: TopicConfig }) {
@@ -25,8 +27,21 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<AssistResult | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const canSubmit = (text.trim().length > 0 || !!image) && !loading;
+
+  function fillFromChip(sentence: string) {
+    setText(sentence);
+    // 입력창으로 포커스 (사진을 덧붙일 수 있게 자동 제출은 하지 않음)
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+      }
+    });
+  }
 
   async function submit() {
     if (!canSubmit) return;
@@ -68,7 +83,7 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
   return (
     <main className="min-h-dvh pb-16">
       {/* 헤더 */}
-      <header className="flow-bg border-b border-line">
+      <header className="no-print flow-bg border-b border-line">
         <div className="container-app py-4">
           <Link href="/" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-ink">
             <ArrowLeft size={16} /> 홈
@@ -87,10 +102,13 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
 
       <div className="container-app space-y-5 pt-5">
         {/* 입력 카드 */}
-        <div className="card p-5">
+        <div className="no-print card p-5">
           <label htmlFor="assist-text" className="block text-base font-bold text-ink">
             {config.question}
           </label>
+          {config.showPhoto && (
+            <p className="mt-1 text-xs text-muted">사진과 함께 설명하면 더 정확해요.</p>
+          )}
 
           {config.showPhoto && (
             <div className="mt-3">
@@ -100,6 +118,7 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
 
           <textarea
             id="assist-text"
+            ref={textareaRef}
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={config.placeholder}
@@ -114,7 +133,7 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
                 <button
                   key={c}
                   type="button"
-                  onClick={() => setText((prev) => (prev ? prev : c))}
+                  onClick={() => fillFromChip(c)}
                   className="chip"
                 >
                   {c}
@@ -143,8 +162,22 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
 
         <div id="result-anchor" />
 
-        {/* 로딩 스켈레톤 */}
-        {loading && <LoadingSkeleton text={config.loadingText} />}
+        {/* 빈 상태 — 둥지 보이스 */}
+        {!loading && !error && !result && (
+          <div className="card flex flex-col items-center gap-3 px-6 py-9 text-center">
+            <NestMark size={44} className="text-brand/70" />
+            <p className="text-sm leading-relaxed text-muted">
+              어떤 점이 불편하세요?
+              <br />
+              둥지가 같이 봐드릴게요.
+            </p>
+          </div>
+        )}
+
+        {/* 로딩 스켈레톤 (단계적 문구) */}
+        {loading && (
+          <LoadingSkeleton stages={config.loadingStages ?? [config.loadingText]} />
+        )}
 
         {/* 에러 */}
         {error && !loading && (
@@ -163,7 +196,7 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
         {result && !loading && (
           <>
             <ResultCards result={result} />
-            <button onClick={reset} className="btn-ghost w-full">
+            <button onClick={reset} className="no-print btn-ghost w-full">
               새로 물어보기
             </button>
             <p className="px-1 pt-1 text-center text-xs leading-relaxed text-muted">
@@ -177,12 +210,24 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
   );
 }
 
-function LoadingSkeleton({ text }: { text: string }) {
+function LoadingSkeleton({ stages }: { stages: string[] }) {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    if (stages.length <= 1) return;
+    const id = setInterval(() => {
+      // 마지막 단계에서 멈춤 (실제 응답 도착 시 결과로 전환)
+      setStep((s) => (s < stages.length - 1 ? s + 1 : s));
+    }, 1800);
+    return () => clearInterval(id);
+  }, [stages.length]);
+
   return (
     <div className="space-y-4" aria-live="polite" aria-busy="true">
       <div className="card flex items-center gap-3 p-4">
         <Loader2 size={18} className="animate-spin text-brand" />
-        <span className="text-sm font-medium text-ink">{text}</span>
+        <span key={step} className="animate-fade-up text-sm font-medium text-ink">
+          {stages[step]}
+        </span>
       </div>
       {[0, 1].map((i) => (
         <div key={i} className="card space-y-3 p-5">

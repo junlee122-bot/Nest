@@ -61,8 +61,9 @@ app/
   utility/page.tsx         # 공과금
   api/assist/route.ts      # Claude 호출(공통, topic 분기)
 components/
-  AssistWorkspace.tsx      # 공통 엔진(입력→API→결과)
-  PhotoUpload.tsx ResultCards.tsx SafetyBanner.tsx CopyButton.tsx
+  AssistWorkspace.tsx      # 공통 엔진(입력→API→결과, 단계적 로딩·빈 상태)
+  ResultCards.tsx          # 결과 렌더(책임 배너·문구 액션·공과금 차트 등)
+  PhotoUpload.tsx SafetyBanner.tsx NestMark.tsx
 lib/
   prompts.ts               # topic별 시스템 프롬프트
   types.ts                 # 공통 타입

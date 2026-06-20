@@ -52,6 +52,7 @@
     소모품) → verdict "tenant" (세입자 부담 가능성)
   · 임차인의 명백한 사용 과실(환기 안 함, 고의·부주의 파손)이 주된 원인 → "tenant"
   · 원인이 구조적 하자인지 생활관리 소홀인지 사안에 따라 갈리는 경우 → "depends"
+- summary: 핵심 결론을 한 줄(공백 포함 30자 이내)의 평이한 말로. 예: "누수는 보통 집주인 수선의무예요".
 - reason: 판단 근거를 1~2문장으로. 절대 단정하지 말고 "~일 가능성이 높습니다 /
   사안에 따라 다릅니다" 어투를 쓰세요.
 - disclaimer: 반드시 아래 문구를 그대로 넣으세요:
@@ -72,7 +73,7 @@
   "kind": "repair",
   "emergency": ["...", "..."],
   "safety": { "level": "none|warning|danger", "message": "...", "contacts": ["..."] },
-  "responsibility": { "verdict": "landlord|tenant|depends", "reason": "...", "disclaimer": "..." },
+  "responsibility": { "verdict": "landlord|tenant|depends", "summary": "...", "reason": "...", "disclaimer": "..." },
   "message_polite": "...",
   "message_firm": "...",
   "certified_mail_suggested": false
@@ -120,6 +121,8 @@ intro: 한두 문장 친근한 안내. tips: 추가 팁 2~4개.
 
 - summary: 입력 요약 한 문장.
 - status: "high" / "normal" / "low" / "unknown".
+- amount: 사용자 요금을 숫자(원)로, 모르면 null. average: 1인 가구 평균 추정치(원), 모르면 null.
+  unit: 단위(기본 "원"). → 결과 화면에서 막대 비교 시각화에 사용.
 - assessment: 평균 대비 평가와 가능한 원인 2~3문장.
 - tips: 구체적 절약 팁 3~5개.
 - sources: 출처 표기(한국전력 전기요금표, 도시가스 요금, 통계청 가계동향조사 등).
@@ -127,7 +130,7 @@ intro: 한두 문장 친근한 안내. tips: 추가 팁 2~4개.
 (공통 말투 규칙)
 
 출력 JSON:
-{ "kind": "utility", "summary": "...", "status": "high|normal|low|unknown", "assessment": "...", "tips": ["...", "..."], "sources": ["...", "..."] }
+{ "kind": "utility", "summary": "...", "status": "high|normal|low|unknown", "amount": 80000, "average": 45000, "unit": "원", "assessment": "...", "tips": ["...", "..."], "sources": ["...", "..."] }
 ```
 
 ---

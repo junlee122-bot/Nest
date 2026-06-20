@@ -19,6 +19,7 @@ export type Verdict = "landlord" | "tenant" | "depends";
 
 export interface Responsibility {
   verdict: Verdict;
+  summary: string; // 한 줄 평이한 결론 요약 (예: "누수는 보통 집주인 수선의무예요")
   reason: string;
   disclaimer: string;
 }
@@ -56,6 +57,9 @@ export interface UtilityResult {
   summary: string;
   status: UtilityStatus;
   assessment: string; // 평균 대비 평가
+  amount?: number | null; // 사용자 요금(원). 모르면 null
+  average?: number | null; // 1인 가구 평균 추정(원). 모르면 null
+  unit?: string; // 단위 (기본 "원")
   tips: string[]; // 절약 팁
   sources: string[]; // 공공데이터 출처 표기
 }
