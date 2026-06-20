@@ -1,0 +1,96 @@
+import { NextRequest, NextResponse } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
+import { contractSystemPrompt } from "@/lib/prompts";
+import { rulebookForPrompt } from "@/lib/legal/rulebook";
+import { lawsForPrompt } from "@/lib/legal/laws";
+import { extractJson } from "@/lib/json";
+import type { ContractResponse, ContractResult } from "@/lib/types";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
+const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-8";
+const MAX_LEN = 12000; // 과도한 입력 방지
+
+export async function POST(req: NextRequest): Promise<NextResponse<ContractResponse>> {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json(
+      { ok: false, error: "서버에 API 키가 설정되지 않았습니다. 관리자에게 문의해주세요." },
+      { status: 500 }
+    );
+  }
+
+  let body: { text?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ ok: false, error: "잘못된 요청입니다." }, { status: 400 });
+  }
+
+  const text = (body.text || "").trim();
+  if (!text) {
+    return NextResponse.json(
+      { ok: false, error: "계약서 내용을 붙여넣어 주세요." },
+      { status: 400 }
+    );
+  }
+  if (text.length > MAX_LEN) {
+    return NextResponse.json(
+      { ok: false, error: `내용이 너무 길어요. ${MAX_LEN}자 이내로 나눠서 확인해주세요.` },
+      { status: 400 }
+    );
+  }
+
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const system = contractSystemPrompt(rulebookForPrompt(), lawsForPrompt());
+
+  try {
+    const message = await client.messages.create({
+      model: MODEL,
+      max_tokens: 3500,
+      system,
+      messages: [
+        { role: "user", content: `다음 임대차계약서(특약 포함)를 검토해 주세요:\n\n${text}` },
+      ],
+    });
+
+    const textOut = message.content
+      .filter((b): b is Anthropic.TextBlock => b.type === "text")
+      .map((b) => b.text)
+      .join("\n");
+
+    const parsed = extractJson(textOut);
+    if (!parsed || typeof parsed !== "object") {
+      return NextResponse.json(
+        { ok: false, error: "결과를 해석하지 못했어요. 잠시 후 다시 시도해주세요." },
+        { status: 502 }
+      );
+    }
+
+    const r = parsed as Partial<ContractResult>;
+    const result: ContractResult = {
+      overall_risk: r.overall_risk ?? "none",
+      summary: r.summary ?? "",
+      findings: Array.isArray(r.findings) ? r.findings : [],
+      disclaimer:
+        r.disclaimer ||
+        "본 분석은 참고용이며 법적 자문이 아닙니다. 중요한 계약은 변호사·대한법률구조공단·주택임대차분쟁조정위원회 상담을 권장합니다.",
+    };
+    return NextResponse.json({ ok: true, result });
+  } catch (err) {
+    const e = err as { status?: number; message?: string };
+    if (e?.status === 429) {
+      return NextResponse.json(
+        { ok: false, error: "지금 요청이 많아요. 잠시 후 다시 시도해주세요." },
+        { status: 429 }
+      );
+    }
+    // 계약서 내용은 로그에 남기지 않음 — 상태코드만
+    console.error("[contract] error status:", e?.status ?? "unknown");
+    return NextResponse.json(
+      { ok: false, error: "둥지가 잠시 응답하지 못했어요. 잠시 후 다시 시도해주세요." },
+      { status: 500 }
+    );
+  }
+}

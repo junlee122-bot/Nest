@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { systemPromptFor } from "@/lib/prompts";
+import { extractJson } from "@/lib/json";
 import type {
   AssistResponse,
   AssistResult,
@@ -25,26 +26,6 @@ function parseDataUrl(
   const media_type = m[1] as AllowedMedia;
   if (!ALLOWED_MEDIA.includes(media_type)) return null;
   return { media_type, data: m[2] };
-}
-
-// 모델이 JSON 외 텍스트를 섞어도 안전하게 객체를 추출 (브리프 5-2 폴백)
-function extractJson(text: string): unknown | null {
-  const trimmed = text.trim();
-  try {
-    return JSON.parse(trimmed);
-  } catch {
-    // 첫 { 부터 마지막 } 까지 잘라 재시도
-    const start = trimmed.indexOf("{");
-    const end = trimmed.lastIndexOf("}");
-    if (start !== -1 && end !== -1 && end > start) {
-      try {
-        return JSON.parse(trimmed.slice(start, end + 1));
-      } catch {
-        return null;
-      }
-    }
-    return null;
-  }
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse<AssistResponse>> {

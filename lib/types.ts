@@ -84,6 +84,34 @@ export interface UtilityResult {
 
 export type AssistResult = RepairResult | AdminResult | UtilityResult;
 
+// ── 계약서 독소조항 체커 ──────────────────────────────────────
+export type RiskLevel = "high" | "medium" | "low";
+
+export interface ContractFinding {
+  clause_text: string; // 문제 조항 원문 인용
+  risk: RiskLevel;
+  legal_basis: string[]; // 근거 법조문
+  why: string; // 왜 불리한지
+  action: string; // 대응
+}
+
+export interface ContractResult {
+  overall_risk: "high" | "medium" | "low" | "none";
+  summary: string;
+  findings: ContractFinding[];
+  disclaimer: string;
+}
+
+export interface ContractResponseOk {
+  ok: true;
+  result: ContractResult;
+}
+export interface ContractResponseErr {
+  ok: false;
+  error: string;
+}
+export type ContractResponse = ContractResponseOk | ContractResponseErr;
+
 // API 요청/응답
 export interface AssistRequest {
   topic: Topic;

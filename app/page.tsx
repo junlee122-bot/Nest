@@ -19,6 +19,13 @@ const cards = [
     accent: true,
   },
   {
+    href: "/contract",
+    emoji: "📄",
+    title: "계약서 독소조항 체커",
+    desc: "임대차계약서 붙여넣으면 세입자에게 불리한 조항을 찾아드려요",
+    accent: false,
+  },
+  {
     href: "/admin",
     emoji: "📋",
     title: "이사·행정 길잡이",
