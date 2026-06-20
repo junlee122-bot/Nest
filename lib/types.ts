@@ -112,6 +112,61 @@ export interface ContractResponseErr {
 }
 export type ContractResponse = ContractResponseOk | ContractResponseErr;
 
+// ── 혼밥 장보기 코칭 ──────────────────────────────────────────
+export type GroceryMode = "plan" | "use";
+
+// 탭 A — 식단 짜기
+export interface GroceryMeal {
+  slot: string; // 아침/점심/저녁
+  name: string;
+  why: string; // 간단·저렴 이유
+}
+export interface GroceryDay {
+  day: string; // 월/화/...
+  meals: GroceryMeal[];
+}
+export interface ShoppingItem {
+  item: string;
+  qty: string;
+  est_price: number;
+  used_in: string[]; // 어느 메뉴에 쓰이는지
+}
+export interface GroceryPlanResult {
+  mode: "plan";
+  plan_days: GroceryDay[];
+  shopping_list: ShoppingItem[];
+  total_est_price: number;
+  budget_note?: string; // 예산 초과 시 대안
+  tips: string[];
+}
+
+// 탭 B — 남은 재료 처리
+export interface GroceryRecipe {
+  name: string;
+  uses: string[]; // 가진 재료 중 사용
+  missing: string[]; // 없으면 최소로 살 것
+  steps: string[];
+  time_min: number;
+  note?: string;
+}
+export interface GroceryUseResult {
+  mode: "use";
+  recipes: GroceryRecipe[];
+  priority_note: string; // 상하기 쉬운 재료 먼저
+}
+
+export type GroceryResult = GroceryPlanResult | GroceryUseResult;
+
+export interface GroceryResponseOk {
+  ok: true;
+  result: GroceryResult;
+}
+export interface GroceryResponseErr {
+  ok: false;
+  error: string;
+}
+export type GroceryResponse = GroceryResponseOk | GroceryResponseErr;
+
 // API 요청/응답
 export interface AssistRequest {
   topic: Topic;

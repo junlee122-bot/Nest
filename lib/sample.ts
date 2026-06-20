@@ -5,6 +5,8 @@ import type {
   AdminResult,
   UtilityResult,
   ContractResult,
+  GroceryPlanResult,
+  GroceryUseResult,
 } from "./types";
 
 export const SAMPLE_REPAIR: RepairResult = {
@@ -148,4 +150,70 @@ export const SAMPLE_CONTRACT: ContractResult = {
   ],
   disclaimer:
     "본 분석은 참고용이며 법적 자문이 아닙니다. 중요한 계약은 변호사·대한법률구조공단·주택임대차분쟁조정위원회 상담을 권장합니다.",
+};
+
+// 혼밥 장보기 코칭 데모 — 탭 A(식단), 탭 B(남은 재료)
+export const SAMPLE_GROCERY_PLAN: GroceryPlanResult = {
+  mode: "plan",
+  plan_days: [
+    {
+      day: "월",
+      meals: [
+        { slot: "점심", name: "계란 김치볶음밥", why: "밥·계란·김치로 5분 완성, 저렴" },
+        { slot: "저녁", name: "두부 된장찌개 + 밥", why: "두부 한 모로 든든하게" },
+      ],
+    },
+    {
+      day: "화",
+      meals: [
+        { slot: "점심", name: "계란말이 덮밥", why: "남은 계란·대파 소진" },
+        { slot: "저녁", name: "애호박 된장찌개", why: "월요일 된장 재활용" },
+      ],
+    },
+    {
+      day: "수",
+      meals: [
+        { slot: "점심", name: "김치 참치 비빔밥", why: "참치캔 1개로 단백질 보충" },
+        { slot: "저녁", name: "두부김치", why: "남은 두부·김치 소진" },
+      ],
+    },
+  ],
+  shopping_list: [
+    { item: "계란", qty: "10구", est_price: 3500, used_in: ["계란 김치볶음밥", "계란말이 덮밥"] },
+    { item: "두부", qty: "2모", est_price: 2400, used_in: ["두부 된장찌개", "두부김치"] },
+    { item: "김치", qty: "1봉(소)", est_price: 4000, used_in: ["계란 김치볶음밥", "김치 참치 비빔밥", "두부김치"] },
+    { item: "대파", qty: "1단(소)", est_price: 2000, used_in: ["계란말이 덮밥", "된장찌개"] },
+    { item: "애호박", qty: "1개", est_price: 1500, used_in: ["애호박 된장찌개"] },
+    { item: "참치캔", qty: "1개", est_price: 2000, used_in: ["김치 참치 비빔밥"] },
+    { item: "쌀", qty: "1kg(소포장)", est_price: 4000, used_in: ["전 끼니"] },
+  ],
+  total_est_price: 19400,
+  budget_note: "예산이 더 빠듯하면 참치캔을 빼고 계란으로 단백질을 채우면 약 2,000원을 더 아낄 수 있어요.",
+  tips: [
+    "대파는 송송 썰어 냉동해두면 오래 쓸 수 있어요.",
+    "된장찌개는 한 번 끓일 때 넉넉히 만들어 2끼로 나눠 드세요.",
+  ],
+};
+
+export const SAMPLE_GROCERY_USE: GroceryUseResult = {
+  mode: "use",
+  recipes: [
+    {
+      name: "두부 김치덮밥",
+      uses: ["두부", "김치", "밥"],
+      missing: [],
+      steps: ["김치를 잘게 썰어 볶기", "두부를 으깨 넣고 같이 볶기", "밥 위에 올리기"],
+      time_min: 12,
+      note: "두부가 상하기 쉬우니 먼저 쓰세요.",
+    },
+    {
+      name: "계란 대파전",
+      uses: ["계란", "대파"],
+      missing: ["부침가루(없으면 밀가루)"],
+      steps: ["대파를 썰어 계란·가루와 섞기", "기름 두른 팬에 부치기"],
+      time_min: 10,
+      note: "대파를 많이 소진할 수 있어요.",
+    },
+  ],
+  priority_note: "두부와 대파가 가장 빨리 상해요. 오늘 두부 김치덮밥부터 만들어 두부를 먼저 쓰세요.",
 };

@@ -184,7 +184,10 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
             <ArrowLeft size={16} /> 홈
           </Link>
           <div className="mt-3 flex items-center gap-3">
-            <span className="text-3xl" aria-hidden>
+            <span
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-2xl"
+              aria-hidden
+            >
               {config.emoji}
             </span>
             <div>
