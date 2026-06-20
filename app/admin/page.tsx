@@ -1,7 +1,9 @@
 import AssistWorkspace, { TopicConfig } from "@/components/AssistWorkspace";
+import { SAMPLE_ADMIN } from "@/lib/sample";
 
 const config: TopicConfig = {
   topic: "admin",
+  sampleResult: SAMPLE_ADMIN,
   emoji: "📋",
   title: "이사·행정 길잡이",
   subtitle: "전입신고 · 확정일자 · 보증보험 체크리스트",

@@ -1,7 +1,9 @@
 import AssistWorkspace, { TopicConfig } from "@/components/AssistWorkspace";
+import { SAMPLE_UTILITY } from "@/lib/sample";
 
 const config: TopicConfig = {
   topic: "utility",
+  sampleResult: SAMPLE_UTILITY,
   emoji: "💡",
   title: "공과금 점검",
   subtitle: "평균 대비 진단 · 절약 팁",
