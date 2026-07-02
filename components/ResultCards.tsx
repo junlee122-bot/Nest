@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { m } from "framer-motion";
 import {
   ClipboardCheck,
   Scale,
@@ -30,6 +31,8 @@ import type {
   UtilityStatus,
 } from "@/lib/types";
 import SafetyBanner from "./SafetyBanner";
+import Doongi from "./mascot/Doongi";
+import { fadeUp, springSoft, stagger } from "@/lib/motion";
 import { CONTACTS_VERIFIED, DISPUTE_HELP, emergencyContactsFor } from "@/lib/contacts";
 import {
   naverMapSearchUrl,
@@ -81,23 +84,25 @@ function Section({
 
   if (collapsible) {
     return (
-      <details
-        open={defaultOpen}
-        className="card group animate-fade-up p-5 [&_summary::-webkit-details-marker]:hidden"
-      >
-        <summary className="flex cursor-pointer list-none items-center gap-2.5">
-          {head}
-        </summary>
-        <div className="mt-3">{children}</div>
-      </details>
+      <m.div variants={fadeUp}>
+        <details
+          open={defaultOpen}
+          className="card group p-5 [&_summary::-webkit-details-marker]:hidden"
+        >
+          <summary className="flex cursor-pointer list-none items-center gap-2.5">
+            {head}
+          </summary>
+          <div className="mt-3">{children}</div>
+        </details>
+      </m.div>
     );
   }
 
   return (
-    <section className="card animate-fade-up p-5">
+    <m.section variants={fadeUp} className="card p-5">
       <div className="mb-3 flex items-center gap-2.5">{head}</div>
       {children}
-    </section>
+    </m.section>
   );
 }
 
@@ -112,8 +117,12 @@ function RepairCards({ r }: { r: RepairResult }) {
       ? r.emergency
       : ["우선 안전을 확인하고, 문제 부위를 사진으로 남겨두세요."];
   return (
-    <div className="space-y-4">
-      {r.safety && <SafetyBanner safety={r.safety} />}
+    <m.div variants={stagger()} initial="hidden" animate="show" className="space-y-4">
+      {r.safety && (
+        <m.div variants={fadeUp}>
+          <SafetyBanner safety={r.safety} />
+        </m.div>
+      )}
 
       {/* 긴급도 신호등 + 지금 당장 할 한 가지 */}
       <UrgencySignal urgency={r.urgency} firstAction={r.firstAction} />
@@ -168,7 +177,7 @@ function RepairCards({ r }: { r: RepairResult }) {
       {/* 한 손 사용 — 하단 고정 액션 바 (복사·문자·저장) */}
       <MessageActionBar message={msg} />
       <div className="no-print h-2" aria-hidden />
-    </div>
+    </m.div>
   );
 }
 
@@ -205,7 +214,7 @@ function UrgencySignal({
   };
   const u = urgency && map[urgency] ? map[urgency] : map.routine;
   return (
-    <div className={`animate-fade-up rounded-2xl border p-4 ${u.box}`}>
+    <m.div variants={fadeUp} className={`rounded-2xl border p-4 ${u.box}`}>
       <div className="flex items-center gap-2.5">
         {/* 신호등 */}
         <span className="flex items-center gap-1" aria-hidden>
@@ -226,7 +235,7 @@ function UrgencySignal({
           {firstAction}
         </p>
       )}
-    </div>
+    </m.div>
   );
 }
 
@@ -258,7 +267,7 @@ function VerdictHero({ responsibility }: { responsibility?: RepairResult["respon
       ? "단정하기 어려운 사안이에요"
       : "비교적 분명한 편이에요";
   return (
-    <div className={`animate-fade-up rounded-2xl border p-5 ${v.box}`}>
+    <m.div variants={fadeUp} className={`rounded-2xl border p-5 ${v.box}`}>
       <p className="mb-2 text-xs font-semibold text-muted">이 문제, 누구 책임일까요?</p>
       <div className="flex flex-wrap items-center gap-2">
         <span className={`inline-flex rounded-full px-3.5 py-1.5 text-sm font-bold ${v.badge}`}>
@@ -271,7 +280,7 @@ function VerdictHero({ responsibility }: { responsibility?: RepairResult["respon
           {responsibility.summary}
         </p>
       )}
-    </div>
+    </m.div>
   );
 }
 
@@ -353,7 +362,10 @@ function MessageActionBar({ message }: { message: string }) {
 
   return (
     <>
-      <div
+      <m.div
+        initial={{ y: 28, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={springSoft}
         className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card/95 backdrop-blur"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
@@ -368,7 +380,7 @@ function MessageActionBar({ message }: { message: string }) {
             <Printer size={16} /> 저장
           </button>
         </div>
-      </div>
+      </m.div>
       {toast && (
         <div
           role="status"
@@ -440,7 +452,16 @@ function NextSteps() {
           </li>
         ))}
       </ul>
-      <p className="mt-2 text-xs text-muted">체크 상태는 이 기기에만 저장돼요.</p>
+      {checked.every(Boolean) ? (
+        <div className="mt-2 flex items-center gap-2 rounded-xl bg-ok-tint p-2.5">
+          <Doongi mood="cheer" size={44} withNest={false} className="shrink-0" />
+          <p className="text-sm font-semibold text-ok">
+            전부 해냈어요! 기록만 잘 보관하면 든든해요.
+          </p>
+        </div>
+      ) : (
+        <p className="mt-2 text-xs text-muted">체크 상태는 이 기기에만 저장돼요.</p>
+      )}
     </Section>
   );
 }
@@ -634,11 +655,11 @@ function CertifiedMailAccordion() {
 /* ───────────────── 이사·행정 ───────────────── */
 function AdminCards({ r }: { r: AdminResult }) {
   return (
-    <div className="space-y-4">
+    <m.div variants={stagger()} initial="hidden" animate="show" className="space-y-4">
       {r.intro && (
-        <p className="animate-fade-up rounded-2xl bg-brand-tint p-4 text-sm leading-relaxed text-ink">
+        <m.p variants={fadeUp} className="rounded-2xl bg-brand-tint p-4 text-sm leading-relaxed text-ink">
           {r.intro}
-        </p>
+        </m.p>
       )}
       <Section icon={<ListChecks size={18} />} title="맞춤 체크리스트">
         <ol className="space-y-3">
@@ -663,7 +684,7 @@ function AdminCards({ r }: { r: AdminResult }) {
         </ol>
       </Section>
       {r.tips && r.tips.length > 0 && <TipsCard tips={r.tips} />}
-    </div>
+    </m.div>
   );
 }
 
@@ -677,7 +698,7 @@ function UtilityCards({ r }: { r: UtilityResult }) {
   };
   const s = map[r.status] || map.unknown;
   return (
-    <div className="space-y-4">
+    <m.div variants={stagger()} initial="hidden" animate="show" className="space-y-4">
       <Section icon={<Scale size={18} />} title="공과금 진단">
         {r.summary && <p className="mb-3 text-sm leading-relaxed text-ink">{r.summary}</p>}
         <span className={`inline-flex rounded-full px-3 py-1.5 text-sm font-bold ${s.cls}`}>
@@ -695,11 +716,11 @@ function UtilityCards({ r }: { r: UtilityResult }) {
       </Section>
       {r.tips && r.tips.length > 0 && <TipsCard tips={r.tips} title="절약 팁" />}
       {r.sources && r.sources.length > 0 && (
-        <p className="rounded-xl bg-bg p-3 text-xs leading-relaxed text-muted">
+        <m.p variants={fadeUp} className="rounded-xl bg-bg p-3 text-xs leading-relaxed text-muted">
           출처: {r.sources.join(" · ")}
-        </p>
+        </m.p>
       )}
-    </div>
+    </m.div>
   );
 }
 

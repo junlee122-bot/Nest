@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Camera, Sparkles, Send, X } from "lucide-react";
 import NestMark from "./NestMark";
+import Doongi from "./mascot/Doongi";
 
 const KEY = "nest:onboarded:v1";
 
@@ -63,8 +64,11 @@ export default function Onboarding() {
           </button>
         </div>
 
-        <p className="mb-4 text-sm leading-relaxed text-muted">
-          혼자 살아도 든든하게. 세 단계면 끝나요.
+        <div className="mb-2 flex justify-center">
+          <Doongi mood="hello" size={108} />
+        </div>
+        <p className="mb-4 text-center text-sm leading-relaxed text-muted">
+          안녕하세요, 둥이예요! 혼자 살아도 든든하게 — 세 단계면 끝나요.
         </p>
 
         <ol className="space-y-3">

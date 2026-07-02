@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { m } from "framer-motion";
 import { ArrowLeft, Send, Loader2, AlertCircle, HelpCircle } from "lucide-react";
 import PhotoUpload from "./PhotoUpload";
 import ResultCards from "./ResultCards";
-import NestMark from "./NestMark";
+import Doongi from "./mascot/Doongi";
 import ShareButton from "./ShareButton";
+import { fadeUp } from "@/lib/motion";
 import { addHistory, deriveTitle, getHistoryEntry } from "@/lib/history";
 import type { AssistResponse, AssistResult, Clarify, Topic } from "@/lib/types";
 
@@ -318,14 +320,14 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
           </div>
         )}
 
-        {/* 빈 상태 — 둥지 보이스 */}
+        {/* 빈 상태 — 둥이가 맞아주는 자리 */}
         {!loading && !error && !result && !clarify && (
-          <div className="card flex flex-col items-center gap-3 px-6 py-9 text-center">
-            <NestMark size={44} className="text-brand/70" />
+          <div className="card flex flex-col items-center gap-2 px-6 py-8 text-center">
+            <Doongi mood="hello" size={104} />
             <p className="text-sm leading-relaxed text-muted">
               어떤 점이 불편하세요?
               <br />
-              둥지가 같이 봐드릴게요.
+              둥이가 같이 봐드릴게요.
             </p>
           </div>
         )}
@@ -356,6 +358,7 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
                 예시 결과입니다 — 실제로는 입력하신 내용에 맞춰 답해드려요.
               </div>
             )}
+            <ResultHerald result={result} />
             <ResultCards result={result} />
 
             {/* 후속 질문 (집수리) */}
@@ -392,6 +395,28 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
   );
 }
 
+// 결과 도착을 알리는 둥이 한 줄 — 카드(판단·법적 근거) 바깥에만 등장
+function ResultHerald({ result }: { result: AssistResult }) {
+  const worried =
+    result.kind === "repair" &&
+    (result.safety?.level === "danger" || result.urgency === "emergency");
+  return (
+    <m.div
+      variants={fadeUp}
+      initial="hidden"
+      animate="show"
+      className="no-print flex items-center gap-2.5 px-1"
+    >
+      <Doongi mood={worried ? "warning" : "found"} size={52} withNest={false} />
+      <p className="text-sm font-semibold text-ink">
+        {worried
+          ? "먼저 안전부터 확인해요. 아래 순서대로 따라와 주세요."
+          : "찾았어요! 아래에 순서대로 정리했어요."}
+      </p>
+    </m.div>
+  );
+}
+
 function LoadingSkeleton({ stages, slow }: { stages: string[]; slow?: boolean }) {
   const [step, setStep] = useState(0);
   useEffect(() => {
@@ -405,16 +430,16 @@ function LoadingSkeleton({ stages, slow }: { stages: string[]; slow?: boolean })
 
   return (
     <div className="space-y-4" aria-live="polite" aria-busy="true">
-      <div className="card flex flex-col gap-2 p-4">
-        <div className="flex items-center gap-3">
-          <Loader2 size={18} className="animate-spin text-brand" />
-          <span key={step} className="animate-fade-up text-sm font-medium text-ink">
+      <div className="card flex items-center gap-3 p-4">
+        <Doongi mood="thinking" size={72} withNest={false} className="shrink-0" />
+        <div className="min-w-0 space-y-1">
+          <span key={step} className="block animate-fade-up text-sm font-medium text-ink">
             {stages[step]}
           </span>
+          {slow && (
+            <p className="text-xs text-muted">조금 더 걸리고 있어요. 잠시만 기다려 주세요…</p>
+          )}
         </div>
-        {slow && (
-          <p className="pl-7 text-xs text-muted">조금 더 걸리고 있어요. 잠시만 기다려 주세요…</p>
-        )}
       </div>
       {[0, 1].map((i) => (
         <div key={i} className="card space-y-3 p-5">
