@@ -8,9 +8,27 @@ import Doongi from "./mascot/Doongi";
 const KEY = "nest:onboarded:v1";
 
 const steps = [
-  { icon: Camera, title: "사진·한 줄로 입력", desc: "곰팡이·누수 등 문제를 찍거나 적어요" },
-  { icon: Sparkles, title: "AI가 3단 진단", desc: "응급처치 · 책임 판단 · 집주인 문구" },
-  { icon: Send, title: "바로 복사·전송", desc: "집주인에게 보낼 문구를 그대로 사용" },
+  {
+    icon: Camera,
+    title: "사진 한 장, 한 줄이면 돼요",
+    desc: "곰팡이, 누수 같은 문제를 찍거나 적어요",
+    cls: "bg-brand-tint text-brand-deep",
+    num: "bg-brand",
+  },
+  {
+    icon: Sparkles,
+    title: "둥이가 3단으로 정리해요",
+    desc: "응급처치, 책임 판단, 집주인 문구까지",
+    cls: "bg-sun-tint text-sun-deep",
+    num: "bg-sun",
+  },
+  {
+    icon: Send,
+    title: "그대로 복사해서 보내요",
+    desc: "집주인에게 보낼 문구를 바로 사용",
+    cls: "bg-coral-tint text-coral-deep",
+    num: "bg-coral",
+  },
 ];
 
 export default function Onboarding() {
@@ -68,15 +86,19 @@ export default function Onboarding() {
           <Doongi mood="hello" size={108} />
         </div>
         <p className="mb-4 text-center text-sm leading-relaxed text-muted">
-          안녕하세요, 둥이예요! 혼자 살아도 든든하게 — 세 단계면 끝나요.
+          안녕하세요, 둥이예요! 세 가지만 알면 바로 쓸 수 있어요.
         </p>
 
         <ol className="space-y-3">
           {steps.map((s, i) => (
             <li key={s.title} className="flex items-center gap-3">
-              <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
+              <span
+                className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${s.cls}`}
+              >
                 <s.icon size={20} />
-                <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand text-[10px] font-bold text-white">
+                <span
+                  className={`absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold text-white ${s.num}`}
+                >
                   {i + 1}
                 </span>
               </span>

@@ -210,8 +210,8 @@ export default function RentCheck() {
             <ArrowLeft size={16} /> 홈
           </Link>
           <div className="mt-3 flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-tint text-brand">
-              <BarChart3 size={22} />
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-sun-tint text-sun-deep">
+              <BarChart3 size={22} strokeWidth={2.4} />
             </span>
             <div>
               <h1 className="flex items-center gap-2 text-xl font-bold text-ink">
@@ -265,7 +265,7 @@ export default function RentCheck() {
                 key={t.key}
                 type="button"
                 onClick={() => setType(t.key)}
-                className={`chip ${type === t.key ? "border-brand bg-brand-tint text-brand" : ""}`}
+                className={`chip ${type === t.key ? "border-sun bg-sun-tint text-sun-deep hover:border-sun hover:bg-sun-tint hover:text-sun-deep" : ""}`}
               >
                 {t.label}
               </button>

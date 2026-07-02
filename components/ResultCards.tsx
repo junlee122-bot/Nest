@@ -771,7 +771,7 @@ function AdminCards({ r }: { r: AdminResult }) {
 /* ───────────────── 공과금 ───────────────── */
 function UtilityCards({ r }: { r: UtilityResult }) {
   const map: Record<UtilityStatus, { label: string; cls: string }> = {
-    high: { label: "평균보다 높아요", cls: "bg-brand text-white" },
+    high: { label: "평균보다 높아요", cls: "bg-coral text-white" },
     normal: { label: "평균 범위예요", cls: "bg-gray-100 text-ink ring-1 ring-line" },
     low: { label: "평균보다 낮아요", cls: "bg-gray-100 text-ink ring-1 ring-line" },
     unknown: { label: "판단이 어려워요", cls: "bg-warn-tint text-[#9A6B00] ring-1 ring-warn/40" },
@@ -831,8 +831,8 @@ function UtilityChart({
         const pct = Math.max(6, Math.round((row.value / max) * 100));
         const barColor = row.accent
           ? over
-            ? "bg-brand"
-            : "bg-gray-400"
+            ? "bg-coral"
+            : "bg-brand"
           : "bg-gray-300";
         return (
           <div key={row.label}>

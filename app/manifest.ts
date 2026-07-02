@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "자취생·청년 1인 가구를 위한 AI 주거 생활 도우미",
     start_url: "/",
     display: "standalone",
-    background_color: "#FAFAFA",
-    theme_color: "#E6002D",
+    background_color: "#FAFAF3",
+    theme_color: "#45A567",
     lang: "ko",
     icons: [
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml" },

@@ -92,7 +92,7 @@ export default function MoneyBeta({ configured }: { configured: boolean }) {
             <ArrowLeft size={16} /> 홈
           </Link>
           <div className="mt-3 flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-tint text-brand">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-straw-tint text-straw-deep">
               <Wallet size={22} />
             </span>
             <div>

@@ -20,8 +20,9 @@ import { addGrowth } from "@/lib/growth";
 import { SAMPLE_CONTRACT, SAMPLE_CONTRACT_TEXT } from "@/lib/sample";
 import type { ContractResponse, ContractResult, RiskLevel } from "@/lib/types";
 
+// 위험도는 안전 시맨틱 컬러(레드·앰버) 고정 — 브랜드 컬러와 분리 (v4)
 const RISK_BADGE: Record<RiskLevel, { label: string; cls: string }> = {
-  high: { label: "높음", cls: "bg-brand text-white" },
+  high: { label: "높음", cls: "bg-danger text-white" },
   medium: { label: "주의", cls: "bg-warn text-white" },
   low: { label: "참고", cls: "bg-gray-200 text-ink" },
 };
@@ -30,7 +31,7 @@ const OVERALL: Record<
   ContractResult["overall_risk"],
   { label: string; box: string; text: string }
 > = {
-  high: { label: "위험한 조항이 있어요", box: "border-brand/20 bg-brand-tint", text: "text-brand" },
+  high: { label: "위험한 조항이 있어요", box: "border-danger/20 bg-danger-tint", text: "text-danger" },
   medium: { label: "주의가 필요해요", box: "border-warn/40 bg-warn-tint", text: "text-[#9A6B00]" },
   low: { label: "가벼운 참고사항이 있어요", box: "border-line bg-bg", text: "text-ink" },
   none: { label: "특별히 위험한 조항은 없어요", box: "border-ok/30 bg-ok-tint", text: "text-ok" },
@@ -107,7 +108,7 @@ export default function ContractChecker() {
             <ArrowLeft size={16} /> 홈
           </Link>
           <div className="mt-3 flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-tint text-brand">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-tint text-sky-deep">
               <ScrollText size={22} />
             </span>
             <div>

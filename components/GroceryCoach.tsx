@@ -8,6 +8,7 @@ import {
   AlertCircle,
   Send,
   ShoppingCart,
+  ShoppingBasket,
   Refrigerator,
   Lightbulb,
   Clock,
@@ -112,10 +113,10 @@ export default function GroceryCoach() {
           </Link>
           <div className="mt-3 flex items-center gap-3">
             <span
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-2xl"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sun-tint text-sun-deep"
               aria-hidden
             >
-              🛒
+              <ShoppingBasket size={22} strokeWidth={2.4} />
             </span>
             <div>
               <h1 className="text-xl font-bold text-ink">혼밥 장보기 코치</h1>
@@ -400,7 +401,7 @@ function PlanView({ r }: { r: GroceryPlanResult }) {
       {/* 요일별 식단 */}
       <section className="card animate-fade-up p-5">
         <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-ink">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-tint text-brand">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sun-tint text-sun-deep">
             🍚
           </span>
           요일별 식단
@@ -431,7 +432,7 @@ function PlanView({ r }: { r: GroceryPlanResult }) {
       <section className="card animate-fade-up p-5">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-base font-bold text-ink">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-tint text-brand">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sun-tint text-sun-deep">
               <ShoppingCart size={18} />
             </span>
             장보기 리스트
@@ -486,7 +487,7 @@ function PlanView({ r }: { r: GroceryPlanResult }) {
       {r.tips?.length > 0 && (
         <section className="card animate-fade-up p-5">
           <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-ink">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-tint text-brand">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sun-tint text-sun-deep">
               <Lightbulb size={18} />
             </span>
             팁
@@ -522,7 +523,7 @@ function UseView({ r }: { r: GroceryUseResult }) {
       {(r.recipes || []).map((rec, i) => (
         <section key={i} className="card animate-fade-up p-5">
           <div className="mb-2 flex items-center gap-2">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-tint text-brand">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sun-tint text-sun-deep">
               <Refrigerator size={18} />
             </span>
             <h2 className="text-base font-bold text-ink">{rec.name}</h2>

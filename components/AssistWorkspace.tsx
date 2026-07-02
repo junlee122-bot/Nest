@@ -36,11 +36,16 @@ function shareSummary(r: AssistResult): string {
   return `[둥지] 공과금 점검 — ${r.summary || "결과 확인"}`;
 }
 
-// 주제별 헤더 아이콘 — 홈 카드와 동일 아이콘으로 일관성 유지 (v3 P4)
+// 주제별 헤더 아이콘·톤 — 홈 카드와 동일한 색 정체성 (v4 멀티컬러)
 const TOPIC_ICON: Record<Topic, LucideIcon> = {
   repair: Wrench,
   admin: ClipboardList,
   utility: Zap,
+};
+const TOPIC_TONE: Record<Topic, string> = {
+  repair: "bg-brand-tint text-brand-deep",
+  admin: "bg-sun-tint text-sun-deep",
+  utility: "bg-coral-tint text-coral-deep",
 };
 
 export interface TopicConfig {
@@ -227,12 +232,12 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
           </Link>
           <div className="mt-3 flex items-center gap-3">
             <span
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand"
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${TOPIC_TONE[config.topic]}`}
               aria-hidden
             >
               {(() => {
                 const Icon = TOPIC_ICON[config.topic];
-                return <Icon size={22} strokeWidth={2.2} />;
+                return <Icon size={22} strokeWidth={2.4} />;
               })()}
             </span>
             <div>

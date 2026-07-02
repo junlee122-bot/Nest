@@ -12,11 +12,11 @@
     @apply bg-bg text-ink antialiased;
     font-feature-settings: "tnum";
   }
-  /* 흐르는 곡선 모티프 — KT 레드 + 둥지 짚색을 섞은 웜 히어로 배경 (v3 P4) */
+  /* 파스텔 블롭 배경 — 민트 + 앰버가 은은하게 (v4 민트 가든) */
   .flow-bg {
     background-image:
-      radial-gradient(60% 50% at 85% 0%, rgba(230, 0, 45, 0.08), transparent 70%),
-      radial-gradient(55% 45% at 5% 8%, rgba(169, 126, 80, 0.12), transparent 70%);
+      radial-gradient(55% 45% at 88% 0%, rgba(69, 165, 103, 0.12), transparent 70%),
+      radial-gradient(45% 40% at 2% 15%, rgba(255, 185, 57, 0.12), transparent 70%);
   }
 }
 
@@ -24,20 +24,38 @@
   .container-app {
     @apply mx-auto w-full max-w-app px-5;
   }
+  /* 3D 촉감 버튼 (듀오링고식 press) — 누르면 살짝 가라앉는다 */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 font-semibold text-white shadow-card transition-colors hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-brand px-5 py-3 font-extrabold text-white transition-all hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none;
+    box-shadow: 0 4px 0 0 theme("colors.brand.edge");
+  }
+  .btn-primary:active:not(:disabled) {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 0 theme("colors.brand.edge");
   }
   .btn-ghost {
-    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-line bg-card px-4 py-2.5 font-medium text-ink transition-colors hover:bg-bg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand;
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl border-2 border-line bg-card px-4 py-2.5 font-bold text-ink transition-all hover:border-brand/50 hover:bg-brand-tint/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand;
+    box-shadow: 0 3px 0 0 theme("colors.line");
+  }
+  .btn-ghost:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 0 theme("colors.line");
   }
   .card {
-    @apply rounded-2xl border border-line bg-card shadow-card;
+    @apply rounded-3xl border-2 border-line bg-card shadow-card;
   }
   .chip {
-    @apply inline-flex min-h-[40px] items-center rounded-full border border-line bg-card px-3.5 py-2 text-sm font-medium text-ink transition-colors hover:border-brand hover:text-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand;
+    @apply inline-flex min-h-[40px] items-center rounded-full border-2 border-line bg-card px-3.5 py-2 text-sm font-bold text-ink transition-colors hover:border-brand hover:bg-brand-tint hover:text-brand-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand;
   }
   .skeleton {
     @apply rounded-md bg-gradient-to-r from-line via-bg to-line bg-[length:200%_100%] animate-shimmer;
+  }
+  /* 형광펜 하이라이트 — 손맛 나는 강조 (헤드라인 키워드용) */
+  .marker {
+    background-image: linear-gradient(transparent 62%, #ffe28a 62%, #ffe28a 94%, transparent 94%);
+  }
+  .marker-mint {
+    background-image: linear-gradient(transparent 62%, #bfe8cc 62%, #bfe8cc 94%, transparent 94%);
   }
 }
 
