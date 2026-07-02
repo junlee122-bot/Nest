@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import NestMark from "./NestMark";
 import AppBar from "./AppBar";
+import Doongi from "./mascot/Doongi";
 import ShareButton from "./ShareButton";
 import { addGrowth } from "@/lib/growth";
 import { SAMPLE_CONTRACT, SAMPLE_CONTRACT_TEXT } from "@/lib/sample";
@@ -174,6 +175,23 @@ export default function ContractChecker() {
 
         <div id="result-anchor" />
 
+        {/* 로딩 — 둥이가 읽는 중 */}
+        {loading && (
+          <div className="space-y-4" aria-live="polite" aria-busy="true">
+            <div className="card flex items-center gap-3 p-4">
+              <Doongi mood="thinking" size={72} withNest={false} className="shrink-0" />
+              <p className="text-sm font-medium text-ink">
+                둥지가 계약서를 꼼꼼히 읽고 있어요. 조항이 많으면 조금 걸려요.
+              </p>
+            </div>
+            <div className="card space-y-3 p-5">
+              <div className="skeleton h-5 w-1/3" />
+              <div className="skeleton h-4 w-full" />
+              <div className="skeleton h-4 w-5/6" />
+            </div>
+          </div>
+        )}
+
         {result && (
           <ContractResultView
             result={result}
@@ -220,9 +238,23 @@ function ContractResultView({
     <div className="space-y-4">
       {isSample && (
         <div className="rounded-xl border border-line bg-bg p-3 text-center text-xs font-medium text-muted">
-          예시 결과입니다 — 실제로는 붙여넣은 계약서에 맞춰 분석해드려요.
+          예시 결과예요. 실제로는 붙여넣은 계약서에 맞춰 분석해드려요.
         </div>
       )}
+
+      {/* 결과 도착 헤럴드 — 둥이 */}
+      <div className="no-print flex items-center gap-2.5 px-1">
+        <Doongi
+          mood={result.overall_risk === "high" ? "warning" : "found"}
+          size={52}
+          withNest={false}
+        />
+        <p className="text-sm font-semibold text-ink">
+          {result.overall_risk === "high"
+            ? "짚고 넘어갈 조항이 있어요. 아래에서 확인하세요."
+            : "다 읽었어요! 아래에 정리했어요."}
+        </p>
+      </div>
 
       {/* 종합 위험도 배너 */}
       <div className={`animate-fade-up rounded-2xl border p-5 ${o.box}`}>
@@ -242,7 +274,7 @@ function ContractResultView({
               독소조항 {result.findings.length}건
             </span>
             {highN > 0 && (
-              <span className="rounded-full bg-brand px-2.5 py-1 text-xs font-bold text-white">
+              <span className="rounded-full bg-danger px-2.5 py-1 text-xs font-bold text-white">
                 높음 {highN}
               </span>
             )}
@@ -289,7 +321,7 @@ function ContractResultView({
           다른 계약서 검토
         </button>
         <ShareButton
-          text={`[둥지] 계약서 검토 — ${o.label} · 독소조항 ${result.findings.length}건`}
+          text={`[둥지] 계약서 검토: ${o.label} · 독소조항 ${result.findings.length}건`}
           className="btn-ghost"
         />
       </div>
@@ -315,7 +347,15 @@ function FindingCard({
       </div>
 
       {finding.clause_text && (
-        <blockquote className="border-l-2 border-brand/40 bg-bg px-3 py-2 text-sm italic leading-relaxed text-ink">
+        <blockquote
+          className={`rounded-r-lg border-l-[3px] bg-bg px-3 py-2 text-sm leading-relaxed text-ink ${
+            finding.risk === "high"
+              ? "border-danger"
+              : finding.risk === "medium"
+                ? "border-warn"
+                : "border-line"
+          }`}
+        >
           “{finding.clause_text}”
         </blockquote>
       )}

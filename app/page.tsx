@@ -4,36 +4,12 @@ import Onboarding from "@/components/Onboarding";
 import IntroSplash from "@/components/intro/IntroSplash";
 import HomeHero from "@/components/home/HomeHero";
 import NestGrowth from "@/components/home/NestGrowth";
+import QuickActions from "@/components/home/QuickActions";
 import FeatureRow from "@/components/FeatureRow";
-import { FEATURES, TONE_CLS } from "@/lib/features";
+import { FEATURES } from "@/lib/features";
 
-// 홈 퀵액션 (자주 쓰는 4개)
+// 홈 퀵액션에 들어가는 4개 (QuickActions와 동일 목록)
 const QUICK = ["/repair", "/contract", "/rent", "/utility"];
-
-function QuickActions() {
-  const items = QUICK.map((href) => FEATURES.find((f) => f.href === href)!);
-  return (
-    <section className="container-app pt-4">
-      <div className="grid grid-cols-4 gap-2.5">
-        {items.map((f) => {
-          const Icon = f.icon;
-          return (
-            <Link key={f.href} href={f.href} className="block">
-              <div className="card flex flex-col items-center gap-1.5 px-1 py-3.5 transition active:scale-95">
-                <span
-                  className={`flex h-11 w-11 items-center justify-center rounded-2xl ${TONE_CLS[f.tone]}`}
-                >
-                  <Icon size={21} strokeWidth={2.3} />
-                </span>
-                <span className="text-[11px] font-bold text-ink">{f.short}</span>
-              </div>
-            </Link>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
 
 export default function Home() {
   const tools = FEATURES.filter((f) => !QUICK.includes(f.href));

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import {
   Loader2,
+  UtensilsCrossed,
   AlertCircle,
   Send,
   ShoppingCart,
@@ -12,8 +13,8 @@ import {
   Printer,
   CircleAlert,
 } from "lucide-react";
-import NestMark from "./NestMark";
 import AppBar from "./AppBar";
+import Doongi from "./mascot/Doongi";
 import ShareButton from "./ShareButton";
 import { addGrowth } from "@/lib/growth";
 import { SAMPLE_GROCERY_PLAN, SAMPLE_GROCERY_USE } from "@/lib/sample";
@@ -110,7 +111,7 @@ export default function GroceryCoach() {
 
       <div className="container-app space-y-5 pt-5">
         {/* 탭 토글 */}
-        <div className="no-print grid grid-cols-2 rounded-xl bg-bg p-1">
+        <div className="no-print grid grid-cols-2 rounded-2xl bg-[#F0F2F0] p-1">
           {(
             [
               ["plan", "식단 짜기"],
@@ -121,8 +122,8 @@ export default function GroceryCoach() {
               key={t}
               type="button"
               onClick={() => switchTab(t)}
-              className={`rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors ${
-                tab === t ? "bg-card text-brand shadow-sm" : "text-muted"
+              className={`rounded-xl px-4 py-2.5 text-sm transition-all ${
+                tab === t ? "bg-card font-bold text-ink shadow-card" : "font-semibold text-muted"
               }`}
             >
               {label}
@@ -183,7 +184,26 @@ export default function GroceryCoach() {
 
         <div id="result-anchor" />
 
-        {result && (
+        {/* 로딩 — 둥이가 궁리 중 */}
+        {loading && (
+          <div className="space-y-4" aria-live="polite" aria-busy="true">
+            <div className="card flex items-center gap-3 p-4">
+              <Doongi mood="thinking" size={72} withNest={false} className="shrink-0" />
+              <p className="text-sm font-medium text-ink">
+                {tab === "plan"
+                  ? "예산에 맞는 식단을 궁리하고 있어요."
+                  : "남은 재료로 만들 수 있는 걸 찾고 있어요."}
+              </p>
+            </div>
+            <div className="card space-y-3 p-5">
+              <div className="skeleton h-5 w-1/3" />
+              <div className="skeleton h-4 w-full" />
+              <div className="skeleton h-4 w-5/6" />
+            </div>
+          </div>
+        )}
+
+        {result && !loading && (
           <>
             {isSample && (
               <div className="no-print rounded-xl border border-line bg-bg p-3 text-center text-xs font-medium text-muted">
@@ -384,7 +404,7 @@ function PlanView({ r }: { r: GroceryPlanResult }) {
       <section className="card animate-fade-up p-5">
         <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-ink">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sun-tint text-sun-deep">
-            🍚
+            <UtensilsCrossed size={18} />
           </span>
           요일별 식단
         </h2>
@@ -426,7 +446,7 @@ function PlanView({ r }: { r: GroceryPlanResult }) {
         <div className="space-y-3">
           {grouped.map((g) => (
             <div key={g.cat}>
-              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-muted">{g.cat}</p>
+              <p className="mb-1 text-xs font-bold text-muted">{g.cat}</p>
               <ul className="space-y-1">
                 {g.items.map(({ it, idx }) => (
                   <li key={idx}>
@@ -553,8 +573,8 @@ function UseView({ r }: { r: GroceryUseResult }) {
       ))}
 
       {(!r.recipes || r.recipes.length === 0) && (
-        <div className="card flex flex-col items-center gap-3 px-6 py-9 text-center">
-          <NestMark size={40} className="text-brand/70" />
+        <div className="card flex flex-col items-center gap-2 px-6 py-8 text-center">
+          <Doongi mood="sleepy" size={96} />
           <p className="text-sm text-muted">재료를 조금 더 알려주시면 메뉴를 찾아드릴게요.</p>
         </div>
       )}

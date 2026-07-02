@@ -44,7 +44,7 @@ export default function PhotoUpload({
       />
 
       {value ? (
-        <div className="relative overflow-hidden rounded-xl border border-line">
+        <div className="relative overflow-hidden rounded-2xl border border-line">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={value} alt="업로드한 사진 미리보기" className="max-h-64 w-full object-cover" />
           <button
@@ -60,7 +60,7 @@ export default function PhotoUpload({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-line bg-bg py-7 text-muted transition-colors hover:border-brand hover:text-brand"
+          className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-line bg-bg py-7 text-muted transition-all hover:border-brand/60 hover:text-brand-deep active:scale-[0.99]"
         >
           <ImagePlus size={26} />
           <span className="text-sm font-medium">사진 올리기 (선택)</span>

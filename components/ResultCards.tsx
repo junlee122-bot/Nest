@@ -68,7 +68,7 @@ function Section({
 }) {
   const head = (
     <>
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand-deep">
         {icon}
       </span>
       <h2 className="flex items-center gap-2 text-base font-bold text-ink">
@@ -297,14 +297,14 @@ function ToneMessage({
 }) {
   return (
     <div>
-      <div className="mb-3 inline-flex rounded-xl bg-bg p-1">
+      <div className="mb-3 inline-flex rounded-2xl bg-[#F0F2F0] p-1">
         {(["polite", "firm"] as const).map((t) => (
           <button
             key={t}
             type="button"
             onClick={() => setTone(t)}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-              tone === t ? "bg-card text-brand shadow-sm" : "text-muted"
+            className={`rounded-xl px-4 py-2 text-sm transition-all ${
+              tone === t ? "bg-card font-bold text-ink shadow-card" : "font-semibold text-muted"
             }`}
           >
             {t === "polite" ? "정중하게" : "단호하게"}

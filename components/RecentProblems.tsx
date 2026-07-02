@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Clock, X, ChevronRight } from "lucide-react";
+import { Clock, X, ChevronRight, Wrench, ClipboardList, Zap, type LucideIcon } from "lucide-react";
 import {
   getHistory,
   removeHistory,
@@ -11,10 +11,10 @@ import {
 } from "@/lib/history";
 import type { Topic } from "@/lib/types";
 
-const TOPIC_META: Record<Topic, { emoji: string; label: string }> = {
-  repair: { emoji: "🏠", label: "집 수리" },
-  admin: { emoji: "📋", label: "이사·행정" },
-  utility: { emoji: "💡", label: "공과금" },
+const TOPIC_META: Record<Topic, { icon: LucideIcon; label: string; cls: string }> = {
+  repair: { icon: Wrench, label: "집 수리", cls: "bg-brand-tint text-brand-deep" },
+  admin: { icon: ClipboardList, label: "이사·행정", cls: "bg-sun-tint text-sun-deep" },
+  utility: { icon: Zap, label: "공과금", cls: "bg-coral-tint text-coral-deep" },
 };
 
 export default function RecentProblems() {
@@ -56,8 +56,8 @@ export default function RecentProblems() {
                 href={`/${it.topic}?h=${it.id}`}
                 className="flex min-w-0 flex-1 items-center gap-3"
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-tint text-lg">
-                  {meta.emoji}
+                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${meta.cls}`}>
+                  <meta.icon size={17} strokeWidth={2.3} />
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-ink">{it.title}</p>

@@ -253,7 +253,7 @@ export default function RentCheck() {
                 key={t.key}
                 type="button"
                 onClick={() => setType(t.key)}
-                className={`chip ${type === t.key ? "border-sun bg-sun-tint text-sun-deep hover:border-sun hover:bg-sun-tint hover:text-sun-deep" : ""}`}
+                className={`chip ${type === t.key ? "bg-sun-tint font-bold text-sun-deep hover:bg-sun-tint hover:text-sun-deep" : ""}`}
               >
                 {t.label}
               </button>

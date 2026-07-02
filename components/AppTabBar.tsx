@@ -4,6 +4,7 @@
 // 홈 / 집수리 / 계약서 / 시세 / 전체. 인쇄 시 숨김, safe-area 대응.
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { m } from "framer-motion";
 import {
   Home,
   Wrench,
@@ -48,12 +49,22 @@ export default function AppTabBar() {
               key={t.href}
               href={t.href}
               aria-current={active ? "page" : undefined}
-              className={`flex flex-col items-center gap-0.5 pb-1.5 pt-2 transition-colors ${
-                active ? "text-brand" : "text-muted hover:text-ink"
+              className={`relative flex flex-col items-center gap-0.5 pb-1.5 pt-2 transition-colors ${
+                active ? "text-brand-deep" : "text-muted hover:text-ink"
               }`}
             >
-              <Icon size={22} strokeWidth={active ? 2.6 : 2} />
-              <span className={`text-[10px] leading-tight ${active ? "font-bold" : "font-medium"}`}>
+              {active && (
+                <m.span
+                  layoutId="tabbar-pill"
+                  transition={{ type: "spring", stiffness: 480, damping: 36 }}
+                  className="absolute left-1/2 top-1 h-[30px] w-12 -translate-x-1/2 rounded-full bg-brand-tint"
+                  aria-hidden
+                />
+              )}
+              <Icon size={22} strokeWidth={active ? 2.6 : 2} className="relative" />
+              <span
+                className={`relative text-[10px] leading-tight ${active ? "font-bold" : "font-medium"}`}
+              >
                 {t.label}
               </span>
             </Link>
