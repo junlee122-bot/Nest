@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
 import { grocerySystemPrompt } from "@/lib/prompts";
-import { extractJson } from "@/lib/json";
+import { callClaudeJson } from "@/lib/llm";
+import { validateGrocery } from "@/lib/validate";
 import type { GroceryMode, GroceryResponse, GroceryResult } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-8";
 
 export async function POST(req: NextRequest): Promise<NextResponse<GroceryResponse>> {
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -72,30 +70,23 @@ export async function POST(req: NextRequest): Promise<NextResponse<GroceryRespon
     userText = `가지고 있는 재료: ${ingredients}\n이 재료들을 최대한 소진하는 메뉴를 추천해주세요.`;
   }
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
   try {
-    const message = await client.messages.create({
-      model: MODEL,
-      max_tokens: 2800,
-      system: grocerySystemPrompt(mode),
+    const call = await callClaudeJson({
+      systemStatic: grocerySystemPrompt(mode),
       messages: [{ role: "user", content: userText }],
+      maxTokens: 2800,
+      // 식단은 약간의 다양성이 좋아 상한(0.3)을 사용
+      temperature: 0.3,
+      validate: validateGrocery(mode),
     });
-
-    const textOut = message.content
-      .filter((b): b is Anthropic.TextBlock => b.type === "text")
-      .map((b) => b.text)
-      .join("\n");
-
-    const parsed = extractJson(textOut);
-    if (!parsed || typeof parsed !== "object") {
+    if (!call) {
       return NextResponse.json(
         { ok: false, error: "결과를 해석하지 못했어요. 잠시 후 다시 시도해주세요." },
         { status: 502 }
       );
     }
 
-    const result = { mode, ...(parsed as object) } as GroceryResult;
+    const result = { mode, ...call.parsed } as GroceryResult;
     return NextResponse.json({ ok: true, result });
   } catch (err) {
     const e = err as { status?: number };

@@ -1,0 +1,51 @@
+[
+  {
+    "id": "leak-direct",
+    "topic": "repair",
+    "text": "천장에서 물이 새요",
+    "expect": { "clarify": false, "verdict": ["landlord"], "category": ["leak"], "urgency": ["emergency", "soon"] }
+  },
+  {
+    "id": "mold-clarify-first",
+    "topic": "repair",
+    "text": "벽에 곰팡이가 생겼어요",
+    "expect": { "clarify": true }
+  },
+  {
+    "id": "mold-after-answer",
+    "topic": "repair",
+    "text": "벽에 곰팡이가 생겼어요\n\n추가 정보: 환기를 자주 하는데도 벽 안쪽에서 축축하게 올라와요",
+    "disallowClarify": true,
+    "expect": { "clarify": false, "verdict": ["landlord", "depends"], "category": ["mold"] }
+  },
+  {
+    "id": "boiler-winter",
+    "topic": "repair",
+    "text": "보일러가 안 켜져요",
+    "expect": { "clarify": false, "verdict": ["landlord"], "category": ["boiler"] }
+  },
+  {
+    "id": "gas-emergency",
+    "topic": "repair",
+    "text": "집에서 가스 냄새가 나요",
+    "expect": { "clarify": false, "urgency": ["emergency"], "safetyLevel": ["danger"], "category": ["gas"] }
+  },
+  {
+    "id": "bulb-tenant",
+    "topic": "repair",
+    "text": "방 전구가 나갔어요",
+    "expect": { "clarify": false, "verdict": ["tenant"], "urgency": ["routine"] }
+  },
+  {
+    "id": "toilet-clog",
+    "topic": "repair",
+    "text": "변기가 막혔어요",
+    "expect": { "clarify": false, "verdict": ["tenant", "depends"], "category": ["toilet"] }
+  },
+  {
+    "id": "doorlock-battery",
+    "topic": "repair",
+    "text": "도어락 건전지가 다 됐는지 문이 안 열려요",
+    "expect": { "clarify": false, "category": ["doorlock", "etc"] }
+  }
+]

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { systemPromptFor } from "@/lib/prompts";
-import { extractJson } from "@/lib/json";
+import { callClaudeJson } from "@/lib/llm";
+import { validateForTopic } from "@/lib/validate";
 import { weatherContextLine } from "@/lib/integrations/weather";
 import { holidayContextLine } from "@/lib/integrations/holidays";
 import type {
@@ -14,7 +15,6 @@ import type {
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-8";
 const VALID_TOPICS: Topic[] = ["repair", "admin", "utility"];
 const ALLOWED_MEDIA = ["image/jpeg", "image/png", "image/gif", "image/webp"] as const;
 type AllowedMedia = (typeof ALLOWED_MEDIA)[number];
@@ -95,50 +95,48 @@ export async function POST(req: NextRequest): Promise<NextResponse<AssistRespons
     text: text || "사진 속 상황을 분석해 주세요.",
   });
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-  let system = systemPromptFor(topic);
+  // system 분리 (v3 P6): 정적 본문은 프롬프트 캐싱, 요청별 맥락은 동적 블록
+  const systemStatic = systemPromptFor(topic);
+  const dynamicLines: string[] = [];
   if (topic === "repair") {
     const m = new Date().getMonth() + 1;
     const season =
       m === 12 || m <= 2 ? "겨울" : m <= 5 ? "봄(환절기)" : m <= 8 ? "여름·장마철" : "가을(환절기)";
-    system += `\n\n[현재 시기] 지금은 ${m}월(${season})입니다. 이 시기 특성을 진단·urgency·firstAction에 반영하세요.`;
+    dynamicLines.push(
+      `[현재 시기] 지금은 ${m}월(${season})입니다. 이 시기 특성을 진단·urgency·firstAction에 반영하세요.`
+    );
 
     // 실황·공휴일 맥락 (v3 P5) — 키가 없거나 실패하면 조용히 생략
     const [weather, holiday] = await Promise.all([
       weatherContextLine().catch(() => null),
       holidayContextLine().catch(() => null),
     ]);
-    if (weather) system += `\n[실황 참고] ${weather}`;
-    if (holiday) system += `\n[일정 참고] ${holiday}`;
+    if (weather) dynamicLines.push(`[실황 참고] ${weather}`);
+    if (holiday) dynamicLines.push(`[일정 참고] ${holiday}`);
   }
   if (disallowClarify) {
-    system +=
-      "\n\n[중요] 사용자가 이미 추가 정보를 제공했습니다. 더 이상 되묻지 말고, 곧바로 최종 결과 JSON만 출력하세요.";
+    dynamicLines.push(
+      "[중요] 사용자가 이미 추가 정보를 제공했습니다. 더 이상 되묻지 말고, 곧바로 최종 결과 JSON만 출력하세요."
+    );
   }
 
   try {
-    const message = await client.messages.create({
-      model: MODEL,
-      max_tokens: 2048,
-      system,
+    const call = await callClaudeJson({
+      systemStatic,
+      systemDynamic: dynamicLines.length > 0 ? dynamicLines.join("\n") : undefined,
       messages: [{ role: "user", content }],
+      maxTokens: 2048,
+      hasImage: !!imageDataUrl,
+      validate: validateForTopic(topic),
     });
-
-    const textOut = message.content
-      .filter((b): b is Anthropic.TextBlock => b.type === "text")
-      .map((b) => b.text)
-      .join("\n");
-
-    const parsed = extractJson(textOut);
-    if (!parsed || typeof parsed !== "object") {
+    if (!call) {
       return NextResponse.json(
         { ok: false, error: "결과를 해석하지 못했어요. 잠시 후 다시 시도해주세요." },
         { status: 502 }
       );
     }
 
-    const p = parsed as Record<string, unknown>;
+    const p = call.parsed;
 
     // 되묻기 — repair 에서만, 1회 한정 (disallowClarify면 무시)
     if (topic === "repair" && !disallowClarify && p.needsClarification === true) {
@@ -154,7 +152,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<AssistRespons
     }
 
     // kind 보정 (모델이 누락할 경우 topic 기준으로 채움)
-    const result = { kind: topic, ...(parsed as object) } as AssistResult;
+    const result = { kind: topic, ...p } as AssistResult;
     return NextResponse.json({ ok: true, result });
   } catch (err) {
     const e = err as { status?: number; message?: string };

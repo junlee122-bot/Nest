@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
 import { contractSystemPrompt } from "@/lib/prompts";
 import { rulebookForPrompt } from "@/lib/legal/rulebook";
 import { lawsForPrompt } from "@/lib/legal/laws";
 import { fetchLawArticles } from "@/lib/integrations/law";
-import { extractJson } from "@/lib/json";
+import { callClaudeJson } from "@/lib/llm";
+import { validateContract } from "@/lib/validate";
 import type { ContractResponse, ContractResult } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-8";
 const MAX_LEN = 12000; // 과도한 입력 방지
 
 export async function POST(req: NextRequest): Promise<NextResponse<ContractResponse>> {
@@ -43,8 +42,6 @@ export async function POST(req: NextRequest): Promise<NextResponse<ContractRespo
     );
   }
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
   // 법제처 현행 원문 조문 보강 (v3 P5) — 키가 없거나 실패하면 기존 요약만 사용
   let laws = lawsForPrompt();
   const live = await fetchLawArticles("주택임대차보호법", [3, 4, 6, 7, 8, 10]).catch(
@@ -59,29 +56,23 @@ export async function POST(req: NextRequest): Promise<NextResponse<ContractRespo
   const system = contractSystemPrompt(rulebookForPrompt(), laws);
 
   try {
-    const message = await client.messages.create({
-      model: MODEL,
-      max_tokens: 3500,
-      system,
+    // 룰북+법령은 길고 정적 → 프롬프트 캐싱 대상 (v3 P6)
+    const call = await callClaudeJson({
+      systemStatic: system,
       messages: [
         { role: "user", content: `다음 임대차계약서(특약 포함)를 검토해 주세요:\n\n${text}` },
       ],
+      maxTokens: 3500,
+      validate: validateContract,
     });
-
-    const textOut = message.content
-      .filter((b): b is Anthropic.TextBlock => b.type === "text")
-      .map((b) => b.text)
-      .join("\n");
-
-    const parsed = extractJson(textOut);
-    if (!parsed || typeof parsed !== "object") {
+    if (!call) {
       return NextResponse.json(
         { ok: false, error: "결과를 해석하지 못했어요. 잠시 후 다시 시도해주세요." },
         { status: 502 }
       );
     }
 
-    const r = parsed as Partial<ContractResult>;
+    const r = call.parsed as Partial<ContractResult>;
     const result: ContractResult = {
       overall_risk: r.overall_risk ?? "none",
       summary: r.summary ?? "",
