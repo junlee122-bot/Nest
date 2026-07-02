@@ -10,6 +10,7 @@ import {
   ShoppingBasket,
   PiggyBank,
   ClipboardList,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react";
 import NestArc from "@/components/NestArc";
@@ -58,6 +59,13 @@ const groups: { label: string; items: CardItem[] }[] = [
   {
     label: "돈 관리",
     items: [
+      {
+        href: "/rent",
+        icon: BarChart3,
+        title: "전월세 시세 참고",
+        desc: "국토부 실거래가로 우리 동네 시세 감 잡기 — 계약 전 필수",
+        badge: "베타",
+      },
       {
         href: "/utility",
         icon: Zap,

@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { contractSystemPrompt } from "@/lib/prompts";
 import { rulebookForPrompt } from "@/lib/legal/rulebook";
 import { lawsForPrompt } from "@/lib/legal/laws";
+import { fetchLawArticles } from "@/lib/integrations/law";
 import { extractJson } from "@/lib/json";
 import type { ContractResponse, ContractResult } from "@/lib/types";
 
@@ -43,7 +44,19 @@ export async function POST(req: NextRequest): Promise<NextResponse<ContractRespo
   }
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const system = contractSystemPrompt(rulebookForPrompt(), lawsForPrompt());
+
+  // 법제처 현행 원문 조문 보강 (v3 P5) — 키가 없거나 실패하면 기존 요약만 사용
+  let laws = lawsForPrompt();
+  const live = await fetchLawArticles("주택임대차보호법", [3, 4, 6, 7, 8, 10]).catch(
+    () => null
+  );
+  if (live) {
+    laws +=
+      `\n\n[현행 원문 조문 — 법제처 국가법령정보센터 연동${live.effectiveDate ? ` (시행 ${live.effectiveDate})` : ""}]\n` +
+      `아래는 ${live.name} 주요 조문의 현행 원문이다. 위 요약과 원문이 다르면 원문을 우선 근거로 삼아라.\n` +
+      live.text;
+  }
+  const system = contractSystemPrompt(rulebookForPrompt(), laws);
 
   try {
     const message = await client.messages.create({

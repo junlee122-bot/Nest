@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { systemPromptFor } from "@/lib/prompts";
 import { extractJson } from "@/lib/json";
+import { weatherContextLine } from "@/lib/integrations/weather";
+import { holidayContextLine } from "@/lib/integrations/holidays";
 import type {
   AssistResponse,
   AssistResult,
@@ -101,6 +103,14 @@ export async function POST(req: NextRequest): Promise<NextResponse<AssistRespons
     const season =
       m === 12 || m <= 2 ? "겨울" : m <= 5 ? "봄(환절기)" : m <= 8 ? "여름·장마철" : "가을(환절기)";
     system += `\n\n[현재 시기] 지금은 ${m}월(${season})입니다. 이 시기 특성을 진단·urgency·firstAction에 반영하세요.`;
+
+    // 실황·공휴일 맥락 (v3 P5) — 키가 없거나 실패하면 조용히 생략
+    const [weather, holiday] = await Promise.all([
+      weatherContextLine().catch(() => null),
+      holidayContextLine().catch(() => null),
+    ]);
+    if (weather) system += `\n[실황 참고] ${weather}`;
+    if (holiday) system += `\n[일정 참고] ${holiday}`;
   }
   if (disallowClarify) {
     system +=

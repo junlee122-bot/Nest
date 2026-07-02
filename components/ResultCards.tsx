@@ -38,6 +38,7 @@ import {
   naverMapSearchUrl,
   kakaoMapSearchUrl,
   categoryLabel,
+  searchTermFor,
   SPONSORED_PROVIDERS,
 } from "@/lib/services";
 
@@ -499,6 +500,8 @@ function HelpConnect({ r }: { r: RepairResult }) {
           카카오맵으로 찾기
         </a>
       </div>
+      {/* 주변 업체 미리보기 (카카오 로컬, v3 P5) — 키 없으면 조용히 숨김 */}
+      <PlacesPreview query={`${region.trim()} ${searchTermFor(cat)}`.trim()} />
       {/* 향후 제휴/스폰서 업체 자리 — 데모에는 비어 있음 */}
       {SPONSORED_PROVIDERS.length > 0 && (
         <div className="mt-2 space-y-2">
@@ -621,6 +624,81 @@ function HelpConnect({ r }: { r: RepairResult }) {
       </details>
       {trustLine}
     </Section>
+  );
+}
+
+// 주변 업체 미리보기 — 카카오 로컬 검색 (서버 키 없으면 버튼 자체가 사라짐)
+function PlacesPreview({ query }: { query: string }) {
+  const [state, setState] = useState<"idle" | "loading" | "hidden" | "done">("idle");
+  const [places, setPlaces] = useState<
+    { name: string; phone: string | null; address: string | null; mapUrl: string | null }[]
+  >([]);
+
+  async function run() {
+    setState("loading");
+    try {
+      const res = await fetch(`/api/places?q=${encodeURIComponent(query)}`);
+      const json = await res.json();
+      if (json.ok && Array.isArray(json.places) && json.places.length > 0) {
+        setPlaces(json.places);
+        setState("done");
+      } else {
+        // 키 미설정·결과 없음 → 지도 딥링크만으로 충분하므로 조용히 숨김
+        setState("hidden");
+      }
+    } catch {
+      setState("hidden");
+    }
+  }
+
+  if (state === "hidden") return null;
+
+  if (state === "done") {
+    return (
+      <div className="mt-3 space-y-2">
+        <p className="text-xs font-bold text-muted">주변 업체 미리보기</p>
+        {places.map((p, i) => (
+          <div key={i} className="rounded-xl border border-line p-3 text-sm">
+            <div className="flex items-center justify-between gap-2">
+              <span className="min-w-0 truncate font-semibold text-ink">{p.name}</span>
+              {p.phone && (
+                <a
+                  href={`tel:${p.phone.replace(/[^0-9+]/g, "")}`}
+                  className="shrink-0 text-xs font-semibold text-brand"
+                >
+                  {p.phone}
+                </a>
+              )}
+            </div>
+            {p.address && <p className="mt-0.5 text-xs text-muted">{p.address}</p>}
+            {p.mapUrl && (
+              <a
+                href={p.mapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 inline-block text-xs font-medium text-brand"
+              >
+                카카오맵에서 보기
+              </a>
+            )}
+          </div>
+        ))}
+        <p className="text-[11px] leading-relaxed text-muted">
+          카카오 검색 결과로, 둥지가 업체를 보증하지 않아요.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={run}
+      disabled={state === "loading"}
+      className="btn-ghost mt-2 w-full text-sm"
+    >
+      {state === "loading" ? "찾는 중…" : "주변 업체 미리보기"}
+    </button>
   );
 }
 
