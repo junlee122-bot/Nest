@@ -18,6 +18,7 @@ import RecentProblems from "@/components/RecentProblems";
 import Onboarding from "@/components/Onboarding";
 import IntroSplash from "@/components/intro/IntroSplash";
 import HomeHero from "@/components/home/HomeHero";
+import NestGrowth from "@/components/home/NestGrowth";
 
 const steps = [
   { icon: Camera, title: "사진·한 줄로 입력", desc: "곰팡이·누수 등 문제를 적거나 찍어요" },
@@ -149,6 +150,9 @@ export default function Home() {
 
       {/* 히어로 — 둥이의 현관 */}
       <HomeHero />
+
+      {/* 내 둥지 (둥지 키우기, 잔가지 0이면 숨김) */}
+      <NestGrowth />
 
       {/* 어떻게 작동하나요 — 3단계 미니 스트립 */}
       <section className="container-app pb-2 pt-5">

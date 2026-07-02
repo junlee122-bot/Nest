@@ -19,6 +19,7 @@ import {
   Search,
 } from "lucide-react";
 import Doongi from "./mascot/Doongi";
+import { addGrowth } from "@/lib/growth";
 import { fadeUp, stagger } from "@/lib/motion";
 import type { RentDeal, RentHouseType } from "@/lib/integrations/rtms";
 
@@ -172,6 +173,7 @@ export default function RentCheck() {
       const json = await res.json();
       if (json.ok) {
         setData(json as RentOk);
+        addGrowth("rent"); // 둥지 키우기 (이 기기에만 저장)
       } else if (json.reason === "config") {
         // 키 미설정 — 예시 데이터로 화면 흐름을 보여준다
         setData({

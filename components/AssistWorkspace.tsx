@@ -20,6 +20,7 @@ import Doongi from "./mascot/Doongi";
 import ShareButton from "./ShareButton";
 import { fadeUp } from "@/lib/motion";
 import { addHistory, deriveTitle, getHistoryEntry } from "@/lib/history";
+import { addGrowth } from "@/lib/growth";
 import type { AssistResponse, AssistResult, Clarify, Topic } from "@/lib/types";
 
 const REPAIR_FOLLOWUPS = [
@@ -149,6 +150,7 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
           title: deriveTitle(payloadText),
           result: data.result,
         });
+        addGrowth("diagnose"); // 둥지 키우기 (이 기기에만 저장)
         scrollToResult();
       }
     } catch {

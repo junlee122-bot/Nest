@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import NestMark from "./NestMark";
 import ShareButton from "./ShareButton";
+import { addGrowth } from "@/lib/growth";
 import { SAMPLE_GROCERY_PLAN, SAMPLE_GROCERY_USE } from "@/lib/sample";
 import type {
   GroceryMode,
@@ -76,6 +77,7 @@ export default function GroceryCoach() {
       if (!data.ok) setError(data.error);
       else {
         setResult(data.result);
+        addGrowth("grocery"); // 둥지 키우기 (이 기기에만 저장)
         scrollToResult();
       }
     } catch {

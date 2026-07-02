@@ -32,6 +32,7 @@ import type {
 } from "@/lib/types";
 import SafetyBanner from "./SafetyBanner";
 import Doongi from "./mascot/Doongi";
+import { addGrowth } from "@/lib/growth";
 import { fadeUp, springSoft, stagger } from "@/lib/motion";
 import { CONTACTS_VERIFIED, DISPUTE_HELP, emergencyContactsFor } from "@/lib/contacts";
 import {
@@ -426,6 +427,7 @@ function NextSteps() {
       } catch {
         /* noop */
       }
+      if (next.every(Boolean)) addGrowth("steps_done"); // 둥지 키우기
       return next;
     });
   }

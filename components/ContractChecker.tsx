@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import NestMark from "./NestMark";
 import ShareButton from "./ShareButton";
+import { addGrowth } from "@/lib/growth";
 import { SAMPLE_CONTRACT, SAMPLE_CONTRACT_TEXT } from "@/lib/sample";
 import type { ContractResponse, ContractResult, RiskLevel } from "@/lib/types";
 
@@ -64,6 +65,7 @@ export default function ContractChecker() {
       } else {
         setResult(data.result);
         setAnalyzed(text.trim());
+        addGrowth("contract"); // 둥지 키우기 (이 기기에만 저장)
         scrollToResult();
       }
     } catch {
