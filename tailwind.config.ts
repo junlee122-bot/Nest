@@ -33,6 +33,13 @@ const config: Config = {
           DEFAULT: "#15803D",
           tint: "#E9F6EE",
         },
+        // 둥지 결(짚·잔가지) 웜 액센트 — 마스코트 존·둥지 아크 전용 (v3 P4)
+        // 카드 배경·버튼에는 쓰지 않는다 (DECISIONS.md 자기비판)
+        straw: {
+          DEFAULT: "#A97E50",
+          tint: "#F7F0E6",
+          deep: "#6B4F30",
+        },
       },
       fontFamily: {
         sans: [

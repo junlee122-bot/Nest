@@ -1,8 +1,22 @@
 import Link from "next/link";
-import { ChevronRight, Camera, Sparkles, Send } from "lucide-react";
-import NestMark from "@/components/NestMark";
+import {
+  ChevronRight,
+  Camera,
+  Sparkles,
+  Send,
+  Wrench,
+  ScrollText,
+  Zap,
+  ShoppingBasket,
+  PiggyBank,
+  ClipboardList,
+  type LucideIcon,
+} from "lucide-react";
+import NestArc from "@/components/NestArc";
 import RecentProblems from "@/components/RecentProblems";
 import Onboarding from "@/components/Onboarding";
+import IntroSplash from "@/components/intro/IntroSplash";
+import HomeHero from "@/components/home/HomeHero";
 
 const steps = [
   { icon: Camera, title: "사진·한 줄로 입력", desc: "곰팡이·누수 등 문제를 적거나 찍어요" },
@@ -13,7 +27,7 @@ const steps = [
 type Badge = "메인" | "베타" | null;
 interface CardItem {
   href: string;
-  emoji: string;
+  icon: LucideIcon;
   title: string;
   desc: string;
   badge: Badge;
@@ -26,7 +40,7 @@ const groups: { label: string; items: CardItem[] }[] = [
     items: [
       {
         href: "/repair",
-        emoji: "🏠",
+        icon: Wrench,
         title: "집 수리 — 살림 응급실",
         desc: "곰팡이·누수·보일러? 응급처치부터 집주인 문구까지",
         badge: "메인",
@@ -34,7 +48,7 @@ const groups: { label: string; items: CardItem[] }[] = [
       },
       {
         href: "/contract",
-        emoji: "📄",
+        icon: ScrollText,
         title: "계약서 독소조항 체커",
         desc: "계약서 붙여넣으면 불리한 조항을 찾아드려요",
         badge: null,
@@ -46,21 +60,21 @@ const groups: { label: string; items: CardItem[] }[] = [
     items: [
       {
         href: "/utility",
-        emoji: "💡",
+        icon: Zap,
         title: "공과금 점검",
         desc: "이번 달 요금, 평균보다 많이 나왔나? 절약 팁까지",
         badge: null,
       },
       {
         href: "/grocery",
-        emoji: "🛒",
+        icon: ShoppingBasket,
         title: "혼밥 장보기 코치",
         desc: "예산 식단 + 남은 재료 메뉴 — 식비·음식물쓰레기 절약",
         badge: null,
       },
       {
         href: "/money",
-        emoji: "💳",
+        icon: PiggyBank,
         title: "주거비 자동분석",
         desc: "오픈뱅킹 테스트베드(모의계좌)로 월세·공과금 자동 집계",
         badge: "베타",
@@ -72,7 +86,7 @@ const groups: { label: string; items: CardItem[] }[] = [
     items: [
       {
         href: "/admin",
-        emoji: "📋",
+        icon: ClipboardList,
         title: "이사·행정 길잡이",
         desc: "전입신고·확정일자·보증보험… 뭐부터 할지 체크리스트로",
         badge: null,
@@ -90,6 +104,7 @@ function BadgeTag({ badge }: { badge: Badge }) {
 }
 
 function CardLink({ c }: { c: CardItem }) {
+  const Icon = c.icon;
   return (
     <Link href={c.href} className="block">
       <div
@@ -97,8 +112,12 @@ function CardLink({ c }: { c: CardItem }) {
           c.accent ? "ring-1 ring-brand/20" : ""
         }`}
       >
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-2xl">
-          {c.emoji}
+        <span
+          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${
+            c.accent ? "bg-brand-tint text-brand" : "bg-straw-tint text-straw-deep"
+          }`}
+        >
+          <Icon size={22} strokeWidth={2.2} />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -116,29 +135,15 @@ function CardLink({ c }: { c: CardItem }) {
 export default function Home() {
   return (
     <main className="min-h-dvh pb-16">
-      {/* 첫 방문 1회 사용법 오버레이 */}
+      {/* 인트로 스플래시 (세션 1회) → 첫 방문 1회 사용법 오버레이 */}
+      <IntroSplash />
       <Onboarding />
 
-      {/* 히어로 */}
-      <section className="flow-bg">
-        <div className="container-app pb-8 pt-14 text-center">
-          <div className="mb-4 inline-flex items-center gap-2.5">
-            <NestMark size={40} className="text-brand" />
-            <span className="text-2xl font-extrabold tracking-tight text-ink">
-              둥지<span className="ml-1.5 text-base font-semibold text-muted">Nest</span>
-            </span>
-          </div>
-          <h1 className="text-balance text-2xl font-extrabold leading-snug text-ink">
-            혼자 살아도, 든든하게
-          </h1>
-          <p className="mx-auto mt-3 max-w-xs text-pretty text-sm leading-relaxed text-muted">
-            자취 생활, AI가 같이 챙겨드려요. 집 문제부터 돈 관리까지 한곳에서.
-          </p>
-        </div>
-      </section>
+      {/* 히어로 — 둥이의 현관 */}
+      <HomeHero />
 
       {/* 어떻게 작동하나요 — 3단계 미니 스트립 */}
-      <section className="container-app pb-2">
+      <section className="container-app pb-2 pt-5">
         <div className="card p-4">
           <ol className="grid grid-cols-3 gap-2">
             {steps.map((s, i) => (
@@ -159,12 +164,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 주제별 그룹 카드 */}
+      {/* 주제별 그룹 카드 — 둥지의 '방'들 */}
       {groups.map((g) => (
         <section key={g.label} className="container-app pt-5">
-          <h2 className="mb-2 px-1 text-xs font-bold uppercase tracking-wide text-muted">
-            {g.label}
-          </h2>
+          <div className="mb-2 flex flex-col items-start px-1">
+            <h2 className="text-xs font-bold uppercase tracking-wide text-muted">{g.label}</h2>
+            <NestArc width={30} className="mt-1 text-straw/70" />
+          </div>
           <div className="space-y-3">
             {g.items.map((c) => (
               <CardLink key={c.href} c={c} />

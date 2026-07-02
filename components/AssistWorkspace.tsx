@@ -3,7 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { m } from "framer-motion";
-import { ArrowLeft, Send, Loader2, AlertCircle, HelpCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Send,
+  Loader2,
+  AlertCircle,
+  HelpCircle,
+  Wrench,
+  ClipboardList,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import PhotoUpload from "./PhotoUpload";
 import ResultCards from "./ResultCards";
 import Doongi from "./mascot/Doongi";
@@ -25,9 +35,17 @@ function shareSummary(r: AssistResult): string {
   return `[둥지] 공과금 점검 — ${r.summary || "결과 확인"}`;
 }
 
+// 주제별 헤더 아이콘 — 홈 카드와 동일 아이콘으로 일관성 유지 (v3 P4)
+const TOPIC_ICON: Record<Topic, LucideIcon> = {
+  repair: Wrench,
+  admin: ClipboardList,
+  utility: Zap,
+};
+
 export interface TopicConfig {
   topic: Topic;
-  emoji: string;
+  /** @deprecated v3 P4부터 TOPIC_ICON 사용 — 하위 호환용으로만 남김 */
+  emoji?: string;
   title: string;
   subtitle: string;
   question: string;
@@ -207,10 +225,13 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
           </Link>
           <div className="mt-3 flex items-center gap-3">
             <span
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-2xl"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand"
               aria-hidden
             >
-              {config.emoji}
+              {(() => {
+                const Icon = TOPIC_ICON[config.topic];
+                return <Icon size={22} strokeWidth={2.2} />;
+              })()}
             </span>
             <div>
               <h1 className="text-xl font-bold text-ink">{config.title}</h1>
