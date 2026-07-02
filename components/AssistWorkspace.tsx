@@ -1,22 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { m } from "framer-motion";
-import {
-  ArrowLeft,
-  Send,
-  Loader2,
-  AlertCircle,
-  HelpCircle,
-  Wrench,
-  ClipboardList,
-  Zap,
-  type LucideIcon,
-} from "lucide-react";
+import { Send, Loader2, AlertCircle, HelpCircle } from "lucide-react";
 import PhotoUpload from "./PhotoUpload";
 import ResultCards from "./ResultCards";
 import Doongi from "./mascot/Doongi";
+import AppBar from "./AppBar";
 import ShareButton from "./ShareButton";
 import { fadeUp } from "@/lib/motion";
 import { addHistory, deriveTitle, getHistoryEntry } from "@/lib/history";
@@ -35,18 +25,6 @@ function shareSummary(r: AssistResult): string {
   if (r.kind === "admin") return `[둥지] 이사·행정 체크리스트 (${r.checklist?.length || 0}단계)`;
   return `[둥지] 공과금 점검: ${r.summary || "결과 확인"}`;
 }
-
-// 주제별 헤더 아이콘·톤 — 홈 카드와 동일한 색 정체성 (v4 멀티컬러)
-const TOPIC_ICON: Record<Topic, LucideIcon> = {
-  repair: Wrench,
-  admin: ClipboardList,
-  utility: Zap,
-};
-const TOPIC_TONE: Record<Topic, string> = {
-  repair: "bg-brand-tint text-brand-deep",
-  admin: "bg-sun-tint text-sun-deep",
-  utility: "bg-coral-tint text-coral-deep",
-};
 
 export interface TopicConfig {
   topic: Topic;
@@ -224,29 +202,11 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
 
   return (
     <main className={`min-h-dvh ${stickyBar ? "pb-28" : "pb-16"}`}>
-      {/* 헤더 */}
-      <header className="no-print flow-bg border-b border-line">
-        <div className="container-app py-4">
-          <Link href="/" className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-ink">
-            <ArrowLeft size={16} /> 홈
-          </Link>
-          <div className="mt-3 flex items-center gap-3">
-            <span
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${TOPIC_TONE[config.topic]}`}
-              aria-hidden
-            >
-              {(() => {
-                const Icon = TOPIC_ICON[config.topic];
-                return <Icon size={22} strokeWidth={2.4} />;
-              })()}
-            </span>
-            <div>
-              <h1 className="text-xl font-bold text-ink">{config.title}</h1>
-              <p className="text-sm text-muted">{config.subtitle}</p>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* 상단 앱바 + 서브타이틀 */}
+      <AppBar title={config.title} />
+      <div className="no-print container-app pt-3">
+        <p className="px-1 text-[13px] font-medium text-muted">{config.subtitle}</p>
+      </div>
 
       <div className="container-app space-y-5 pt-5">
         {/* 입력 카드 */}

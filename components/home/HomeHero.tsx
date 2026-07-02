@@ -1,7 +1,6 @@
 "use client";
 
-// 홈 히어로 (v4.1) — 왼쪽 정렬 헤드라인 + 형광펜 강조, 둥이는 오른쪽에 삐딱하게.
-// 일부러 비대칭으로: 가운데 정렬 헤드라인 + 좌우대칭 구성의 템플릿 느낌을 피한다.
+// 홈 상단 (v5) — 실제 앱의 홈 헤더 감각: 인사 + 둥이 + 메인 CTA
 import Link from "next/link";
 import { m } from "framer-motion";
 import { ArrowRight } from "lucide-react";
@@ -9,83 +8,66 @@ import Doongi from "../mascot/Doongi";
 import NestMark from "../NestMark";
 import { fadeUp, stagger } from "@/lib/motion";
 
-// 떠다니는 파스텔 장식 — 심심한 배경에 깊이감
-function FloatDot({
-  className,
-  dur,
-  delay = 0,
-}: {
-  className: string;
-  dur: number;
-  delay?: number;
-}) {
-  return (
-    <m.span
-      aria-hidden
-      className={`pointer-events-none absolute rounded-full ${className}`}
-      animate={{ y: [0, -7, 0] }}
-      transition={{ duration: dur, repeat: Infinity, ease: "easeInOut", delay }}
-    />
-  );
+function greeting(): string {
+  const h = new Date().getHours();
+  if (h < 6) return "늦은 밤이에요";
+  if (h < 12) return "좋은 아침이에요";
+  if (h < 18) return "좋은 오후예요";
+  return "편안한 저녁이에요";
 }
 
 export default function HomeHero() {
   return (
-    <section className="aurora-bg relative overflow-hidden border-b-2 border-line">
-      <FloatDot className="left-6 top-24 h-3 w-3 bg-sun/80" dur={3.2} />
-      <FloatDot className="right-24 top-8 h-2.5 w-2.5 bg-coral/70" dur={3.8} delay={0.5} />
-      <FloatDot className="right-8 top-40 h-2 w-2 bg-sky/80" dur={3} delay={1} />
-      <FloatDot className="left-24 top-10 h-2 w-2 bg-brand/60" dur={4.2} delay={0.2} />
+    <section className="flow-bg">
       <m.div
-        variants={stagger(0.05, 0.09)}
+        variants={stagger(0.04, 0.08)}
         initial="hidden"
         animate="show"
-        className="container-app relative pb-7 pt-7"
+        className="container-app pb-5 pt-4"
       >
-        <m.div variants={fadeUp} className="flex items-center gap-2">
-          <NestMark size={24} className="text-brand" />
-          <span className="text-base font-extrabold tracking-tight text-ink">
-            둥지<span className="ml-1 text-xs font-bold text-muted">Nest</span>
+        {/* 상단 바 — 로고 */}
+        <m.div variants={fadeUp} className="flex h-11 items-center justify-between">
+          <span className="flex items-center gap-1.5">
+            <NestMark size={22} className="text-brand" />
+            <span className="font-display text-[15px] font-bold tracking-tight text-ink">
+              둥지
+            </span>
           </span>
+          <span className="text-[11px] font-medium text-muted">로그인 없이 쓰는 자취 도우미</span>
         </m.div>
 
-        <div className="mt-5 flex items-end gap-2">
-          <m.div variants={fadeUp} className="min-w-0 flex-1 pb-2">
-            <p className="text-xs font-extrabold text-brand-deep">자취생 주거생활 도우미</p>
-            <h1 className="mt-1.5 text-[27px] font-extrabold leading-[1.25] tracking-tight text-ink">
+        {/* 인사 + 둥이 */}
+        <div className="mt-3 flex items-center gap-2">
+          <m.div variants={fadeUp} className="min-w-0 flex-1">
+            <p className="text-[13px] font-semibold text-brand-deep">{greeting()}</p>
+            <h1 className="mt-1 text-[24px] font-bold leading-[1.3] tracking-tight text-ink">
               오늘 집에
               <br />
               <span className="marker">무슨 일</span> 있어요?
             </h1>
-            <p className="mt-2.5 text-pretty text-sm leading-relaxed text-muted">
-              곰팡이, 누수, 계약서, 공과금까지.
-              <br />
-              혼자 살아도 든든하게 챙겨드릴게요.
+            <p className="mt-2 text-[13px] leading-relaxed text-muted">
+              곰팡이, 누수, 계약서, 공과금까지 챙겨드려요.
             </p>
           </m.div>
-
-          <m.div variants={fadeUp} className="relative shrink-0">
+          <m.div variants={fadeUp} className="relative shrink-0 pr-1">
             <span
               aria-hidden
-              className="absolute -left-9 -top-4 -rotate-6 rounded-xl border-2 border-line bg-card px-2.5 py-1 text-[11px] font-extrabold text-ink shadow-card"
+              className="absolute -left-8 -top-2 -rotate-6 rounded-lg border border-line bg-card px-2 py-0.5 text-[10px] font-bold text-ink shadow-card"
             >
               안녕, 나 둥이야!
             </span>
             <Doongi
               mood="hello"
-              size={132}
-              className="rotate-2 drop-shadow-[0_10px_14px_rgba(96,72,38,0.18)]"
+              size={108}
+              className="rotate-2 drop-shadow-[0_8px_12px_rgba(23,28,25,0.14)]"
             />
           </m.div>
         </div>
 
-        <m.div variants={fadeUp} className="mt-4">
+        <m.div variants={fadeUp} className="mt-3">
           <Link href="/repair" className="btn-primary w-full">
-            집 문제 물어보기 <ArrowRight size={17} />
+            사진 한 장으로 집 문제 진단하기 <ArrowRight size={17} />
           </Link>
-          <p className="mt-2 text-center text-[11px] text-muted">
-            로그인 없이 바로. 사진 한 장이면 더 정확해요.
-          </p>
         </m.div>
       </m.div>
     </section>

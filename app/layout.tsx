@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import MotionProvider from "@/components/MotionProvider";
+import AppTabBar from "@/components/AppTabBar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#45A567",
+  themeColor: "#0DA05C",
   width: "device-width",
   initialScale: 1,
 };
@@ -41,7 +42,11 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <MotionProvider>{children}</MotionProvider>
+        <MotionProvider>
+          {/* 하단 탭바 높이만큼 전역 여백 확보 */}
+          <div className="pb-[68px]">{children}</div>
+          <AppTabBar />
+        </MotionProvider>
       </body>
     </html>
   );

@@ -35,26 +35,23 @@
     @apply bg-bg text-ink antialiased;
     font-feature-settings: "tnum";
   }
-  /* 헤딩은 디스플레이 폰트 — 본문(Pretendard)과 위계 대비 */
-  h1,
-  h2,
-  h3 {
+  /* 디스플레이 폰트는 큰 타이틀(h1·.font-display)에만 — 카드 제목까지 쓰면 과함 */
+  h1 {
     font-family: theme("fontFamily.display");
     letter-spacing: -0.01em;
   }
-  /* 파스텔 블롭 배경 — 민트 + 앰버가 은은하게 (기능 페이지 헤더) */
+  /* 은은한 그라데이션 — 홈 상단 전용 (과하지 않게) */
   .flow-bg {
     background-image:
-      radial-gradient(55% 45% at 88% 0%, rgba(69, 165, 103, 0.14), transparent 70%),
-      radial-gradient(45% 40% at 2% 15%, rgba(255, 185, 57, 0.14), transparent 70%),
-      radial-gradient(40% 35% at 60% 100%, rgba(90, 185, 234, 0.08), transparent 70%);
+      radial-gradient(55% 45% at 88% 0%, rgba(13, 160, 92, 0.08), transparent 70%),
+      radial-gradient(45% 40% at 2% 15%, rgba(255, 185, 57, 0.09), transparent 70%);
   }
-  /* 오로라 배경 — 히어로·스플래시용 3색 파스텔 (심사 화면의 첫인상) */
+  /* 오로라 배경 — 스플래시 전용 */
   .aurora-bg {
     background-image:
-      radial-gradient(60% 50% at 15% 8%, rgba(255, 185, 57, 0.22), transparent 65%),
-      radial-gradient(55% 45% at 88% 12%, rgba(90, 185, 234, 0.2), transparent 65%),
-      radial-gradient(75% 60% at 50% 100%, rgba(69, 165, 103, 0.24), transparent 72%);
+      radial-gradient(60% 50% at 15% 8%, rgba(255, 185, 57, 0.18), transparent 65%),
+      radial-gradient(55% 45% at 88% 12%, rgba(90, 185, 234, 0.16), transparent 65%),
+      radial-gradient(75% 60% at 50% 100%, rgba(13, 160, 92, 0.18), transparent 72%);
   }
 }
 
@@ -62,36 +59,31 @@
   .container-app {
     @apply mx-auto w-full max-w-app px-5;
   }
-  /* 3D 촉감 버튼 (듀오링고식 press) — 그라데이션 + 글로우, 누르면 가라앉는다 */
+  /* 프라이머리 버튼 — 플랫 솔리드 + 소프트 글로우, 누르면 살짝 수축 (실제 앱 감각) */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-extrabold text-white transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none;
-    background-image: linear-gradient(135deg, #55bd7c 0%, #3aa06b 55%, #2f9573 100%);
-    box-shadow:
-      0 4px 0 0 theme("colors.brand.edge"),
-      0 10px 22px rgba(69, 165, 103, 0.35);
-  }
-  .btn-primary:hover:not(:disabled) {
-    background-image: linear-gradient(135deg, #4cb372 0%, #349563 55%, #2a8a6a 100%);
+    @apply inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-brand px-5 py-3.5 font-bold text-white shadow-cta transition-all hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none;
   }
   .btn-primary:active:not(:disabled) {
-    transform: translateY(3px);
-    box-shadow:
-      0 1px 0 0 theme("colors.brand.edge"),
-      0 4px 12px rgba(69, 165, 103, 0.25);
+    transform: scale(0.97);
   }
   .btn-ghost {
-    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl border-2 border-line bg-card px-4 py-2.5 font-bold text-ink transition-all hover:border-brand/50 hover:bg-brand-tint/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand;
-    box-shadow: 0 3px 0 0 theme("colors.line");
+    @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl bg-[#F0F2F0] px-4 py-2.5 font-semibold text-ink transition-all hover:bg-[#E8EBE8] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand;
   }
   .btn-ghost:active {
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 0 theme("colors.line");
+    transform: scale(0.97);
   }
   .card {
-    @apply rounded-3xl border-2 border-line bg-card shadow-card;
+    @apply rounded-2xl border border-black/[0.04] bg-card shadow-card;
   }
   .chip {
-    @apply inline-flex min-h-[40px] items-center rounded-full border-2 border-line bg-card px-3.5 py-2 text-sm font-bold text-ink transition-colors hover:border-brand hover:bg-brand-tint hover:text-brand-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand;
+    @apply inline-flex min-h-[38px] items-center rounded-full bg-[#F0F2F0] px-3.5 py-2 text-[13px] font-semibold text-ink/80 transition-colors hover:bg-brand-tint hover:text-brand-deep focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand;
+  }
+  .chip:active {
+    transform: scale(0.96);
+  }
+  /* 네이티브식 상단 앱바 */
+  .appbar {
+    @apply sticky top-0 z-30 border-b border-line bg-card/90 backdrop-blur;
   }
   .skeleton {
     @apply rounded-md bg-gradient-to-r from-line via-bg to-line bg-[length:200%_100%] animate-shimmer;

@@ -11,17 +11,17 @@ const config: Config = {
         // v4 "민트 가든" — 플레이풀 파스텔 (공모전 교육자료 레퍼런스 무드)
         // 프라이머리는 새싹 그린: 둥지가 자라는 성장 테마와 직결
         brand: {
-          DEFAULT: "#45A567", // 새싹 그린 — CTA·로고·강조
-          hover: "#38905A",
-          tint: "#E6F4EA", // 옅은 민트 (배지/배경 블록)
-          deep: "#2D6A4F", // 본문 속 강조 텍스트용 (충분한 대비)
-          edge: "#2F7A4C", // 3D 촉감 버튼의 아랫면
+          DEFAULT: "#0DA05C", // 딥 프레시 그린 — 원포인트 프라이머리 (v5 앱 룩)
+          hover: "#0B8A4F",
+          tint: "#E7F6EE",
+          deep: "#086B3D", // 본문 속 강조 텍스트용 (충분한 대비)
+          edge: "#0B8A4F", // (legacy) 프레스 컬러
         },
-        ink: "#33403A", // 딥 모스 차콜 — 텍스트·헤더 (완전 검정보다 부드럽게)
-        bg: "#FAFAF3", // 웜 크림 배경
+        ink: "#1A1E1B", // 니어 블랙 — 실제 앱 수준의 대비
+        bg: "#F6F7F6", // 뉴트럴 그레이지 배경
         card: "#FFFFFF",
-        line: "#E7EDE2", // 민트 기 도는 보더·구분선
-        muted: "#7E8A7E", // 보조 텍스트 (세이지 그레이)
+        line: "#ECEEEC", // 헤어라인
+        muted: "#79817B", // 보조 텍스트
         // 서브 액센트 — 기능 블록·아이콘 로테이션용 파스텔
         sun: {
           DEFAULT: "#FFB939", // 앰버 (티팁·전구 계열)
@@ -87,10 +87,9 @@ const config: Config = {
         "3xl": "1.75rem", // 플레이풀 카드 라운드
       },
       boxShadow: {
-        card: "0 2px 0 rgba(51,64,58,0.05), 0 6px 20px rgba(51,64,58,0.05)",
-        lift: "0 6px 28px rgba(51,64,58,0.10)",
-        // 3D 촉감 버튼 (듀오링고식 press) — 색은 컴포넌트에서 지정
-        press: "0 4px 0 0 var(--press-color, #2F7A4C)",
+        card: "0 1px 2px rgba(23,28,25,0.04), 0 8px 24px rgba(23,28,25,0.06)",
+        lift: "0 10px 32px rgba(23,28,25,0.10)",
+        cta: "0 6px 16px rgba(13,160,92,0.24)",
       },
       maxWidth: {
         app: "32rem", // 모바일 퍼스트 콘텐츠 폭

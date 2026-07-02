@@ -1,14 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import {
-  ArrowLeft,
   Loader2,
   AlertCircle,
   Send,
   ShoppingCart,
-  ShoppingBasket,
   Refrigerator,
   Lightbulb,
   Clock,
@@ -16,6 +13,7 @@ import {
   CircleAlert,
 } from "lucide-react";
 import NestMark from "./NestMark";
+import AppBar from "./AppBar";
 import ShareButton from "./ShareButton";
 import { addGrowth } from "@/lib/growth";
 import { SAMPLE_GROCERY_PLAN, SAMPLE_GROCERY_USE } from "@/lib/sample";
@@ -103,28 +101,12 @@ export default function GroceryCoach() {
 
   return (
     <main className="min-h-dvh pb-16">
-      <header className="no-print flow-bg border-b border-line">
-        <div className="container-app py-4">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-ink"
-          >
-            <ArrowLeft size={16} /> 홈
-          </Link>
-          <div className="mt-3 flex items-center gap-3">
-            <span
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-sun-tint text-sun-deep"
-              aria-hidden
-            >
-              <ShoppingBasket size={22} strokeWidth={2.4} />
-            </span>
-            <div>
-              <h1 className="text-xl font-bold text-ink">혼밥 장보기 코치</h1>
-              <p className="text-sm text-muted">식비 절약 · 음식물쓰레기 줄이기</p>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppBar title="혼밥 장보기 코치" />
+      <div className="no-print container-app pt-3">
+        <p className="px-1 text-[13px] font-medium text-muted">
+          식비 절약 · 음식물쓰레기 줄이기
+        </p>
+      </div>
 
       <div className="container-app space-y-5 pt-5">
         {/* 탭 토글 */}

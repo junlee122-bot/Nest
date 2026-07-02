@@ -368,8 +368,7 @@ function MessageActionBar({ message }: { message: string }) {
         initial={{ y: 28, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={springSoft}
-        className="no-print fixed inset-x-0 bottom-0 z-40 border-t border-line bg-card/95 backdrop-blur"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="no-print fixed inset-x-0 bottom-[64px] z-30 border-t border-line bg-card/95 backdrop-blur"
       >
         <div className="container-app grid grid-cols-3 gap-2 py-3">
           <button type="button" onClick={copyText} className="btn-ghost text-sm">
@@ -386,7 +385,7 @@ function MessageActionBar({ message }: { message: string }) {
       {toast && (
         <div
           role="status"
-          className="no-print fixed inset-x-0 bottom-24 z-50 mx-auto flex w-fit items-center gap-2 rounded-full bg-ink/90 px-4 py-2.5 text-sm font-medium text-white shadow-lift backdrop-blur animate-fade-up"
+          className="no-print fixed inset-x-0 bottom-44 z-50 mx-auto flex w-fit items-center gap-2 rounded-full bg-ink/90 px-4 py-2.5 text-sm font-medium text-white shadow-lift backdrop-blur animate-fade-up"
         >
           <Check size={15} className="text-brand" /> {toast}
         </div>

@@ -7,10 +7,8 @@
 //   예시 데이터 + 안내로 폴백 (키 없이도 데모 완결)
 // - 공공데이터는 "참고용, 법적 효력 없음"을 항상 고지
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { m } from "framer-motion";
 import {
-  ArrowLeft,
   BarChart3,
   Building2,
   ChevronDown,
@@ -19,6 +17,7 @@ import {
   Search,
 } from "lucide-react";
 import Doongi from "./mascot/Doongi";
+import AppBar from "./AppBar";
 import { addGrowth } from "@/lib/growth";
 import { fadeUp, stagger } from "@/lib/motion";
 import type { RentDeal, RentHouseType } from "@/lib/integrations/rtms";
@@ -201,30 +200,19 @@ export default function RentCheck() {
 
   return (
     <main className="min-h-dvh pb-16">
-      <header className="flow-bg border-b border-line">
-        <div className="container-app py-4">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-ink"
-          >
-            <ArrowLeft size={16} /> 홈
-          </Link>
-          <div className="mt-3 flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-sun-tint text-sun-deep">
-              <BarChart3 size={22} strokeWidth={2.4} />
-            </span>
-            <div>
-              <h1 className="flex items-center gap-2 text-xl font-bold text-ink">
-                전월세 시세 참고
-                <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold text-white">
-                  BETA
-                </span>
-              </h1>
-              <p className="text-sm text-muted">우리 동네 실거래 신고가로 시세 감 잡기</p>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppBar
+        title="전월세 시세 참고"
+        right={
+          <span className="rounded-full bg-[#EEF0EE] px-2 py-0.5 text-[10px] font-bold text-muted">
+            BETA
+          </span>
+        }
+      />
+      <div className="container-app pt-3">
+        <p className="px-1 text-[13px] font-medium text-muted">
+          우리 동네 실거래 신고가로 시세 감 잡기
+        </p>
+      </div>
 
       <div className="container-app space-y-5 pt-5">
         {/* 1. 동네 선택 */}

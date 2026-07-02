@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  ArrowLeft,
   Landmark,
   Loader2,
   AlertCircle,
@@ -11,6 +10,7 @@ import {
   Info,
 } from "lucide-react";
 import NestMark from "./NestMark";
+import AppBar from "./AppBar";
 import ShareButton from "./ShareButton";
 
 interface Category {
@@ -82,31 +82,17 @@ export default function MoneyBeta({ configured }: { configured: boolean }) {
 
   return (
     <main className="min-h-dvh pb-16">
-      {/* 헤더 */}
-      <header className="flow-bg border-b border-line">
-        <div className="container-app py-4">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-ink"
-          >
-            <ArrowLeft size={16} /> 홈
-          </Link>
-          <div className="mt-3 flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-straw-tint text-straw-deep">
-              <Wallet size={22} />
-            </span>
-            <div>
-              <h1 className="flex items-center gap-2 text-xl font-bold text-ink">
-                주거비 자동분석
-                <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold text-white">
-                  BETA
-                </span>
-              </h1>
-              <p className="text-sm text-muted">오픈뱅킹으로 월세·공과금 한눈에</p>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppBar
+        title="주거비 자동분석"
+        right={
+          <span className="rounded-full bg-[#EEF0EE] px-2 py-0.5 text-[10px] font-bold text-muted">
+            BETA
+          </span>
+        }
+      />
+      <div className="container-app pt-3">
+        <p className="px-1 text-[13px] font-medium text-muted">오픈뱅킹으로 월세·공과금 한눈에</p>
+      </div>
 
       <div className="container-app space-y-5 pt-5">
         {/* 테스트베드(모의계좌) 고지 — 항상 노출 */}

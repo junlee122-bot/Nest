@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
 import {
-  ArrowLeft,
-  ScrollText,
   Loader2,
   AlertCircle,
   ShieldCheck,
@@ -15,6 +12,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import NestMark from "./NestMark";
+import AppBar from "./AppBar";
 import ShareButton from "./ShareButton";
 import { addGrowth } from "@/lib/growth";
 import { SAMPLE_CONTRACT, SAMPLE_CONTRACT_TEXT } from "@/lib/sample";
@@ -99,30 +97,19 @@ export default function ContractChecker() {
 
   return (
     <main className="min-h-dvh pb-16">
-      <header className="flow-bg border-b border-line">
-        <div className="container-app py-4">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-ink"
-          >
-            <ArrowLeft size={16} /> 홈
-          </Link>
-          <div className="mt-3 flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-tint text-sky-deep">
-              <ScrollText size={22} />
-            </span>
-            <div>
-              <h1 className="flex items-center gap-2 text-xl font-bold text-ink">
-                계약서 독소조항 체커
-                <span className="rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold text-white">
-                  BETA
-                </span>
-              </h1>
-              <p className="text-sm text-muted">세입자에게 불리한 조항을 찾아드려요</p>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppBar
+        title="계약서 독소조항 체커"
+        right={
+          <span className="rounded-full bg-[#EEF0EE] px-2 py-0.5 text-[10px] font-bold text-muted">
+            BETA
+          </span>
+        }
+      />
+      <div className="container-app pt-3">
+        <p className="px-1 text-[13px] font-medium text-muted">
+          세입자에게 불리한 조항을 찾아드려요
+        </p>
+      </div>
 
       <div className="container-app space-y-5 pt-5">
         {!result && (
