@@ -9,14 +9,38 @@ import Doongi from "../mascot/Doongi";
 import NestMark from "../NestMark";
 import { fadeUp, stagger } from "@/lib/motion";
 
+// 떠다니는 파스텔 장식 — 심심한 배경에 깊이감
+function FloatDot({
+  className,
+  dur,
+  delay = 0,
+}: {
+  className: string;
+  dur: number;
+  delay?: number;
+}) {
+  return (
+    <m.span
+      aria-hidden
+      className={`pointer-events-none absolute rounded-full ${className}`}
+      animate={{ y: [0, -7, 0] }}
+      transition={{ duration: dur, repeat: Infinity, ease: "easeInOut", delay }}
+    />
+  );
+}
+
 export default function HomeHero() {
   return (
-    <section className="flow-bg border-b-2 border-line">
+    <section className="aurora-bg relative overflow-hidden border-b-2 border-line">
+      <FloatDot className="left-6 top-24 h-3 w-3 bg-sun/80" dur={3.2} />
+      <FloatDot className="right-24 top-8 h-2.5 w-2.5 bg-coral/70" dur={3.8} delay={0.5} />
+      <FloatDot className="right-8 top-40 h-2 w-2 bg-sky/80" dur={3} delay={1} />
+      <FloatDot className="left-24 top-10 h-2 w-2 bg-brand/60" dur={4.2} delay={0.2} />
       <m.div
         variants={stagger(0.05, 0.09)}
         initial="hidden"
         animate="show"
-        className="container-app pb-7 pt-7"
+        className="container-app relative pb-7 pt-7"
       >
         <m.div variants={fadeUp} className="flex items-center gap-2">
           <NestMark size={24} className="text-brand" />
@@ -47,7 +71,11 @@ export default function HomeHero() {
             >
               안녕, 나 둥이야!
             </span>
-            <Doongi mood="hello" size={128} className="rotate-2" />
+            <Doongi
+              mood="hello"
+              size={132}
+              className="rotate-2 drop-shadow-[0_10px_14px_rgba(96,72,38,0.18)]"
+            />
           </m.div>
         </div>
 

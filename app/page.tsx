@@ -47,7 +47,7 @@ const groups: { label: string; items: CardItem[] }[] = [
       {
         href: "/repair",
         icon: Wrench,
-        title: "집 수리 — 살림 응급실",
+        title: "집 수리 응급실",
         desc: "곰팡이·누수·보일러? 응급처치부터 집주인 문구까지",
         badge: "메인",
         tone: "brand",

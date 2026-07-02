@@ -31,9 +31,9 @@ const REPAIR_FOLLOWUPS = [
 ];
 
 function shareSummary(r: AssistResult): string {
-  if (r.kind === "repair") return `[둥지] 집수리 진단 — ${r.responsibility?.summary || "결과 확인"}`;
+  if (r.kind === "repair") return `[둥지] 집수리 진단: ${r.responsibility?.summary || "결과 확인"}`;
   if (r.kind === "admin") return `[둥지] 이사·행정 체크리스트 (${r.checklist?.length || 0}단계)`;
-  return `[둥지] 공과금 점검 — ${r.summary || "결과 확인"}`;
+  return `[둥지] 공과금 점검: ${r.summary || "결과 확인"}`;
 }
 
 // 주제별 헤더 아이콘·톤 — 홈 카드와 동일한 색 정체성 (v4 멀티컬러)
@@ -383,7 +383,7 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
           <>
             {isSample && (
               <div className="rounded-xl border border-line bg-bg p-3 text-center text-xs font-medium text-muted">
-                예시 결과입니다 — 실제로는 입력하신 내용에 맞춰 답해드려요.
+                예시 결과예요. 실제로는 입력하신 내용에 맞춰 답해드려요.
               </div>
             )}
             <ResultHerald result={result} />

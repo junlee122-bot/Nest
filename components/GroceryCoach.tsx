@@ -205,7 +205,7 @@ export default function GroceryCoach() {
           <>
             {isSample && (
               <div className="no-print rounded-xl border border-line bg-bg p-3 text-center text-xs font-medium text-muted">
-                예시 결과입니다 — 실제로는 입력하신 조건에 맞춰 짜드려요.
+                예시 결과예요. 실제로는 입력하신 조건에 맞춰 짜드려요.
               </div>
             )}
             {result.mode === "plan" ? (
@@ -220,8 +220,8 @@ export default function GroceryCoach() {
               <ShareButton
                 text={
                   result.mode === "plan"
-                    ? `[둥지] 장보기 — 예상 식비 ${won((result as GroceryPlanResult).total_est_price)}`
-                    : `[둥지] 장보기 — 남은 재료 메뉴 ${(result as GroceryUseResult).recipes?.length || 0}개`
+                    ? `[둥지] 장보기: 예상 식비 ${won((result as GroceryPlanResult).total_est_price)}`
+                    : `[둥지] 장보기: 남은 재료 메뉴 ${(result as GroceryUseResult).recipes?.length || 0}개`
                 }
                 className="btn-ghost"
               />

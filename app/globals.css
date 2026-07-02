@@ -1,5 +1,28 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
 
+/* Gmarket Sans — 헤딩 전용 디스플레이 폰트 (귀엽고 단단한 한국 브랜딩 룩) */
+@font-face {
+  font-family: "GmarketSans";
+  font-weight: 300;
+  font-display: swap;
+  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansLight.woff")
+    format("woff");
+}
+@font-face {
+  font-family: "GmarketSans";
+  font-weight: 500;
+  font-display: swap;
+  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansMedium.woff")
+    format("woff");
+}
+@font-face {
+  font-family: "GmarketSans";
+  font-weight: 700;
+  font-display: swap;
+  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/GmarketSansBold.woff")
+    format("woff");
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -12,11 +35,26 @@
     @apply bg-bg text-ink antialiased;
     font-feature-settings: "tnum";
   }
-  /* 파스텔 블롭 배경 — 민트 + 앰버가 은은하게 (v4 민트 가든) */
+  /* 헤딩은 디스플레이 폰트 — 본문(Pretendard)과 위계 대비 */
+  h1,
+  h2,
+  h3 {
+    font-family: theme("fontFamily.display");
+    letter-spacing: -0.01em;
+  }
+  /* 파스텔 블롭 배경 — 민트 + 앰버가 은은하게 (기능 페이지 헤더) */
   .flow-bg {
     background-image:
-      radial-gradient(55% 45% at 88% 0%, rgba(69, 165, 103, 0.12), transparent 70%),
-      radial-gradient(45% 40% at 2% 15%, rgba(255, 185, 57, 0.12), transparent 70%);
+      radial-gradient(55% 45% at 88% 0%, rgba(69, 165, 103, 0.14), transparent 70%),
+      radial-gradient(45% 40% at 2% 15%, rgba(255, 185, 57, 0.14), transparent 70%),
+      radial-gradient(40% 35% at 60% 100%, rgba(90, 185, 234, 0.08), transparent 70%);
+  }
+  /* 오로라 배경 — 히어로·스플래시용 3색 파스텔 (심사 화면의 첫인상) */
+  .aurora-bg {
+    background-image:
+      radial-gradient(60% 50% at 15% 8%, rgba(255, 185, 57, 0.22), transparent 65%),
+      radial-gradient(55% 45% at 88% 12%, rgba(90, 185, 234, 0.2), transparent 65%),
+      radial-gradient(75% 60% at 50% 100%, rgba(69, 165, 103, 0.24), transparent 72%);
   }
 }
 
@@ -24,14 +62,22 @@
   .container-app {
     @apply mx-auto w-full max-w-app px-5;
   }
-  /* 3D 촉감 버튼 (듀오링고식 press) — 누르면 살짝 가라앉는다 */
+  /* 3D 촉감 버튼 (듀오링고식 press) — 그라데이션 + 글로우, 누르면 가라앉는다 */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-brand px-5 py-3 font-extrabold text-white transition-all hover:bg-brand-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none;
-    box-shadow: 0 4px 0 0 theme("colors.brand.edge");
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3 font-extrabold text-white transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none;
+    background-image: linear-gradient(135deg, #55bd7c 0%, #3aa06b 55%, #2f9573 100%);
+    box-shadow:
+      0 4px 0 0 theme("colors.brand.edge"),
+      0 10px 22px rgba(69, 165, 103, 0.35);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-image: linear-gradient(135deg, #4cb372 0%, #349563 55%, #2a8a6a 100%);
   }
   .btn-primary:active:not(:disabled) {
     transform: translateY(3px);
-    box-shadow: 0 1px 0 0 theme("colors.brand.edge");
+    box-shadow:
+      0 1px 0 0 theme("colors.brand.edge"),
+      0 4px 12px rgba(69, 165, 103, 0.25);
   }
   .btn-ghost {
     @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-2xl border-2 border-line bg-card px-4 py-2.5 font-bold text-ink transition-all hover:border-brand/50 hover:bg-brand-tint/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand;

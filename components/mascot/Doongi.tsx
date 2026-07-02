@@ -1,20 +1,13 @@
 "use client";
 
-// 둥이 v2 — 둥지(Nest)의 AI 캐릭터 (v4 민트 가든 리디자인)
+// 둥이 v3 — 3D 느낌의 글로시 마스코트 (v4.1)
 //
-// 공모전 교육자료 레퍼런스(플랫 파스텔 + 새싹 캐릭터) 무드로 전면 리디자인:
-// - 플랫 컬러 + 얇은 웜 아웃라인, 큰 홍조, 둥근 실루엣
-// - 머리의 '새싹'이 시그니처 — 브랜드 그린이자 '둥지 키우기' 성장 테마
-// - 병아리 + 둥지 모티프는 유지 (서비스 정체성)
+// 플랫(v2)에서 한 단계 올려, 라이팅이 들어간 소프트 3D 룩으로:
+// - 라디얼 그라데이션 바디(좌상단 광원) + 스페큘러 하이라이트 + 바닥 그림자
+// - 광택 눈(이중 하이라이트), 그라데이션 부리·새싹·둥지
+// - 하드 아웃라인 제거, 은은한 림 셰이딩으로 형태 유지
 //
-// 6 mood (API 불변):
-//  - hello    : 인사 (홈·온보딩) — 눈웃음 + 날개 흔들기
-//  - thinking : 생각 중 (로딩) — 말줄임표 점 3개
-//  - found    : 찾았다! (결과 도착) — 반짝 큰 눈 + 스파클
-//  - warning  : 걱정 (안전 경고 동반) — 앰버 ! 배지, 모션 절제
-//  - cheer    : 축하 (완료) — 눈웃음 + 벌린 부리 + 날개 펄럭
-//  - sleepy   : 쉬는 중 — Zz
-//
+// 6 mood API 불변: hello / thinking / found / warning / cheer / sleepy
 // 원칙: 법적 판단·disclaimer 카드 안에는 배치하지 않는다(신뢰 톤 유지).
 
 import { m } from "framer-motion";
@@ -27,71 +20,96 @@ export type DoongiMood =
   | "cheer"
   | "sleepy";
 
-const C = {
-  outline: "#4A4237", // 얇은 웜 아웃라인
-  body: "#FFE9B4", // 병아리 크림 옐로우
-  belly: "#FFF6DC",
-  cheek: "#FFC2B0", // 코랄 홍조
-  beak: "#FFA53E",
-  beakOpen: "#F08A2C",
-  sprout: "#45A567", // 새싹 — 브랜드 그린
-  sproutLight: "#7BC98F",
-  sproutStem: "#38905A",
-  nestFill: "#EBCFA0",
-  nestLine: "#C89B62",
-  sun: "#FFB939",
-  coral: "#FF8064",
-  zzz: "#8A653C",
-};
+const INK = "#3B3226"; // 눈·눈웃음
+const RIM = "rgba(160, 112, 42, 0.35)"; // 은은한 림 라인
+
+// 그라데이션 defs — 같은 문서에 여러 둥이가 있어도 정의가 동일하므로
+// id 충돌은 무해(first-wins)하다.
+function Defs() {
+  return (
+    <defs>
+      <radialGradient id="dgBody" cx="36%" cy="28%" r="80%">
+        <stop offset="0%" stopColor="#FFF9E2" />
+        <stop offset="52%" stopColor="#FFE9AC" />
+        <stop offset="100%" stopColor="#F2C363" />
+      </radialGradient>
+      <linearGradient id="dgBeak" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#FFC85A" />
+        <stop offset="100%" stopColor="#ED8B26" />
+      </linearGradient>
+      <linearGradient id="dgLeafA" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#7ED493" />
+        <stop offset="100%" stopColor="#3E9D5C" />
+      </linearGradient>
+      <linearGradient id="dgLeafB" x1="1" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#B0E8BE" />
+        <stop offset="100%" stopColor="#5DBA74" />
+      </linearGradient>
+      <radialGradient id="dgNest" cx="50%" cy="12%" r="95%">
+        <stop offset="0%" stopColor="#F0D9A8" />
+        <stop offset="60%" stopColor="#DDB87E" />
+        <stop offset="100%" stopColor="#BD8E52" />
+      </radialGradient>
+      <radialGradient id="dgShadow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="rgba(96, 72, 38, 0.28)" />
+        <stop offset="100%" stopColor="rgba(96, 72, 38, 0)" />
+      </radialGradient>
+      <radialGradient id="dgCheek" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stopColor="#FF9E86" stopOpacity="0.85" />
+        <stop offset="100%" stopColor="#FF9E86" stopOpacity="0" />
+      </radialGradient>
+    </defs>
+  );
+}
 
 function Eyes({ mood }: { mood: DoongiMood }) {
   switch (mood) {
     case "hello":
     case "cheer": // 눈웃음 ^ ^
       return (
-        <g stroke={C.outline} strokeWidth="3" strokeLinecap="round" fill="none">
-          <path d="M45 56q5-6 10 0" />
-          <path d="M65 56q5-6 10 0" />
+        <g stroke={INK} strokeWidth="3.2" strokeLinecap="round" fill="none">
+          <path d="M45 56q5-6.5 10 0" />
+          <path d="M65 56q5-6.5 10 0" />
         </g>
       );
-    case "sleepy": // 감은 눈
+    case "sleepy":
       return (
-        <g stroke={C.outline} strokeWidth="3" strokeLinecap="round" fill="none">
+        <g stroke={INK} strokeWidth="3" strokeLinecap="round" fill="none">
           <path d="M46 57h9" />
           <path d="M65 57h9" />
         </g>
       );
-    case "thinking": // 위를 보는 점 눈
-      return (
-        <g fill={C.outline}>
-          <circle cx="49" cy="53" r="3" />
-          <circle cx="69" cy="53" r="3" />
-        </g>
-      );
-    case "warning": // 걱정 눈썹 + 점 눈
+    case "thinking": // 위를 보는 광택 눈
       return (
         <g>
-          <g stroke={C.outline} strokeWidth="2.5" strokeLinecap="round">
+          <circle cx="49" cy="53" r="3.4" fill={INK} />
+          <circle cx="69" cy="53" r="3.4" fill={INK} />
+          <circle cx="50.2" cy="51.8" r="1.2" fill="#fff" />
+          <circle cx="70.2" cy="51.8" r="1.2" fill="#fff" />
+        </g>
+      );
+    case "warning": // 걱정 눈썹 + 광택 눈
+      return (
+        <g>
+          <g stroke={INK} strokeWidth="2.6" strokeLinecap="round">
             <path d="M45 48.5l7.5 2.5" />
             <path d="M75 48.5l-7.5 2.5" />
           </g>
-          <g fill={C.outline}>
-            <circle cx="51" cy="57" r="3" />
-            <circle cx="69" cy="57" r="3" />
-          </g>
+          <circle cx="51" cy="57" r="3.2" fill={INK} />
+          <circle cx="69" cy="57" r="3.2" fill={INK} />
+          <circle cx="52" cy="55.9" r="1.1" fill="#fff" />
+          <circle cx="70" cy="55.9" r="1.1" fill="#fff" />
         </g>
       );
-    default: // found — 반짝 큰 눈
+    default: // found — 반짝반짝 큰 눈 (이중 하이라이트)
       return (
         <g>
-          <g fill={C.outline}>
-            <circle cx="50" cy="56" r="3.8" />
-            <circle cx="70" cy="56" r="3.8" />
-          </g>
-          <g fill="#fff">
-            <circle cx="51.3" cy="54.6" r="1.3" />
-            <circle cx="71.3" cy="54.6" r="1.3" />
-          </g>
+          <circle cx="50" cy="56" r="4.2" fill={INK} />
+          <circle cx="70" cy="56" r="4.2" fill={INK} />
+          <circle cx="51.5" cy="54.4" r="1.5" fill="#fff" />
+          <circle cx="71.5" cy="54.4" r="1.5" fill="#fff" />
+          <circle cx="48.8" cy="57.6" r="0.8" fill="#fff" opacity="0.8" />
+          <circle cx="68.8" cy="57.6" r="0.8" fill="#fff" opacity="0.8" />
         </g>
       );
   }
@@ -99,37 +117,44 @@ function Eyes({ mood }: { mood: DoongiMood }) {
 
 function Beak({ mood }: { mood: DoongiMood }) {
   if (mood === "cheer" || mood === "found") {
-    // 벌린 부리 — 신나는 표정
     return (
       <g>
-        <path d="M54.5 62.5l5.5-3.5 5.5 3.5-5.5 3.5z" fill={C.beak} />
-        <path d="M56 66.5q4 4.5 8 0z" fill={C.beakOpen} />
+        <path d="M54 62.5l6-3.8 6 3.8-6 3.8z" fill="url(#dgBeak)" />
+        <path d="M55.8 66.5q4.2 4.8 8.4 0z" fill="#D96F1B" />
+        <path d="M56.5 60.6l3.5-1.8" stroke="#FFE0A0" strokeWidth="1.2" strokeLinecap="round" />
       </g>
     );
   }
-  return <path d="M54.5 62.5l5.5-3.5 5.5 3.5-5.5 5z" fill={C.beak} />;
+  return (
+    <g>
+      <path d="M54 62.5l6-3.8 6 3.8-6 5.3z" fill="url(#dgBeak)" />
+      <path d="M56.5 60.6l3.5-1.8" stroke="#FFE0A0" strokeWidth="1.2" strokeLinecap="round" />
+    </g>
+  );
 }
 
-// 머리 위 새싹 — 둥이의 시그니처 (성장 테마)
+// 머리 위 새싹 — 시그니처 (그라데이션 + 잎맥 하이라이트)
 function Sprout() {
   return (
     <g>
       <path
         d="M60 31q0-7 3-10"
-        stroke={C.sproutStem}
-        strokeWidth="2.6"
+        stroke="#4C9B62"
+        strokeWidth="2.8"
         strokeLinecap="round"
         fill="none"
       />
-      <path d="M63 21c-6-1.5-9.5 2-9.5 6.5 4.5 1.5 9.5-2 9.5-6.5z" fill={C.sprout} />
-      <path d="M63 21c6-1.5 9.5 2 9.5 6.5-4.5 1.5-9.5-2-9.5-6.5z" fill={C.sproutLight} />
+      <path d="M63 21c-6.5-1.5-10 2-10 6.8 5 1.5 10-2 10-6.8z" fill="url(#dgLeafA)" />
+      <path d="M63 21c6.5-1.5 10 2 10 6.8-5 1.5-10-2-10-6.8z" fill="url(#dgLeafB)" />
+      <path d="M56.5 25.5q3-2 6-3.6" stroke="#EAF9EE" strokeWidth="1" strokeLinecap="round" opacity="0.8" />
+      <path d="M69.5 25.5q-3-2-6-3.6" stroke="#EAF9EE" strokeWidth="1" strokeLinecap="round" opacity="0.6" />
     </g>
   );
 }
 
 function MoodProps({ mood }: { mood: DoongiMood }) {
   switch (mood) {
-    case "thinking": // 말줄임표 점 3개
+    case "thinking":
       return (
         <g>
           {[0, 1, 2].map((i) => (
@@ -138,7 +163,7 @@ function MoodProps({ mood }: { mood: DoongiMood }) {
               cx={86 + i * 9}
               cy={38 - i * 6}
               r={2.6 + i * 0.6}
-              fill={C.nestLine}
+              fill="#C79B60"
               animate={{ opacity: [0.25, 1, 0.25] }}
               transition={{
                 duration: 1.2,
@@ -150,7 +175,7 @@ function MoodProps({ mood }: { mood: DoongiMood }) {
           ))}
         </g>
       );
-    case "found": // 그린+앰버 스파클
+    case "found":
       return (
         <m.g
           initial={{ opacity: 0, scale: 0.4 }}
@@ -160,42 +185,50 @@ function MoodProps({ mood }: { mood: DoongiMood }) {
         >
           <path
             d="M90 26l2.4 6 6 2.4-6 2.4-2.4 6-2.4-6-6-2.4 6-2.4z"
-            fill={C.sprout}
+            fill="url(#dgLeafA)"
           />
-          <path d="M28 34l1.7 4.2 4.2 1.7-4.2 1.7-1.7 4.2-1.7-4.2-4.2-1.7 4.2-1.7z" fill={C.sun} />
+          <path
+            d="M28 34l1.7 4.2 4.2 1.7-4.2 1.7-1.7 4.2-1.7-4.2-4.2-1.7 4.2-1.7z"
+            fill="#FFB939"
+          />
         </m.g>
       );
-    case "warning": // 앰버 ! 배지 — 모션 절제
+    case "warning":
       return (
         <g>
           <path
             d="M90 23l10.5 18a3 3 0 01-2.6 4.5H77a3 3 0 01-2.6-4.5L85 23a3 3 0 015 0z"
-            fill={C.sun}
+            fill="#F6A93B"
+          />
+          <path
+            d="M90 23l10.5 18a3 3 0 01-2.6 4.5H77a3 3 0 01-2.6-4.5L85 23a3 3 0 015 0z"
+            fill="url(#dgBeak)"
+            opacity="0.35"
           />
           <rect x="85.7" y="29.5" width="3.6" height="9" rx="1.8" fill="#fff" />
           <circle cx="87.5" cy="42" r="2" fill="#fff" />
         </g>
       );
-    case "cheer": // 양쪽 스파클 (그린 + 코랄)
+    case "cheer":
       return (
         <g>
           <m.path
             d="M27 33l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"
-            fill={C.coral}
+            fill="#FF8064"
             animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
           />
           <m.path
             d="M92 27l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"
-            fill={C.sprout}
+            fill="url(#dgLeafA)"
             animate={{ opacity: [1, 0.4, 1] }}
             transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
           />
         </g>
       );
-    case "sleepy": // Zz
+    case "sleepy":
       return (
-        <g fill={C.zzz} fontWeight="800" style={{ userSelect: "none" }}>
+        <g fill="#8A653C" fontWeight="800" style={{ userSelect: "none" }}>
           <m.text
             x="82"
             y="38"
@@ -249,16 +282,27 @@ export default function Doongi({
       aria-hidden="true"
       className={className}
     >
+      <Defs />
+
+      {/* 바닥 그림자 — 3D 안착감 */}
+      <ellipse
+        cx="60"
+        cy={withNest ? 107 : 92}
+        rx={withNest ? 32 : 22}
+        ry={withNest ? 5 : 3.5}
+        fill="url(#dgShadow)"
+      />
+
       <m.g
         animate={{ y: bob.y }}
         transition={{ duration: bob.dur, repeat: Infinity, ease: "easeInOut" }}
       >
-        {/* 왼쪽 날개 */}
+        {/* 날개 */}
         <m.path
           d="M32 60q-10 3-10 13 8 3 14-3.5"
-          fill={C.body}
-          stroke={C.outline}
-          strokeWidth="2.5"
+          fill="url(#dgBody)"
+          stroke={RIM}
+          strokeWidth="1.5"
           strokeLinejoin="round"
           animate={
             mood === "cheer"
@@ -268,12 +312,11 @@ export default function Doongi({
           transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut" }}
           style={{ transformBox: "fill-box", transformOrigin: "top right" }}
         />
-        {/* 오른쪽 날개 — hello는 흔들며 인사 */}
         <m.path
           d="M88 60q10 3 10 13-8 3-14-3.5"
-          fill={C.body}
-          stroke={C.outline}
-          strokeWidth="2.5"
+          fill="url(#dgBody)"
+          stroke={RIM}
+          strokeWidth="1.5"
           strokeLinejoin="round"
           animate={
             mood === "hello"
@@ -289,31 +332,55 @@ export default function Doongi({
           }
           style={{ transformBox: "fill-box", transformOrigin: "top left" }}
         />
-        {/* 몸통 + 배 */}
-        <circle cx="60" cy="59" r="29" fill={C.body} stroke={C.outline} strokeWidth="2.5" />
-        <ellipse cx="60" cy="70" rx="16" ry="12" fill={C.belly} />
+
+        {/* 몸통 — 라디얼 셰이딩 + 림 + 스페큘러 */}
+        <circle cx="60" cy="59" r="29" fill="url(#dgBody)" stroke={RIM} strokeWidth="1.5" />
+        <ellipse cx="60" cy="71" rx="16" ry="11" fill="#FFF6D8" opacity="0.75" />
+        <ellipse
+          cx="47"
+          cy="40"
+          rx="9"
+          ry="5"
+          fill="#FFFFFF"
+          opacity="0.55"
+          transform="rotate(-24 47 40)"
+        />
+
         <Sprout />
-        {/* 홍조 */}
-        <circle cx="43" cy="64" r="4.5" fill={C.cheek} />
-        <circle cx="77" cy="64" r="4.5" fill={C.cheek} />
+
+        {/* 홍조 — 부드러운 라디얼 */}
+        <circle cx="43" cy="64" r="6" fill="url(#dgCheek)" />
+        <circle cx="77" cy="64" r="6" fill="url(#dgCheek)" />
+
         <Eyes mood={mood} />
         <Beak mood={mood} />
       </m.g>
 
-      {/* 둥지 — 플랫 볼 + 위빙 라인 */}
+      {/* 둥지 — 그라데이션 볼 + 위빙 스트랜드 */}
       {withNest && (
         <g>
           <path
             d="M24 80c3 16 18 24 36 24s33-8 36-24c-11 5-23 7.5-36 7.5S35 85 24 80z"
-            fill={C.nestFill}
-            stroke={C.nestLine}
-            strokeWidth="2.5"
+            fill="url(#dgNest)"
+            stroke={RIM}
+            strokeWidth="1.2"
             strokeLinejoin="round"
           />
-          <g stroke={C.nestLine} strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.85">
-            <path d="M36 90q5 4 11 4.5" />
-            <path d="M55 95.5q5 1 10 0" />
-            <path d="M73 94q6-2 10-6" />
+          {/* 윗면 하이라이트 림 */}
+          <path
+            d="M26 81c10 4.5 21 6.5 34 6.5s24-2 34-6.5"
+            stroke="#F6E5BC"
+            strokeWidth="2"
+            strokeLinecap="round"
+            fill="none"
+            opacity="0.9"
+          />
+          {/* 위빙 결 — 어두운/밝은 스트랜드 교차 */}
+          <g strokeLinecap="round" fill="none">
+            <path d="M34 90q6 4.5 13 5" stroke="#A87B45" strokeWidth="2.2" opacity="0.7" />
+            <path d="M54 96q6 1.2 12 0" stroke="#F0D9AC" strokeWidth="2" opacity="0.8" />
+            <path d="M73 94q7-2.5 11-6.5" stroke="#A87B45" strokeWidth="2.2" opacity="0.7" />
+            <path d="M42 94.5q5 2.5 10 3" stroke="#F0D9AC" strokeWidth="1.8" opacity="0.7" />
           </g>
         </g>
       )}

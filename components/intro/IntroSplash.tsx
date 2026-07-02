@@ -54,7 +54,7 @@ export default function IntroSplash() {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, transition: { duration: 0.35 } }}
           onClick={dismiss}
-          className="fixed inset-0 z-[60] flex cursor-pointer flex-col items-center justify-center bg-brand-tint"
+          className="aurora-bg fixed inset-0 z-[60] flex cursor-pointer flex-col items-center justify-center"
           role="presentation"
           aria-label="둥지 인트로 — 눌러서 건너뛰기"
         >
@@ -69,9 +69,13 @@ export default function IntroSplash() {
             <span aria-hidden className="absolute -right-8 top-0 h-2.5 w-2.5 rounded-full bg-coral" />
             <span aria-hidden className="absolute -right-12 top-16 h-2 w-2 rounded-full bg-sky" />
             <span aria-hidden className="absolute -left-6 -top-3 h-2 w-2 rounded-full bg-brand" />
-            <Doongi mood="hello" size={148} />
-            <p className="mt-2 text-2xl font-extrabold tracking-tight text-ink">
-              둥지<span className="ml-1.5 text-base font-semibold text-muted">Nest</span>
+            <Doongi
+              mood="hello"
+              size={160}
+              className="drop-shadow-[0_14px_18px_rgba(96,72,38,0.2)]"
+            />
+            <p className="mt-2 font-display text-2xl font-bold tracking-tight text-ink">
+              둥지<span className="ml-1.5 text-base font-medium text-muted">Nest</span>
             </p>
             <p className="mt-1 text-sm font-bold text-brand-deep">
               혼자 살아도, 든든하게

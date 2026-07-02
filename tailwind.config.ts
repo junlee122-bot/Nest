@@ -59,6 +59,13 @@ const config: Config = {
         },
       },
       fontFamily: {
+        // 디스플레이(헤딩) — Gmarket Sans: 시스템/AI 기본 폰트 느낌 탈피
+        display: [
+          "GmarketSans",
+          "Pretendard Variable",
+          "Pretendard",
+          "sans-serif",
+        ],
         sans: [
           "Pretendard Variable",
           "Pretendard",

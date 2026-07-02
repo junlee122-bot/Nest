@@ -540,7 +540,7 @@ function HelpConnect({ r }: { r: RepairResult }) {
   if (r.urgency === "emergency") {
     const contacts = emergencyContactsFor(cat);
     return (
-      <Section icon={<Phone size={18} />} title="도움받기 — 긴급 연락">
+      <Section icon={<Phone size={18} />} title="도움받기: 긴급 연락">
         <p className="text-sm leading-relaxed text-ink">
           위험할 수 있어요. 직접 손대지 말고 먼저 공식 기관에 연락하세요.
         </p>
@@ -579,7 +579,7 @@ function HelpConnect({ r }: { r: RepairResult }) {
   // 세입자 부담: 업체 찾기가 1순위
   if (r.responsibility?.verdict === "tenant") {
     return (
-      <Section icon={<Wrench size={18} />} title="도움받기 — 직접 해결">
+      <Section icon={<Wrench size={18} />} title="도움받기: 직접 해결">
         <p className="mb-1 text-sm leading-relaxed text-ink">
           이 문제는 보통 세입자가 직접 처리하는 사안이에요. 가까운 업체를 찾아보세요.
         </p>
@@ -592,7 +592,7 @@ function HelpConnect({ r }: { r: RepairResult }) {
   // 집주인 책임(비긴급): 집주인 문구가 1순위 — 업체 찾기는 '대안'으로 접어둠
   if (r.responsibility?.verdict === "landlord") {
     return (
-      <Section icon={<Wrench size={18} />} title="도움받기 — 집주인이 응답 없을 때">
+      <Section icon={<Wrench size={18} />} title="도움받기: 집주인이 응답 없을 때">
         <p className="text-sm leading-relaxed text-ink">
           이 문제는 보통 <b>집주인 수선의무</b>예요. 먼저 위 문구로 집주인에게 요청하세요. 집주인이
           응답이 없거나 급할 땐 직접 수리할 수 있고, 그 비용은 집주인에게 청구할 수 있어요(민법
