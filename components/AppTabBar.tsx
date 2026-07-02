@@ -49,7 +49,7 @@ export default function AppTabBar() {
               key={t.href}
               href={t.href}
               aria-current={active ? "page" : undefined}
-              className={`relative flex flex-col items-center gap-0.5 pb-1.5 pt-2 transition-colors ${
+              className={`relative flex flex-col items-center gap-0.5 rounded-xl pb-1.5 pt-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
                 active ? "text-brand-deep" : "text-muted hover:text-ink"
               }`}
             >

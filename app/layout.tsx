@@ -32,6 +32,8 @@ export const viewport: Viewport = {
   themeColor: "#0DA05C",
   width: "device-width",
   initialScale: 1,
+  // 노치 영역까지 그리고 safe-area 패딩으로 보호 (앱바·탭바)
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

@@ -275,6 +275,15 @@ export default function RentCheck() {
           </button>
         </div>
 
+        {loading && (
+          <div className="card flex items-center gap-3 p-4" aria-live="polite" aria-busy="true">
+            <Doongi mood="thinking" size={72} withNest={false} className="shrink-0" />
+            <p className="text-sm font-medium text-ink">
+              최근 3개월 실거래 신고를 뒤지고 있어요.
+            </p>
+          </div>
+        )}
+
         {!data && !loading && !error && (
           <div className="card flex flex-col items-center gap-2 px-6 py-8 text-center">
             <Doongi mood="hello" size={96} />
@@ -312,6 +321,9 @@ export default function RentCheck() {
                   · {fmtYm(data.yearMonth)} 신고 {data.summary.total}건
                 </span>
               </h2>
+              <span className="mt-1.5 inline-flex rounded-full bg-sun-tint px-2.5 py-0.5 text-[11px] font-bold text-sun-deep">
+                {TYPES.find((t) => t.key === data.type)?.label ?? ""}
+              </span>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <div className="rounded-xl bg-bg p-3">
                   <p className="text-xs font-semibold text-muted">

@@ -51,6 +51,7 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
   const [clarifyAsked, setClarifyAsked] = useState(false);
   const [slow, setSlow] = useState(false); // 응답 지연(>12s) 안내
   const [isSample, setIsSample] = useState(false); // 예시 결과 표시 여부
+  const [clarifyCustom, setClarifyCustom] = useState(""); // 되묻기 직접 입력
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 최근 기록에서 열기 (?h=<id>) — API 재호출 없이 저장된 결과 표시
@@ -231,7 +232,7 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
             onChange={(e) => setText(e.target.value)}
             placeholder={config.placeholder}
             rows={2}
-            className="mt-3 w-full resize-none overflow-hidden rounded-xl border border-line bg-bg p-3.5 text-sm text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+            className="mt-3 w-full resize-none overflow-hidden rounded-xl border border-line bg-bg p-3.5 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
           />
 
           {config.showPhoto && image && (
@@ -302,6 +303,25 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
                 </button>
               ))}
             </div>
+            {/* 선택지에 없으면 직접 입력 */}
+            <form
+              className="mt-3 flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const v = clarifyCustom.trim();
+                if (v) answerClarify(v);
+              }}
+            >
+              <input
+                value={clarifyCustom}
+                onChange={(e) => setClarifyCustom(e.target.value)}
+                placeholder="직접 입력해도 돼요"
+                className="min-w-0 flex-1 rounded-xl border border-line bg-bg px-3 py-2.5 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+              />
+              <button type="submit" disabled={!clarifyCustom.trim()} className="btn-ghost shrink-0 text-sm">
+                보내기
+              </button>
+            </form>
             <p className="mt-3 text-xs text-muted">
               고르면 그 내용을 더해 다시 살펴보고 최종 결과를 알려드릴게요.
             </p>
@@ -350,7 +370,7 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
             <ResultCards result={result} />
 
             {/* 후속 질문 (집수리) */}
-            {config.topic === "repair" && result.kind === "repair" && (
+            {config.topic === "repair" && result.kind === "repair" && !isSample && text.trim().length > 0 && (
               <div className="no-print card p-4">
                 <p className="mb-2 text-xs font-bold text-muted">이어서 물어보기</p>
                 <div className="flex flex-wrap gap-2">

@@ -267,8 +267,15 @@ function PlanForm(props: {
           onChange={(e) => props.setBudget(e.target.value)}
           inputMode="numeric"
           placeholder="예) 30000원"
-          className="mt-1.5 w-full rounded-xl border border-line bg-bg p-3 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+          className="mt-1.5 w-full rounded-xl border border-line bg-bg p-3 text-base text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
         />
+        <div className="mt-2 flex flex-wrap gap-2">
+          {["2만원", "3만원", "5만원", "7만원"].map((b) => (
+            <button key={b} type="button" onClick={() => props.setBudget(b)} className="chip">
+              {b}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
@@ -276,7 +283,7 @@ function PlanForm(props: {
           <select
             value={props.days}
             onChange={(e) => props.setDays(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-line bg-bg p-3 text-sm text-ink outline-none focus:border-brand"
+            className="mt-1.5 w-full rounded-xl border border-line bg-bg p-3 text-base text-ink outline-none focus:border-brand"
           >
             <option>3일</option>
             <option>5일</option>
@@ -288,7 +295,7 @@ function PlanForm(props: {
           <select
             value={props.meals}
             onChange={(e) => props.setMeals(e.target.value)}
-            className="mt-1.5 w-full rounded-xl border border-line bg-bg p-3 text-sm text-ink outline-none focus:border-brand"
+            className="mt-1.5 w-full rounded-xl border border-line bg-bg p-3 text-base text-ink outline-none focus:border-brand"
           >
             <option>점심·저녁</option>
             <option>아침·점심·저녁</option>
@@ -302,7 +309,7 @@ function PlanForm(props: {
           value={props.diet}
           onChange={(e) => props.setDiet(e.target.value)}
           placeholder="예) 매운 거 싫어요, 채식 위주"
-          className="mt-1.5 w-full rounded-xl border border-line bg-bg p-3 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+          className="mt-1.5 w-full rounded-xl border border-line bg-bg p-3 text-base text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
         />
         <div className="mt-2 flex flex-wrap gap-2">
           {DIET_CHIPS.map((c) => (
@@ -342,7 +349,7 @@ function UseForm({
         onChange={(e) => setIngredients(e.target.value)}
         rows={3}
         placeholder="예) 계란, 김치, 두부, 대파"
-        className="mt-2 w-full resize-none rounded-xl border border-line bg-bg p-3.5 text-sm text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+        className="mt-2 w-full resize-none rounded-xl border border-line bg-bg p-3.5 text-base text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
       />
       <div className="mt-2 flex flex-wrap gap-2">
         {INGREDIENT_CHIPS.map((c) => (

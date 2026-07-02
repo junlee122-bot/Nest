@@ -35,6 +35,9 @@ export default function IntroSplash() {
     }
     if (seen || reduced) return;
     setShow(true);
+    // 아무 키나 눌러도 스킵 (키보드 사용자)
+    const onKey = () => dismiss();
+    window.addEventListener("keydown", onKey);
     const t = setTimeout(() => {
       setShow(false);
       try {
@@ -43,7 +46,11 @@ export default function IntroSplash() {
         /* noop */
       }
     }, 1900);
-    return () => clearTimeout(t);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("keydown", onKey);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reduced]);
 
   return (

@@ -30,10 +30,23 @@
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    /* 앱 감각 — 탭 시 회색 하이라이트 제거 (버튼은 자체 프레스 피드백 보유) */
+    -webkit-tap-highlight-color: transparent;
   }
   body {
     @apply bg-bg text-ink antialiased;
     font-feature-settings: "tnum";
+  }
+  ::selection {
+    background: #cdecdb;
+  }
+  /* 시스템 '동작 줄이기' — CSS 애니메이션도 정지 (framer는 MotionConfig가 처리) */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up,
+    .skeleton,
+    .animate-spin {
+      animation: none !important;
+    }
   }
   /* 디스플레이 폰트는 큰 타이틀(h1·.font-display)에만 — 카드 제목까지 쓰면 과함 */
   h1 {
@@ -81,9 +94,10 @@
   .chip:active {
     transform: scale(0.96);
   }
-  /* 네이티브식 상단 앱바 */
+  /* 네이티브식 상단 앱바 — 노치(standalone PWA) 안전영역 대응 */
   .appbar {
     @apply sticky top-0 z-30 border-b border-line bg-card/90 backdrop-blur;
+    padding-top: env(safe-area-inset-top);
   }
   .skeleton {
     @apply rounded-md bg-gradient-to-r from-line via-bg to-line bg-[length:200%_100%] animate-shimmer;

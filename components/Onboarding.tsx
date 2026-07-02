@@ -42,6 +42,17 @@ export default function Onboarding() {
     }
   }, []);
 
+  // ESC로 닫기 (키보드 사용자)
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") dismiss();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   function dismiss() {
     try {
       localStorage.setItem(KEY, "1");

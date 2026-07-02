@@ -127,14 +127,25 @@ export default function ContractChecker() {
               onChange={(e) => setText(e.target.value)}
               placeholder="예) [특약사항] 1. 임차인은 계약갱신요구권을 포기한다. 2. ..."
               rows={8}
-              className="mt-3 w-full resize-y rounded-xl border border-line bg-bg p-3.5 text-sm leading-relaxed text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+              className="mt-3 w-full resize-y rounded-xl border border-line bg-bg p-3.5 text-base leading-relaxed text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
             />
 
+            {text.length > 9000 && (
+              <p
+                className={`mt-1 text-right text-xs ${
+                  text.length > 12000 ? "font-bold text-danger" : "text-muted"
+                }`}
+              >
+                {text.length.toLocaleString("ko-KR")} / 12,000자
+                {text.length > 12000 && " · 나눠서 검토해주세요"}
+              </p>
+            )}
+
             <div className="mt-3 flex flex-wrap gap-2">
-              <button type="button" onClick={fillSample} className="chip">
+              <button type="button" onClick={fillSample} disabled={loading} className="chip">
                 예시 계약서 채우기
               </button>
-              <button type="button" onClick={showSample} className="chip">
+              <button type="button" onClick={showSample} disabled={loading} className="chip">
                 예시로 둘러보기
               </button>
             </div>

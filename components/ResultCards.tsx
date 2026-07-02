@@ -481,7 +481,7 @@ function HelpConnect({ r }: { r: RepairResult }) {
         value={region}
         onChange={(e) => setRegion(e.target.value)}
         placeholder="동네(구/동) — 예: 마포구 (선택)"
-        className="w-full rounded-xl border border-line bg-bg p-3 text-sm text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+        className="w-full rounded-xl border border-line bg-bg p-3 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
       />
       <div className="mt-2 space-y-2">
         <a
