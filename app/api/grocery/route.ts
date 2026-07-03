@@ -65,9 +65,6 @@ function parseDataUrl(
 export async function POST(
   req: NextRequest
 ): Promise<NextResponse<GroceryResponse | GroceryExtractResponse>> {
-  if (rateLimited(req)) {
-    return NextResponse.json({ ok: false, error: RATE_LIMIT_MESSAGE }, { status: 429 });
-  }
   const contentLength = parseInt(req.headers.get("content-length") || "0", 10);
   if (contentLength > MAX_BODY_BYTES) {
     return NextResponse.json(
@@ -96,6 +93,11 @@ export async function POST(
     body = await req.json();
   } catch {
     return NextResponse.json({ ok: false, error: "잘못된 요청입니다." }, { status: 400 });
+  }
+
+  // 비전(사진) 추출은 별도 버킷으로 더 엄격하게 제한
+  if (rateLimited(req, body.mode === "extract" ? "grocery-extract" : "grocery")) {
+    return NextResponse.json({ ok: false, error: RATE_LIMIT_MESSAGE }, { status: 429 });
   }
 
   // ── C-2: 냉장고 사진 → 재료 추출 (결과는 입력창으로, 실패 시 수동 입력 폴백) ──

@@ -15,7 +15,7 @@ export const maxDuration = 60;
 const MAX_LEN = 12000; // 과도한 입력 방지
 
 export async function POST(req: NextRequest): Promise<NextResponse<ContractResponse>> {
-  if (rateLimited(req)) {
+  if (rateLimited(req, "contract")) {
     return NextResponse.json({ ok: false, error: RATE_LIMIT_MESSAGE }, { status: 429 });
   }
   if (!process.env.ANTHROPIC_API_KEY) {

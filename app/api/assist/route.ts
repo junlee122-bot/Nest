@@ -36,9 +36,6 @@ function parseDataUrl(
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse<AssistResponse>> {
-  if (rateLimited(req)) {
-    return NextResponse.json({ ok: false, error: RATE_LIMIT_MESSAGE }, { status: 429 });
-  }
   const contentLength = parseInt(req.headers.get("content-length") || "0", 10);
   if (contentLength > MAX_BODY_BYTES) {
     return NextResponse.json(
@@ -69,6 +66,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<AssistRespons
   const text = (body.text || "").trim();
   const imageDataUrl = body.imageDataUrl;
   const disallowClarify = body.disallowClarify === true;
+
+  // 비전(사진) 요청은 비용이 커서 별도 버킷으로 더 엄격하게 제한
+  if (rateLimited(req, imageDataUrl ? "assist-image" : "assist")) {
+    return NextResponse.json({ ok: false, error: RATE_LIMIT_MESSAGE }, { status: 429 });
+  }
 
   if (!VALID_TOPICS.includes(topic)) {
     return NextResponse.json({ ok: false, error: "알 수 없는 주제입니다." }, { status: 400 });
@@ -190,7 +192,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<AssistRespons
         { status: 429 }
       );
     }
-    console.error("[assist] error:", e?.message || err);
+    // 사용자 원문·사진이 섞일 수 있는 message 대신 상태 코드만 남긴다
+    console.error("[assist] error status:", e?.status ?? "unknown");
     return NextResponse.json(
       { ok: false, error: "둥지가 잠시 응답하지 못했어요. 잠시 후 다시 시도해주세요." },
       { status: 500 }

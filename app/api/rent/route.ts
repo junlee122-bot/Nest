@@ -8,6 +8,7 @@ import {
   type RentHouseType,
 } from "@/lib/integrations/rtms";
 import { PUBLIC_DATA_NOTICE, kstParts } from "@/lib/integrations/core";
+import { RATE_LIMIT_MESSAGE, rateLimited } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +28,11 @@ function prevYearMonth(ym: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  // 공공데이터 프록시도 남용 방지 (쿼터 소진 예방, 보험 수준)
+  if (rateLimited(req, "rent")) {
+    return NextResponse.json({ ok: false, error: RATE_LIMIT_MESSAGE }, { status: 429 });
+  }
+
   let body: { lawdCd?: string; type?: string };
   try {
     body = await req.json();
