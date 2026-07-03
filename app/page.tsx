@@ -8,11 +8,11 @@ import QuickActions from "@/components/home/QuickActions";
 import FeatureRow from "@/components/FeatureRow";
 import { FEATURES } from "@/lib/features";
 
-// 홈 퀵액션에 들어가는 4개 (QuickActions와 동일 목록)
-const QUICK = ["/repair", "/contract", "/rent", "/utility"];
+// 상단 = 수리(히어로 주 CTA) + 계약·시세(보조 CTA). 나머지는 '생활 도구'로 강등 (v7)
+const TOP = ["/repair", "/contract", "/rent"];
 
 export default function Home() {
-  const tools = FEATURES.filter((f) => !QUICK.includes(f.href));
+  const tools = FEATURES.filter((f) => !TOP.includes(f.href));
   return (
     <main className="min-h-dvh pb-8">
       {/* 인트로 스플래시 (세션 1회) → 첫 방문 1회 사용법 오버레이 */}
@@ -22,7 +22,7 @@ export default function Home() {
       {/* 홈 헤더 — 인사 + 둥이 + 메인 CTA */}
       <HomeHero />
 
-      {/* 퀵액션 4종 */}
+      {/* 보조 CTA 2종 (계약서·시세) */}
       <QuickActions />
 
       {/* 내 둥지 (둥지 키우기, 잔가지 0이면 숨김) */}

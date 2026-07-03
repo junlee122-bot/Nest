@@ -33,7 +33,7 @@ export default function HomeHero() {
               둥지
             </span>
           </span>
-          <span className="text-[11px] font-medium text-muted">로그인 없이 쓰는 자취 도우미</span>
+          <span className="text-[12px] font-medium text-muted">집 문제 생겼을 때 가장 먼저</span>
         </m.div>
 
         {/* 인사 + 둥이 */}
@@ -66,7 +66,7 @@ export default function HomeHero() {
 
         <m.div variants={fadeUp} className="mt-3">
           <Link href="/repair" className="btn-primary w-full">
-            사진 한 장으로 집 문제 진단하기 <ArrowRight size={17} />
+            사진으로 수리·하자 진단하기 <ArrowRight size={17} />
           </Link>
         </m.div>
       </m.div>

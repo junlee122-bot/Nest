@@ -63,7 +63,7 @@ export default function AppTabBar() {
               )}
               <Icon size={22} strokeWidth={active ? 2.6 : 2} className="relative" />
               <span
-                className={`relative text-[10px] leading-tight ${active ? "font-bold" : "font-medium"}`}
+                className={`relative text-[11px] leading-tight ${active ? "font-bold" : "font-medium"}`}
               >
                 {t.label}
               </span>
