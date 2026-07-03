@@ -101,7 +101,7 @@ const SCENARIOS: Scenario[] = [
 const DATA_SIGNALS = [
   { key: "법령", icon: ShieldCheck, title: "수선의무·임대차 룰북", tag: "내장 · 항상 동작", body: "민법 제623조와 판례 기반 룰북으로 AI 판단을 한 번 더 검증합니다. 법제처 API를 연동하면 근거가 현행 법령 원문으로 승격됩니다." },
   { key: "RTMS", icon: Home, title: "실거래가·월세 비교", tag: "공공데이터 연동", body: "국토교통부 전월세 실거래가를 연동해 동네·면적 기준으로 내 조건이 과한지 비교해 보여줍니다." },
-  { key: "KAMIS", icon: Banknote, title: "오늘 장보기 시세", tag: "무키 시 참고가 폴백", body: "aT KAMIS 일일 소매가를 장보기 리스트에 붙입니다. 키가 없어도 내장 참고가격표로 가격 감각을 항상 제공합니다." },
+  { key: "KAMIS", icon: Banknote, title: "오늘 장보기 시세", tag: "무키 시 참고가 폴백", body: "aT KAMIS 일일 소매가를 장보기 리스트에 붙이고, 예산을 넘기면 시세 기반 대체재 제안으로 이어집니다. 키가 없어도 내장 참고가격표로 동작합니다." },
   { key: "식약처", icon: ReceiptText, title: "공공 레시피 DB", tag: "공공데이터 연동", body: "식품안전나라 레시피의 조리 단계·열량·사진을 남은 재료 결과에 붙입니다." },
   { key: "Pexels", icon: ImageIcon, title: "음식 이미지 API", tag: "무키 시 텍스트 폴백", body: "AI가 만든 메뉴명으로 사진을 검색해 결과 카드의 시각적 완성도를 올립니다. 키가 없으면 텍스트 카드로 동작합니다." },
   { key: "Kakao", icon: MapPin, title: "동네 수리·생활 장소", tag: "오픈API 연동", body: "수리 진단 결과에 주변 설비·인테리어 업체 미리보기를 붙여 다음 행동으로 연결합니다." },

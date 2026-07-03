@@ -150,6 +150,23 @@ export interface GroceryMeta {
   kamis_date?: string; // KAMIS 시세 기준일 (YYYY-MM-DD)
 }
 
+// 예산 초과 시 대체재 제안 (C-1) — 내장 스왑 테이블 + 참고가 기준, 서버 부착
+export interface BudgetSwap {
+  from: string; // 리스트의 비싼 항목
+  to: string; // 대체재 (참고가격표 품목)
+  why: string;
+  est_saving?: number; // 참고가 기준 대략 절약(원)
+  to_price_ref?: string; // 대체재 참고가 표기 (예: "1,100~2,000원/100g")
+  to_today_price?: string; // 대체재 오늘 시세 (KAMIS 매칭 시)
+}
+
+export interface BudgetFix {
+  budget: number; // 해석된 예산(원)
+  total: number; // 예상 합계(원)
+  over: number; // 초과액(원)
+  swaps: BudgetSwap[]; // 최대 3개
+}
+
 export interface GroceryPlanResult {
   mode: "plan";
   plan_days: GroceryDay[];
@@ -158,6 +175,7 @@ export interface GroceryPlanResult {
   budget_note?: string; // 예산 초과 시 대안
   tips: string[];
   meta?: GroceryMeta; // 서버 부착
+  budget_fix?: BudgetFix; // 서버 부착 (예산 초과 시에만)
 }
 
 // 요리 참고 사진 (Pexels) — 서버 부착, 키 없으면 생략

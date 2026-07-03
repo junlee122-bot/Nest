@@ -14,6 +14,7 @@ import {
   seasonalPromptBlock,
   storagePromptBlock,
 } from "@/lib/grocery";
+import { findSubstitute, parseBudgetWon } from "@/lib/grocery/substitutes";
 import {
   fetchKamisToday,
   fetchKamisTodayFast,
@@ -24,6 +25,8 @@ import { fetchDbRecipes } from "@/lib/integrations/recipeDb";
 import { fetchFoodImage } from "@/lib/integrations/foodImages";
 import { kstParts } from "@/lib/integrations/core";
 import type {
+  BudgetFix,
+  BudgetSwap,
   GroceryMeta,
   GroceryMode,
   GroceryPlanResult,
@@ -146,7 +149,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<GroceryRespon
 
     // ── 서버 후처리: 내장 DB·시세 매칭 부착 (AI 출력과 분리) ────
     if (result.mode === "plan") {
-      result = enrichPlan(result as GroceryPlanResult, month, kamis);
+      result = enrichPlan(result as GroceryPlanResult, month, kamis, (body.budget || "").trim());
     } else {
       result = await enrichUse(result as GroceryUseResult, ingredients);
     }
@@ -171,7 +174,8 @@ export async function POST(req: NextRequest): Promise<NextResponse<GroceryRespon
 function enrichPlan(
   r: GroceryPlanResult,
   month: number,
-  kamis: Awaited<ReturnType<typeof fetchKamisToday>>
+  kamis: Awaited<ReturnType<typeof fetchKamisToday>>,
+  budgetRaw: string
 ): GroceryPlanResult {
   const list: ShoppingItem[] = (r.shopping_list || []).map((it) => {
     const seasonal = it.seasonal === true || !!matchSeasonal(it.item, month);
@@ -196,7 +200,60 @@ function enrichPlan(
     kamis_date: kamis?.date,
   };
 
-  return { ...r, shopping_list: list, meta };
+  return {
+    ...r,
+    shopping_list: list,
+    meta,
+    budget_fix: buildBudgetFix(r, list, kamis, budgetRaw),
+  };
+}
+
+// ── C-1: 예산 초과 시 대체재 추천 (내장 스왑 테이블 + 참고가, 서버 후처리) ──
+function buildBudgetFix(
+  r: GroceryPlanResult,
+  list: ShoppingItem[],
+  kamis: Awaited<ReturnType<typeof fetchKamisToday>>,
+  budgetRaw: string
+): BudgetFix | undefined {
+  const budget = parseBudgetWon(budgetRaw);
+  if (!budget || budget <= 0) return undefined;
+
+  // UI에 표시되는 합계와 같은 기준을 쓴다 (없으면 항목 합)
+  const itemSum = list.reduce((acc, it) => acc + (it.est_price > 0 ? it.est_price : 0), 0);
+  const total = r.total_est_price > 0 ? r.total_est_price : itemSum;
+  const over = total - budget;
+  if (over <= 0) return undefined;
+
+  const clean = (s: string) => s.replace(/\s/g, "").replace(/\(.+?\)/g, "");
+  const swaps: BudgetSwap[] = [];
+  const listNames = list.map((it) => clean(it.item));
+  const suggested = new Set<string>();
+  // 비싼 항목부터 검토 — 큰 절약이 먼저 보이도록
+  const sorted = [...list].sort((a, b) => (b.est_price || 0) - (a.est_price || 0));
+  for (const it of sorted) {
+    if (swaps.length >= 3) break;
+    const sub = findSubstitute(it.item);
+    if (!sub) continue;
+    // 대체재를 이미 리스트에 담았거나 이미 제안했으면 중복 제안하지 않음
+    const to = clean(sub.to.name);
+    if (suggested.has(to)) continue;
+    if (listNames.some((n) => n.includes(to) || to.includes(n))) continue;
+    suggested.add(to);
+    const mid = Math.round((sub.to.low + sub.to.high) / 2);
+    const saving = (it.est_price || 0) - mid;
+    const km = kamis ? matchKamis(sub.to.name, kamis.items) : null;
+    swaps.push({
+      from: it.item,
+      to: sub.to.name,
+      why: sub.why,
+      est_saving: saving > 0 ? saving : undefined,
+      to_price_ref: `${won(sub.to.low)}~${won(sub.to.high)}원/${sub.to.unit}`,
+      to_today_price: km ? `${won(km.price)}원/${km.unit}` : undefined,
+    });
+  }
+
+  // 스왑 후보가 없어도 초과 사실 자체는 카드로 알린다 (UI가 일반 가이드 표시)
+  return { budget, total, over, swaps };
 }
 
 // days 문자열("3~5일", "1~2주")에서 최소 일수 추출 — 먼저 쓸 순서 정렬용

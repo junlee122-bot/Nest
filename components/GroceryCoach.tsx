@@ -489,6 +489,51 @@ function PlanView({ r }: { r: GroceryPlanResult }) {
         )}
       </div>
 
+      {/* 예산 초과 시 대체재 제안 (C-1, 서버 부착) */}
+      {r.budget_fix && (
+        <section className="card animate-fade-up border border-warn/30 p-5">
+          <h2 className="flex items-center gap-2 text-base font-bold text-ink">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-warn-tint text-warn">
+              <CircleAlert size={18} />
+            </span>
+            예산보다 약 {won(r.budget_fix.over)} 초과 예상
+          </h2>
+          <p className="mt-2 text-[13px] leading-relaxed text-muted">
+            입력한 예산 {won(r.budget_fix.budget)} 기준이에요.{" "}
+            {r.budget_fix.swaps.length > 0
+              ? "아래처럼 바꾸면 요리 계획을 크게 해치지 않고 줄일 수 있어요."
+              : "가장 비싼 항목의 양을 줄이거나, 양념·가공식품처럼 다음 장보기로 미룰 수 있는 것부터 빼보세요."}
+          </p>
+          {r.budget_fix.swaps.length > 0 && (
+            <ul className="mt-3 space-y-2">
+              {r.budget_fix.swaps.map((sw) => (
+                <li key={sw.from} className="rounded-xl bg-bg p-3">
+                  <p className="text-sm font-bold text-ink">
+                    {sw.from} <span className="font-medium text-muted">대신</span> {sw.to}
+                    {sw.est_saving && (
+                      <span className="ml-1.5 rounded-full bg-brand-tint px-2 py-0.5 text-[11px] font-bold text-brand-deep">
+                        약 {won(sw.est_saving)} 절약
+                      </span>
+                    )}
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted">{sw.why}</p>
+                  {(sw.to_today_price || sw.to_price_ref) && (
+                    <p className="mt-1 text-[11px] text-muted/80">
+                      {sw.to_today_price
+                        ? `오늘 시세 ${sw.to_today_price}`
+                        : `참고가 ${sw.to_price_ref}`}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="mt-3 text-[11px] leading-relaxed text-muted/80">
+            절약액은 내장 참고가 기준 추정이라 실제 매장 가격과 다를 수 있어요.
+          </p>
+        </section>
+      )}
+
       {/* 이번 달 제철 (서버 부착 메타) */}
       {r.meta && (
         <section className="card animate-fade-up p-5">
