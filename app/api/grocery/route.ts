@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { grocerySystemPrompt } from "@/lib/prompts";
 import { callClaudeJson } from "@/lib/llm";
+import { RATE_LIMIT_MESSAGE, rateLimited } from "@/lib/ratelimit";
 import { validateGrocery } from "@/lib/validate";
 import {
   findPriceRef,
@@ -39,6 +40,9 @@ export const maxDuration = 60;
 const won = (n: number) => n.toLocaleString("ko-KR");
 
 export async function POST(req: NextRequest): Promise<NextResponse<GroceryResponse>> {
+  if (rateLimited(req)) {
+    return NextResponse.json({ ok: false, error: RATE_LIMIT_MESSAGE }, { status: 429 });
+  }
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
       { ok: false, error: "서버에 API 키가 설정되지 않았습니다. 관리자에게 문의해주세요." },

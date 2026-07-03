@@ -4,6 +4,7 @@ import { rulebookForPrompt } from "@/lib/legal/rulebook";
 import { lawsForPrompt } from "@/lib/legal/laws";
 import { fetchLawArticles } from "@/lib/integrations/law";
 import { callClaudeJson } from "@/lib/llm";
+import { RATE_LIMIT_MESSAGE, rateLimited } from "@/lib/ratelimit";
 import { validateContract } from "@/lib/validate";
 import type { ContractResponse, ContractResult } from "@/lib/types";
 
@@ -14,6 +15,9 @@ export const maxDuration = 60;
 const MAX_LEN = 12000; // 과도한 입력 방지
 
 export async function POST(req: NextRequest): Promise<NextResponse<ContractResponse>> {
+  if (rateLimited(req)) {
+    return NextResponse.json({ ok: false, error: RATE_LIMIT_MESSAGE }, { status: 429 });
+  }
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
       { ok: false, error: "서버에 API 키가 설정되지 않았습니다. 관리자에게 문의해주세요." },

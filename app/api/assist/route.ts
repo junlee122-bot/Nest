@@ -5,6 +5,7 @@ import { callClaudeJson } from "@/lib/llm";
 import { validateForTopic } from "@/lib/validate";
 import { weatherContextLine } from "@/lib/integrations/weather";
 import { holidayContextLine } from "@/lib/integrations/holidays";
+import { RATE_LIMIT_MESSAGE, rateLimited } from "@/lib/ratelimit";
 import type {
   AssistResponse,
   AssistResult,
@@ -16,6 +17,10 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const VALID_TOPICS: Topic[] = ["repair", "admin", "utility"];
+// 서버측 입력 상한 (v7 P4) — 클라 제한은 우회 가능하므로 이중 방어
+const MAX_BODY_BYTES = 9 * 1024 * 1024; // 전체 요청 바디
+const MAX_IMAGE_BASE64 = 7_500_000; // base64 문자 수 (≈ 5.6MB 원본)
+const MAX_IMAGE_BYTES = 5.5 * 1024 * 1024; // 디코딩 후 바이트
 const ALLOWED_MEDIA = ["image/jpeg", "image/png", "image/gif", "image/webp"] as const;
 type AllowedMedia = (typeof ALLOWED_MEDIA)[number];
 
@@ -31,6 +36,16 @@ function parseDataUrl(
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse<AssistResponse>> {
+  if (rateLimited(req)) {
+    return NextResponse.json({ ok: false, error: RATE_LIMIT_MESSAGE }, { status: 429 });
+  }
+  const contentLength = parseInt(req.headers.get("content-length") || "0", 10);
+  if (contentLength > MAX_BODY_BYTES) {
+    return NextResponse.json(
+      { ok: false, error: "요청이 너무 큽니다. 사진 용량을 줄여주세요." },
+      { status: 413 }
+    );
+  }
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
       { ok: false, error: "서버에 API 키가 설정되지 않았습니다. 관리자에게 문의해주세요." },
@@ -74,11 +89,24 @@ export async function POST(req: NextRequest): Promise<NextResponse<AssistRespons
   // 사용자 메시지 구성 (멀티모달)
   const content: Anthropic.MessageParam["content"] = [];
   if (imageDataUrl) {
+    if (typeof imageDataUrl !== "string" || imageDataUrl.length > MAX_IMAGE_BASE64) {
+      return NextResponse.json(
+        { ok: false, error: "사진이 너무 큽니다. 5MB 이하로 올려주세요." },
+        { status: 413 }
+      );
+    }
     const parsed = parseDataUrl(imageDataUrl);
     if (!parsed) {
       return NextResponse.json(
         { ok: false, error: "지원하지 않는 이미지 형식입니다. (JPG/PNG/GIF/WEBP)" },
         { status: 400 }
+      );
+    }
+    // 디코딩 후 실제 바이트 크기 검사 (base64 → bytes ≈ len * 3/4)
+    if ((parsed.data.length * 3) / 4 > MAX_IMAGE_BYTES) {
+      return NextResponse.json(
+        { ok: false, error: "사진이 너무 큽니다. 5MB 이하로 올려주세요." },
+        { status: 413 }
       );
     }
     content.push({
