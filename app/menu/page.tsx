@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import TrustBadges from "@/components/TrustBadges";
 import NestGrowth from "@/components/home/NestGrowth";
 import RecentProblems from "@/components/RecentProblems";
 import FeatureRow from "@/components/FeatureRow";
@@ -92,6 +93,7 @@ export default function MenuPage() {
             없어요.
           </p>
         </div>
+        <TrustBadges className="mt-4" />
         <p className="mt-4 pb-2 text-center text-[11px] text-muted/80">
           © 2026 둥지 Nest · 2026 K-AI 콘텐츠 공모전 출품작
         </p>

@@ -68,6 +68,13 @@ export default function HomeHero() {
           <Link href="/repair" className="btn-primary w-full">
             사진으로 수리·하자 진단하기 <ArrowRight size={17} />
           </Link>
+          <p className="mt-2 text-center text-[12px] text-muted">
+            사진이 없어도 괜찮아요.{" "}
+            <Link href="/repair" className="font-semibold text-brand-deep underline underline-offset-2">
+              상황만 글로 적어도
+            </Link>{" "}
+            진단해드려요.
+          </p>
         </m.div>
       </m.div>
     </section>
