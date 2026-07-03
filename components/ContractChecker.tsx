@@ -253,19 +253,12 @@ function ContractResultView({
         </div>
       )}
 
-      {/* 결과 도착 헤럴드 — 둥이 */}
-      <div className="no-print flex items-center gap-2.5 px-1">
-        <Doongi
-          mood={result.overall_risk === "high" ? "warning" : "found"}
-          size={52}
-          withNest={false}
-        />
-        <p className="text-sm font-semibold text-ink">
-          {result.overall_risk === "high"
-            ? "짚고 넘어갈 조항이 있어요. 아래에서 확인하세요."
-            : "다 읽었어요! 아래에 정리했어요."}
-        </p>
-      </div>
+      {/* 결과 도착 안내 — 법률 화면이라 마스코트 없이 담백하게 (v7 P6 규칙) */}
+      <p className="no-print px-1 text-sm font-semibold text-ink">
+        {result.overall_risk === "high"
+          ? "짚고 넘어갈 조항이 있어요. 아래에서 확인하세요."
+          : "검토를 마쳤어요. 아래에 정리했어요."}
+      </p>
 
       {/* 종합 위험도 배너 */}
       <div className={`animate-fade-up rounded-2xl border p-5 ${o.box}`}>

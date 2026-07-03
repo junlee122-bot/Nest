@@ -10,6 +10,7 @@
 // 6 mood API 불변: hello / thinking / found / warning / cheer / sleepy
 // 원칙: 법적 판단·disclaimer 카드 안에는 배치하지 않는다(신뢰 톤 유지).
 
+import { useId } from "react";
 import { m } from "framer-motion";
 
 export type DoongiMood =
@@ -23,38 +24,38 @@ export type DoongiMood =
 const INK = "#3B3226"; // 눈·눈웃음
 const RIM = "rgba(160, 112, 42, 0.35)"; // 은은한 림 라인
 
-// 그라데이션 defs — 같은 문서에 여러 둥이가 있어도 정의가 동일하므로
-// id 충돌은 무해(first-wins)하다.
-function Defs() {
+// 그라데이션 defs — useId 기반 접두사로 인스턴스별 고유 id (v7 P6)
+// (display:none 조상 등에서 first-wins 참조가 깨지는 실사용 버그 방지)
+function Defs({ p }: { p: string }) {
   return (
     <defs>
-      <radialGradient id="dgBody" cx="36%" cy="28%" r="80%">
+      <radialGradient id={`dgBody-${p}`} cx="36%" cy="28%" r="80%">
         <stop offset="0%" stopColor="#FFF9E2" />
         <stop offset="52%" stopColor="#FFE9AC" />
         <stop offset="100%" stopColor="#F2C363" />
       </radialGradient>
-      <linearGradient id="dgBeak" x1="0" y1="0" x2="0" y2="1">
+      <linearGradient id={`dgBeak-${p}`} x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stopColor="#FFC85A" />
         <stop offset="100%" stopColor="#ED8B26" />
       </linearGradient>
-      <linearGradient id="dgLeafA" x1="0" y1="0" x2="1" y2="1">
+      <linearGradient id={`dgLeafA-${p}`} x1="0" y1="0" x2="1" y2="1">
         <stop offset="0%" stopColor="#7ED493" />
         <stop offset="100%" stopColor="#3E9D5C" />
       </linearGradient>
-      <linearGradient id="dgLeafB" x1="1" y1="0" x2="0" y2="1">
+      <linearGradient id={`dgLeafB-${p}`} x1="1" y1="0" x2="0" y2="1">
         <stop offset="0%" stopColor="#B0E8BE" />
         <stop offset="100%" stopColor="#5DBA74" />
       </linearGradient>
-      <radialGradient id="dgNest" cx="50%" cy="12%" r="95%">
+      <radialGradient id={`dgNest-${p}`} cx="50%" cy="12%" r="95%">
         <stop offset="0%" stopColor="#F0D9A8" />
         <stop offset="60%" stopColor="#DDB87E" />
         <stop offset="100%" stopColor="#BD8E52" />
       </radialGradient>
-      <radialGradient id="dgShadow" cx="50%" cy="50%" r="50%">
+      <radialGradient id={`dgShadow-${p}`} cx="50%" cy="50%" r="50%">
         <stop offset="0%" stopColor="rgba(96, 72, 38, 0.28)" />
         <stop offset="100%" stopColor="rgba(96, 72, 38, 0)" />
       </radialGradient>
-      <radialGradient id="dgCheek" cx="50%" cy="50%" r="50%">
+      <radialGradient id={`dgCheek-${p}`} cx="50%" cy="50%" r="50%">
         <stop offset="0%" stopColor="#FF9E86" stopOpacity="0.85" />
         <stop offset="100%" stopColor="#FF9E86" stopOpacity="0" />
       </radialGradient>
@@ -115,11 +116,11 @@ function Eyes({ mood }: { mood: DoongiMood }) {
   }
 }
 
-function Beak({ mood }: { mood: DoongiMood }) {
+function Beak({ mood, p }: { mood: DoongiMood; p: string }) {
   if (mood === "cheer" || mood === "found") {
     return (
       <g>
-        <path d="M54 62.5l6-3.8 6 3.8-6 3.8z" fill="url(#dgBeak)" />
+        <path d="M54 62.5l6-3.8 6 3.8-6 3.8z" fill={`url(#dgBeak-${p})`} />
         <path d="M55.8 66.5q4.2 4.8 8.4 0z" fill="#D96F1B" />
         <path d="M56.5 60.6l3.5-1.8" stroke="#FFE0A0" strokeWidth="1.2" strokeLinecap="round" />
       </g>
@@ -127,14 +128,14 @@ function Beak({ mood }: { mood: DoongiMood }) {
   }
   return (
     <g>
-      <path d="M54 62.5l6-3.8 6 3.8-6 5.3z" fill="url(#dgBeak)" />
+      <path d="M54 62.5l6-3.8 6 3.8-6 5.3z" fill={`url(#dgBeak-${p})`} />
       <path d="M56.5 60.6l3.5-1.8" stroke="#FFE0A0" strokeWidth="1.2" strokeLinecap="round" />
     </g>
   );
 }
 
 // 머리 위 새싹 — 시그니처 (그라데이션 + 잎맥 하이라이트)
-function Sprout() {
+function Sprout({ p }: { p: string }) {
   return (
     <g>
       <path
@@ -144,15 +145,15 @@ function Sprout() {
         strokeLinecap="round"
         fill="none"
       />
-      <path d="M63 21c-6.5-1.5-10 2-10 6.8 5 1.5 10-2 10-6.8z" fill="url(#dgLeafA)" />
-      <path d="M63 21c6.5-1.5 10 2 10 6.8-5 1.5-10-2-10-6.8z" fill="url(#dgLeafB)" />
+      <path d="M63 21c-6.5-1.5-10 2-10 6.8 5 1.5 10-2 10-6.8z" fill={`url(#dgLeafA-${p})`} />
+      <path d="M63 21c6.5-1.5 10 2 10 6.8-5 1.5-10-2-10-6.8z" fill={`url(#dgLeafB-${p})`} />
       <path d="M56.5 25.5q3-2 6-3.6" stroke="#EAF9EE" strokeWidth="1" strokeLinecap="round" opacity="0.8" />
       <path d="M69.5 25.5q-3-2-6-3.6" stroke="#EAF9EE" strokeWidth="1" strokeLinecap="round" opacity="0.6" />
     </g>
   );
 }
 
-function MoodProps({ mood }: { mood: DoongiMood }) {
+function MoodProps({ mood, p }: { mood: DoongiMood; p: string }) {
   switch (mood) {
     case "thinking":
       return (
@@ -185,7 +186,7 @@ function MoodProps({ mood }: { mood: DoongiMood }) {
         >
           <path
             d="M90 26l2.4 6 6 2.4-6 2.4-2.4 6-2.4-6-6-2.4 6-2.4z"
-            fill="url(#dgLeafA)"
+            fill={`url(#dgLeafA-${p})`}
           />
           <path
             d="M28 34l1.7 4.2 4.2 1.7-4.2 1.7-1.7 4.2-1.7-4.2-4.2-1.7 4.2-1.7z"
@@ -202,7 +203,7 @@ function MoodProps({ mood }: { mood: DoongiMood }) {
           />
           <path
             d="M90 23l10.5 18a3 3 0 01-2.6 4.5H77a3 3 0 01-2.6-4.5L85 23a3 3 0 015 0z"
-            fill="url(#dgBeak)"
+            fill={`url(#dgBeak-${p})`}
             opacity="0.35"
           />
           <rect x="85.7" y="29.5" width="3.6" height="9" rx="1.8" fill="#fff" />
@@ -220,7 +221,7 @@ function MoodProps({ mood }: { mood: DoongiMood }) {
           />
           <m.path
             d="M92 27l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"
-            fill="url(#dgLeafA)"
+            fill={`url(#dgLeafA-${p})`}
             animate={{ opacity: [1, 0.4, 1] }}
             transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
           />
@@ -266,6 +267,7 @@ export default function Doongi({
   /** false면 둥지 없이 새만 — 좁은 헤더용 */
   withNest?: boolean;
 }) {
+  const p = useId().replace(/:/g, "");
   const bob =
     mood === "sleepy"
       ? { y: [0, -1, 0], dur: 3.6 }
@@ -282,7 +284,7 @@ export default function Doongi({
       aria-hidden="true"
       className={className}
     >
-      <Defs />
+      <Defs p={p} />
 
       {/* 바닥 그림자 — 3D 안착감 */}
       <ellipse
@@ -290,7 +292,7 @@ export default function Doongi({
         cy={withNest ? 107 : 92}
         rx={withNest ? 32 : 22}
         ry={withNest ? 5 : 3.5}
-        fill="url(#dgShadow)"
+        fill={`url(#dgShadow-${p})`}
       />
 
       <m.g
@@ -300,7 +302,7 @@ export default function Doongi({
         {/* 날개 */}
         <m.path
           d="M32 60q-10 3-10 13 8 3 14-3.5"
-          fill="url(#dgBody)"
+          fill={`url(#dgBody-${p})`}
           stroke={RIM}
           strokeWidth="1.5"
           strokeLinejoin="round"
@@ -314,7 +316,7 @@ export default function Doongi({
         />
         <m.path
           d="M88 60q10 3 10 13-8 3-14-3.5"
-          fill="url(#dgBody)"
+          fill={`url(#dgBody-${p})`}
           stroke={RIM}
           strokeWidth="1.5"
           strokeLinejoin="round"
@@ -334,7 +336,7 @@ export default function Doongi({
         />
 
         {/* 몸통 — 라디얼 셰이딩 + 림 + 스페큘러 */}
-        <circle cx="60" cy="59" r="29" fill="url(#dgBody)" stroke={RIM} strokeWidth="1.5" />
+        <circle cx="60" cy="59" r="29" fill={`url(#dgBody-${p})`} stroke={RIM} strokeWidth="1.5" />
         <ellipse cx="60" cy="71" rx="16" ry="11" fill="#FFF6D8" opacity="0.75" />
         <ellipse
           cx="47"
@@ -346,14 +348,14 @@ export default function Doongi({
           transform="rotate(-24 47 40)"
         />
 
-        <Sprout />
+        <Sprout p={p} />
 
         {/* 홍조 — 부드러운 라디얼 */}
-        <circle cx="43" cy="64" r="6" fill="url(#dgCheek)" />
-        <circle cx="77" cy="64" r="6" fill="url(#dgCheek)" />
+        <circle cx="43" cy="64" r="6" fill={`url(#dgCheek-${p})`} />
+        <circle cx="77" cy="64" r="6" fill={`url(#dgCheek-${p})`} />
 
         <Eyes mood={mood} />
-        <Beak mood={mood} />
+        <Beak mood={mood} p={p} />
       </m.g>
 
       {/* 둥지 — 그라데이션 볼 + 위빙 스트랜드 */}
@@ -361,7 +363,7 @@ export default function Doongi({
         <g>
           <path
             d="M24 80c3 16 18 24 36 24s33-8 36-24c-11 5-23 7.5-36 7.5S35 85 24 80z"
-            fill="url(#dgNest)"
+            fill={`url(#dgNest-${p})`}
             stroke={RIM}
             strokeWidth="1.2"
             strokeLinejoin="round"
@@ -384,7 +386,7 @@ export default function Doongi({
           </g>
         </g>
       )}
-      <MoodProps mood={mood} />
+      <MoodProps mood={mood} p={p} />
     </svg>
   );
 }
