@@ -21,6 +21,7 @@ import Doongi from "./mascot/Doongi";
 import ShareButton from "./ShareButton";
 import { addGrowth } from "@/lib/growth";
 import { SAMPLE_GROCERY_PLAN, SAMPLE_GROCERY_USE } from "@/lib/sample";
+import { GROCERY_DATA_VERSION } from "@/lib/grocery/meta";
 import type {
   GroceryMode,
   GroceryResponse,
@@ -41,7 +42,7 @@ export default function GroceryCoach() {
   const [days, setDays] = useState("7일");
   const [meals, setMeals] = useState("점심·저녁");
   const [diet, setDiet] = useState("");
-  const [difficulty, setDifficulty] = useState("간단한 것");
+  const [difficulty, setDifficulty] = useState("아주 간단");
   // 탭 B
   const [ingredients, setIngredients] = useState("");
 
@@ -307,6 +308,30 @@ function PlanForm(props: {
         </div>
       </div>
       <div>
+        <span className="text-sm font-bold text-ink">조리 난이도</span>
+        <div
+          role="group"
+          aria-label="조리 난이도"
+          className="mt-1.5 grid grid-cols-3 rounded-2xl bg-[#F0F2F0] p-1"
+        >
+          {["아주 간단", "보통", "제대로 요리"].map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => props.setDifficulty(d)}
+              aria-pressed={props.difficulty === d}
+              className={`rounded-xl px-2 py-2 text-[13px] transition-all ${
+                props.difficulty === d
+                  ? "bg-card font-bold text-ink shadow-card"
+                  : "font-semibold text-muted"
+              }`}
+            >
+              {d}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
         <label className="text-sm font-bold text-ink">식성·제약 (선택)</label>
         <input
           value={props.diet}
@@ -382,6 +407,36 @@ function UseForm({
 }
 
 const CHANNEL_ORDER = ["채소·과일", "정육·계란", "유제품", "냉동·가공", "양념·기타", "기타"];
+
+// 가격 출처 배지 (v7 P3) — 오늘 시세 / 참고가 / AI 추정 구분
+function PriceSourceBadge({ it }: { it: { today_price?: string; price_ref?: string; est_price: number } }) {
+  if (it.today_price) {
+    return (
+      <span className="inline-flex rounded-full bg-sky-tint px-1.5 py-0.5 text-[10px] font-bold text-sky-deep">
+        오늘 시세
+      </span>
+    );
+  }
+  if (it.price_ref) {
+    return (
+      <span className="inline-flex rounded-full bg-straw-tint px-1.5 py-0.5 text-[10px] font-bold text-straw-deep">
+        참고가
+      </span>
+    );
+  }
+  if (!it.est_price) {
+    return (
+      <span className="inline-flex rounded-full bg-[#EEF0EE] px-1.5 py-0.5 text-[10px] font-bold text-muted">
+        데이터 없음
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex rounded-full bg-[#EEF0EE] px-1.5 py-0.5 text-[10px] font-bold text-muted">
+      AI 추정
+    </span>
+  );
+}
 
 /* ── 결과: 식단 ── */
 function PlanView({ r }: { r: GroceryPlanResult }) {
@@ -497,7 +552,8 @@ function PlanView({ r }: { r: GroceryPlanResult }) {
                         onChange={() => setChecked((p) => ({ ...p, [idx]: !p[idx] }))}
                         className="mt-1 h-5 w-5 shrink-0 rounded border-line accent-brand"
                       />
-                      <span className="flex-1">
+                      <span className="min-w-0 flex-1">
+                        {/* 한 줄 요약 (v7 P3): 이름 · 수량 · 가격 + 출처 배지 */}
                         <span className="flex items-center justify-between gap-2">
                           <span className={`text-sm font-medium ${checked[idx] ? "text-muted line-through" : "text-ink"}`}>
                             {it.item} <span className="text-xs text-muted">· {it.qty}</span>
@@ -506,33 +562,49 @@ function PlanView({ r }: { r: GroceryPlanResult }) {
                                 제철
                               </span>
                             )}
-                            {it.fresh_label && (
-                              <span className="ml-1.5 rounded-full bg-warn-tint px-1.5 py-0.5 text-[10px] font-bold text-[#9A6B00]">
-                                {it.fresh_label}
-                              </span>
-                            )}
                           </span>
-                          <span className="shrink-0 text-sm font-bold text-ink">{won(it.est_price)}</span>
+                          <span className="shrink-0 text-right">
+                            <span className="block text-sm font-bold text-ink">{won(it.est_price)}</span>
+                            <PriceSourceBadge it={it} />
+                          </span>
                         </span>
-                        {it.used_in?.length > 0 && (
-                          <span className="mt-0.5 block text-xs text-muted">→ {it.used_in.join(", ")}</span>
-                        )}
-                        {(it.today_price || it.price_ref) && (
-                          <span className="mt-0.5 block truncate text-[11px] text-muted">
-                            {it.today_price ? (
-                              <>
-                                오늘 시세 <b className="text-brand-deep">{it.today_price}</b>
-                              </>
-                            ) : (
-                              <>참고가 {it.price_ref}</>
-                            )}
-                          </span>
-                        )}
-                        {it.storage_days && (
-                          <span className="mt-0.5 block truncate text-[11px] text-muted">
-                            {it.storage_days}
-                            {it.storage_tip ? ` · ${it.storage_tip}` : ""}
-                          </span>
+                        {/* 펼치면 상세 (줄바꿈 허용 — truncate 금지) */}
+                        {(it.today_price || it.price_ref || it.storage_days || it.used_in?.length > 0 || it.fresh_label) && (
+                          <details className="group/it mt-1 [&_summary::-webkit-details-marker]:hidden">
+                            <summary className="inline-flex cursor-pointer list-none items-center gap-0.5 text-[12px] font-semibold text-muted hover:text-ink">
+                              자세히
+                              <ChevronDown size={12} className="transition-transform group-open/it:rotate-180" />
+                            </summary>
+                            <span className="mt-1 block space-y-0.5 rounded-lg bg-bg p-2">
+                              {it.today_price && (
+                                <span className="block text-[12px] leading-relaxed text-ink">
+                                  오늘 시세 <b className="text-brand-deep">{it.today_price}</b>
+                                  <span className="text-muted"> (공공데이터 소매 기준 단가)</span>
+                                </span>
+                              )}
+                              {it.price_ref && (
+                                <span className="block text-[12px] leading-relaxed text-muted">
+                                  참고가 {it.price_ref}
+                                </span>
+                              )}
+                              {it.fresh_label && (
+                                <span className="block text-[12px] leading-relaxed text-[#9A6B00]">
+                                  {it.fresh_label} 소비 권장
+                                </span>
+                              )}
+                              {it.storage_days && (
+                                <span className="block text-[12px] leading-relaxed text-muted">
+                                  {it.storage_days}
+                                  {it.storage_tip ? ` · ${it.storage_tip}` : ""}
+                                </span>
+                              )}
+                              {it.used_in?.length > 0 && (
+                                <span className="block text-[12px] leading-relaxed text-muted">
+                                  쓰이는 곳: {it.used_in.join(", ")}
+                                </span>
+                              )}
+                            </span>
+                          </details>
                         )}
                       </span>
                     </label>
@@ -547,11 +619,14 @@ function PlanView({ r }: { r: GroceryPlanResult }) {
           <span className="text-base font-extrabold text-brand-deep">{won(r.total_est_price)}</span>
         </div>
         {r.meta && (
-          <p className="mt-2 text-[11px] leading-relaxed text-muted">
+          <p className="mt-2 text-[12px] leading-relaxed text-muted">
             {r.meta.price_source === "kamis"
-              ? `오늘 소매 시세(aT KAMIS, ${r.meta.kamis_date ?? ""})를 반영한 예상치예요.`
-              : "내장 참고 가격표 기준 예상치예요."}{" "}
-            실제 가격은 마트·시점에 따라 달라요.
+              ? `오늘 시세는 공공데이터(aT KAMIS, ${r.meta.kamis_date ?? ""})의 소매 기준 단가예요.`
+              : "가격은 내장 참고 가격표 기준 예상치예요."}{" "}
+            표기된 단위 기준이며 실제 마트·온라인·행사가와 다를 수 있어요.
+            <span className="mt-0.5 block text-muted/80">
+              내장 데이터 v{GROCERY_DATA_VERSION} · 참고용
+            </span>
           </p>
         )}
       </section>
@@ -625,7 +700,7 @@ function UseView({ r }: { r: GroceryUseResult }) {
             ))}
           </ol>
           <p className="mt-3 text-[11px] leading-relaxed text-muted">
-            보관 기한은 일반적인 목안(참고용)이에요. 냄새·색이 이상하면 기한과 무관하게 버리세요.
+            보관 기간은 일반적인 참고 기준이에요. 냄새·색이 이상하면 기한과 무관하게 버리세요.
           </p>
         </section>
       )}

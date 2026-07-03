@@ -9,6 +9,8 @@ import { PRICE_REFS, type PriceRef } from "./prices";
 
 export type { SeasonalItem, SeasonalMonth, StorageInfo, PriceRef };
 
+export { GROCERY_DATA_VERSION, GROCERY_DATA_NOTE } from "./meta";
+
 // ── 제철 ─────────────────────────────────────────────────────
 export function seasonalForMonth(month: number): SeasonalMonth | null {
   return SEASONAL.find((m) => m.month === month) ?? null;
@@ -91,7 +93,7 @@ export function storagePromptBlock(ingredients: string[]): string | null {
     if (s) lines.push(`- ${ing}: ${s.method} ${s.days}`);
   }
   if (lines.length === 0) return null;
-  return `[보관 기한 정보 — 개봉/구매 후 신선 소비 목안]\n${lines.join("\n")}`;
+  return `[보관 기한 정보 — 개봉/구매 후 신선 소비 참고 기간]\n${lines.join("\n")}`;
 }
 
 // ── 참고 가격 ─────────────────────────────────────────────────

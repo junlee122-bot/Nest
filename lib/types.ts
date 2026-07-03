@@ -136,7 +136,7 @@ export interface ShoppingItem {
   seasonal?: boolean; // 제철 재료 여부 (AI + 서버 매칭 보정)
   // ↓ 서버 후처리로 부착 (내장 데이터 매칭 — AI 출력 아님)
   storage_tip?: string; // 보관 팁 한 줄
-  storage_days?: string; // 보관 기한 목안 (예: "냉장 3~5일")
+  storage_days?: string; // 보관 참고 기간 (예: "냉장 3~5일")
   price_ref?: string; // 참고가 범위 (예: "3,000~4,500원")
   today_price?: string; // 오늘 소매 시세 (KAMIS)
 }
@@ -183,7 +183,7 @@ export interface DbRecipe {
 export interface StorageNote {
   name: string;
   method: string; // 냉장/냉동/실온
-  days: string; // 신선 소비 목안
+  days: string; // 신선 소비 참고 기간
   tip: string;
   freezable?: boolean;
 }
