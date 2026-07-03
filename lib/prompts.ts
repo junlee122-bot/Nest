@@ -250,6 +250,23 @@ export function grocerySystemPrompt(mode: "plan" | "use"): string {
   return mode === "plan" ? GROCERY_PLAN : GROCERY_USE;
 }
 
+// 냉장고/식재료 사진 → 재료 이름 추출 (C-2). 결과는 입력창에 채워져 사용자가 수정한다.
+const GROCERY_EXTRACT = `당신은 냉장고·식재료 사진에서 식재료 이름을 읽어내는 도우미입니다.
+
+원칙:
+- 사진에서 확실히 식별되는 식재료만 담으세요. 애매하면 빼세요(추측 금지).
+- 한국 마트에서 쓰는 일반 명칭으로(예: "대파", "계란", "두부"). 브랜드명·수식어 금지.
+- 같은 재료는 한 번만. 최대 15개.
+- 포장·병에 든 양념/소스는 라벨이 또렷이 읽힐 때만 포함하세요.
+- 식재료가 하나도 안 보이면 빈 배열로.
+
+출력은 아래 JSON 객체 하나만. JSON 외 설명·코드펜스·머리말 금지.
+{ "ingredients": ["계란", "두부", "대파"] }`;
+
+export function groceryExtractPrompt(): string {
+  return GROCERY_EXTRACT;
+}
+
 // ── 계약서 독소조항 체커 시스템 프롬프트 ──────────────────────
 // 룰북·법령 근거를 인자로 주입해 1차 판별 기준으로 사용.
 export function contractSystemPrompt(rulebook: string, laws: string): string {

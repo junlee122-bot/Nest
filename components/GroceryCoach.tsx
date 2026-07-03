@@ -18,11 +18,13 @@ import {
 } from "lucide-react";
 import AppBar from "./AppBar";
 import Doongi from "./mascot/Doongi";
+import PhotoUpload from "./PhotoUpload";
 import ShareButton from "./ShareButton";
 import { addGrowth } from "@/lib/growth";
 import { SAMPLE_GROCERY_PLAN, SAMPLE_GROCERY_USE } from "@/lib/sample";
 import { GROCERY_DATA_VERSION } from "@/lib/grocery/meta";
 import type {
+  GroceryExtractResponse,
   GroceryMode,
   GroceryResponse,
   GroceryResult,
@@ -389,9 +391,69 @@ function UseForm({
   ingredients: string;
   setIngredients: (v: string | ((p: string) => string)) => void;
 }) {
+  // C-2: 냉장고 사진 → 재료 자동 추출. 결과는 아래 입력창에 채워지고 수정 가능.
+  // 실패해도 수동 입력이 그대로 살아 있는 '보조 입력' 경로다.
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [extractNote, setExtractNote] = useState<string | null>(null);
+
+  async function onPhoto(dataUrl: string | null) {
+    setPhoto(dataUrl);
+    setExtractNote(null);
+    if (!dataUrl) return;
+    setExtracting(true);
+    try {
+      const res = await fetch("/api/grocery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "extract", imageDataUrl: dataUrl }),
+      });
+      const data: GroceryExtractResponse = await res.json();
+      if (!data.ok) {
+        setExtractNote(data.error || "사진 인식에 실패했어요. 재료를 직접 입력해주세요.");
+        return;
+      }
+      if (data.ingredients.length === 0) {
+        setExtractNote("사진에서 재료를 찾지 못했어요. 재료를 직접 입력해주세요.");
+        return;
+      }
+      setIngredients((prev: string) => {
+        const have = prev
+          .split(/[,\n]/)
+          .map((s) => s.trim())
+          .filter(Boolean);
+        const haveSet = new Set(have.map((s) => s.replace(/\s/g, "")));
+        const added = data.ingredients.filter((s) => !haveSet.has(s.replace(/\s/g, "")));
+        return [...have, ...added].join(", ");
+      });
+      setExtractNote(`사진에서 ${data.ingredients.length}개 재료를 찾아 채웠어요. 아래에서 고칠 수 있어요.`);
+    } catch {
+      setExtractNote("사진 인식에 실패했어요. 재료를 직접 입력해주세요.");
+    } finally {
+      setExtracting(false);
+    }
+  }
+
   return (
     <div>
-      <label htmlFor="ingredients" className="text-sm font-bold text-ink">
+      <PhotoUpload
+        value={photo}
+        onChange={onPhoto}
+        label="냉장고·재료 사진으로 채우기 (선택)"
+        hint="사진 속 재료를 읽어 아래 입력창에 채워드려요"
+      />
+      {extracting && (
+        <p className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-muted" aria-live="polite">
+          <Loader2 size={14} className="animate-spin" /> 사진에서 재료를 읽는 중이에요…
+        </p>
+      )}
+      {extractNote && !extracting && (
+        <p role="status" className="mt-2 text-[13px] font-medium leading-relaxed text-muted">
+          {extractNote}
+        </p>
+      )}
+
+      <label htmlFor="ingredients" className="mt-4 block text-sm font-bold text-ink">
         냉장고에 있는 재료
       </label>
       <p className="mt-1 text-xs text-muted">쉼표나 줄바꿈으로 적어주세요. 상하기 쉬운 것부터 써드려요.</p>

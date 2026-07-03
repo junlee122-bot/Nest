@@ -235,6 +235,13 @@ export interface GroceryResponseErr {
 }
 export type GroceryResponse = GroceryResponseOk | GroceryResponseErr;
 
+// 냉장고 사진 → 재료 추출 (C-2). 결과는 입력창에 채워 사용자가 수정한다.
+export interface GroceryExtractOk {
+  ok: true;
+  ingredients: string[];
+}
+export type GroceryExtractResponse = GroceryExtractOk | GroceryResponseErr;
+
 // API 요청/응답
 export interface AssistRequest {
   topic: Topic;

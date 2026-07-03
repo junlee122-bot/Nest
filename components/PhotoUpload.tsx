@@ -9,9 +9,13 @@ const MAX_BYTES = 5 * 1024 * 1024;
 export default function PhotoUpload({
   value,
   onChange,
+  label = "사진 올리기 (선택)",
+  hint = "곰팡이·누수 등 상태가 보이면 진단이 정확해져요",
 }: {
   value: string | null;
   onChange: (dataUrl: string | null) => void;
+  label?: string;
+  hint?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -69,8 +73,8 @@ export default function PhotoUpload({
           className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-line bg-bg py-7 text-muted transition-all hover:border-brand/60 hover:text-brand-deep active:scale-[0.99]"
         >
           <ImagePlus size={26} />
-          <span className="text-sm font-medium">사진 올리기 (선택)</span>
-          <span className="text-xs text-muted">곰팡이·누수 등 상태가 보이면 진단이 정확해져요</span>
+          <span className="text-sm font-medium">{label}</span>
+          <span className="text-xs text-muted">{hint}</span>
         </button>
       )}
       {fileError && (

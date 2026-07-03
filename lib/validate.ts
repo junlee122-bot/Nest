@@ -80,3 +80,11 @@ export function validateGrocery(mode: "plan" | "use"): (p: P) => boolean {
     return (p.recipes as P[]).every((r) => isStr(r?.name) && isArr(r?.steps, 12));
   };
 }
+
+// 냉장고 사진 → 재료 추출 (C-2). 빈 배열도 유효(사진에 식재료가 없는 경우).
+export function validateGroceryExtract(p: P): boolean {
+  if (!isArr(p.ingredients, 15)) return false;
+  return (p.ingredients as unknown[]).every(
+    (s) => typeof s === "string" && s.trim().length > 0 && s.length <= 30
+  );
+}

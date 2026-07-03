@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { grocerySystemPrompt } from "@/lib/prompts";
+import type Anthropic from "@anthropic-ai/sdk";
+import { groceryExtractPrompt, grocerySystemPrompt } from "@/lib/prompts";
 import { callClaudeJson } from "@/lib/llm";
 import { RATE_LIMIT_MESSAGE, rateLimited } from "@/lib/ratelimit";
-import { validateGrocery } from "@/lib/validate";
+import { validateGrocery, validateGroceryExtract } from "@/lib/validate";
 import {
   findPriceRef,
   findStorage,
@@ -27,6 +28,7 @@ import { kstParts } from "@/lib/integrations/core";
 import type {
   BudgetFix,
   BudgetSwap,
+  GroceryExtractResponse,
   GroceryMeta,
   GroceryMode,
   GroceryPlanResult,
@@ -43,9 +45,35 @@ export const maxDuration = 60;
 
 const won = (n: number) => n.toLocaleString("ko-KR");
 
-export async function POST(req: NextRequest): Promise<NextResponse<GroceryResponse>> {
+// 사진 입력 상한 (C-2) — /api/assist 와 같은 기준의 서버측 이중 방어
+const MAX_BODY_BYTES = 9 * 1024 * 1024;
+const MAX_IMAGE_BASE64 = 7_500_000;
+const MAX_IMAGE_BYTES = 5.5 * 1024 * 1024;
+const ALLOWED_MEDIA = ["image/jpeg", "image/png", "image/gif", "image/webp"] as const;
+type AllowedMedia = (typeof ALLOWED_MEDIA)[number];
+
+function parseDataUrl(
+  dataUrl: string
+): { media_type: AllowedMedia; data: string } | null {
+  const m = /^data:([^;]+);base64,([\s\S]+)$/.exec(dataUrl);
+  if (!m) return null;
+  const media_type = m[1] as AllowedMedia;
+  if (!ALLOWED_MEDIA.includes(media_type)) return null;
+  return { media_type, data: m[2] };
+}
+
+export async function POST(
+  req: NextRequest
+): Promise<NextResponse<GroceryResponse | GroceryExtractResponse>> {
   if (rateLimited(req)) {
     return NextResponse.json({ ok: false, error: RATE_LIMIT_MESSAGE }, { status: 429 });
+  }
+  const contentLength = parseInt(req.headers.get("content-length") || "0", 10);
+  if (contentLength > MAX_BODY_BYTES) {
+    return NextResponse.json(
+      { ok: false, error: "요청이 너무 큽니다. 사진 용량을 줄여주세요." },
+      { status: 413 }
+    );
   }
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
@@ -62,11 +90,17 @@ export async function POST(req: NextRequest): Promise<NextResponse<GroceryRespon
     diet?: string;
     difficulty?: string;
     ingredients?: string;
+    imageDataUrl?: string | null;
   };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ ok: false, error: "잘못된 요청입니다." }, { status: 400 });
+  }
+
+  // ── C-2: 냉장고 사진 → 재료 추출 (결과는 입력창으로, 실패 시 수동 입력 폴백) ──
+  if (body.mode === "extract") {
+    return handleExtract(body.imageDataUrl);
   }
 
   const mode = body.mode as GroceryMode;
@@ -166,6 +200,73 @@ export async function POST(req: NextRequest): Promise<NextResponse<GroceryRespon
     console.error("[grocery] error status:", e?.status ?? "unknown");
     return NextResponse.json(
       { ok: false, error: "둥지가 잠시 응답하지 못했어요. 잠시 후 다시 시도해주세요." },
+      { status: 500 }
+    );
+  }
+}
+
+// ── C-2: 사진에서 재료 추출 (vision) ─────────────────────────
+async function handleExtract(
+  imageDataUrl: string | null | undefined
+): Promise<NextResponse<GroceryExtractResponse>> {
+  if (typeof imageDataUrl !== "string" || !imageDataUrl) {
+    return NextResponse.json({ ok: false, error: "사진을 올려주세요." }, { status: 400 });
+  }
+  if (imageDataUrl.length > MAX_IMAGE_BASE64) {
+    return NextResponse.json(
+      { ok: false, error: "사진이 너무 큽니다. 5MB 이하로 올려주세요." },
+      { status: 413 }
+    );
+  }
+  const parsed = parseDataUrl(imageDataUrl);
+  if (!parsed) {
+    return NextResponse.json(
+      { ok: false, error: "지원하지 않는 이미지 형식입니다. (JPG/PNG/GIF/WEBP)" },
+      { status: 400 }
+    );
+  }
+  if ((parsed.data.length * 3) / 4 > MAX_IMAGE_BYTES) {
+    return NextResponse.json(
+      { ok: false, error: "사진이 너무 큽니다. 5MB 이하로 올려주세요." },
+      { status: 413 }
+    );
+  }
+
+  const content: Anthropic.MessageParam["content"] = [
+    {
+      type: "image",
+      source: { type: "base64", media_type: parsed.media_type, data: parsed.data },
+    },
+    { type: "text", text: "이 사진에서 식재료 이름을 추출해 주세요." },
+  ];
+
+  try {
+    const call = await callClaudeJson({
+      systemStatic: groceryExtractPrompt(),
+      messages: [{ role: "user", content }],
+      maxTokens: 400,
+      hasImage: true,
+      validate: validateGroceryExtract,
+    });
+    if (!call) {
+      return NextResponse.json(
+        { ok: false, error: "사진에서 재료를 읽지 못했어요. 직접 입력해주세요." },
+        { status: 502 }
+      );
+    }
+    const ingredients = (call.parsed.ingredients as string[]).map((s) => s.trim());
+    return NextResponse.json({ ok: true, ingredients });
+  } catch (err) {
+    const e = err as { status?: number };
+    if (e?.status === 429) {
+      return NextResponse.json(
+        { ok: false, error: "지금 요청이 많아요. 잠시 후 다시 시도해주세요." },
+        { status: 429 }
+      );
+    }
+    console.error("[grocery/extract] error status:", e?.status ?? "unknown");
+    return NextResponse.json(
+      { ok: false, error: "사진 인식에 실패했어요. 재료를 직접 입력해주세요." },
       { status: 500 }
     );
   }
