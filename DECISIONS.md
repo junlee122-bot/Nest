@@ -149,3 +149,10 @@ AI 추측 → 실데이터 접지(grounding). 워크플로(병렬 에이전트)�
   사진 업로드 alert→인라인 role=alert.
 - **P6 폴리시**: Doongi defs id useId화(다중 렌더 참조 버그), 계약서 헤럴드 마스코트 제거(법률 화면 규칙).
 - 지킨 것: 브랜드 그린 유지, Next 14.2.35 고정, 폰트 리팩터·강CSP·전면 공통화 안 함(§9).
+
+### v8. Pexels 음식 참고 이미지 (2026-07-03)
+최종 실행 프롬프트가 전제한 foodImages는 레포에 없던 상태 → 스펙 그대로 신규 구현:
+- lib/integrations/foodImages.ts — Pexels 검색(locale ko-KR, landscape, 24h 캐시), 키 없으면 null
+- /grocery 한정: '남은 재료' AI 레시피 카드에만 서버 부착(recipe.photo, AI 스키마와 분리)
+- Pexels 가이드라인 크레딧(작가·원본 링크) + "참고 이미지" 고지, img lazy/decoding=async
+- 키 없는 데모: 텍스트 카드 무손실 폴백 확인. 나머지 P1~P6 완료 기준은 v7에서 이행 완료 재검증.

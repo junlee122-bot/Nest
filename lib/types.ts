@@ -160,6 +160,14 @@ export interface GroceryPlanResult {
   meta?: GroceryMeta; // 서버 부착
 }
 
+// 요리 참고 사진 (Pexels) — 서버 부착, 키 없으면 생략
+export interface FoodPhoto {
+  url: string;
+  photographer: string; // 크레딧 표기용 (Pexels 가이드라인)
+  photographerUrl: string;
+  sourceUrl: string; // Pexels 원본 페이지
+}
+
 // 탭 B — 남은 재료 처리
 export interface GroceryRecipe {
   name: string;
@@ -168,6 +176,7 @@ export interface GroceryRecipe {
   steps: string[];
   time_min: number;
   note?: string;
+  photo?: FoodPhoto; // 서버 부착 (AI 출력 아님)
 }
 // 공공 레시피 DB(식약처 식품안전나라) 실제 레시피 — 서버 부착
 export interface DbRecipe {

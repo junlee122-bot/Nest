@@ -730,7 +730,40 @@ function UseView({ r }: { r: GroceryUseResult }) {
       )}
 
       {(r.recipes || []).map((rec, i) => (
-        <section key={i} className="card animate-fade-up p-5">
+        <section key={i} className="card animate-fade-up overflow-hidden p-5">
+          {rec.photo && (
+            <div className="-mx-5 -mt-5 mb-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={rec.photo.url}
+                alt={`${rec.name} 참고 이미지`}
+                loading="lazy"
+                decoding="async"
+                className="h-40 w-full object-cover"
+              />
+              <p className="bg-black/45 px-3 py-1 text-right text-[10px] font-medium text-white/90 backdrop-blur-sm -mt-6 relative">
+                사진:{" "}
+                <a
+                  href={rec.photo.photographerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2"
+                >
+                  {rec.photo.photographer}
+                </a>{" "}
+                ·{" "}
+                <a
+                  href={rec.photo.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2"
+                >
+                  Pexels
+                </a>{" "}
+                · 참고 이미지
+              </p>
+            </div>
+          )}
           <div className="mb-2 flex items-center gap-2">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sun-tint text-sun-deep">
               <Refrigerator size={18} />
@@ -779,6 +812,12 @@ function UseView({ r }: { r: GroceryUseResult }) {
         </section>
       ))}
 
+      {(r.recipes || []).some((rec) => rec.photo) && (
+        <p className="px-1 text-[11px] leading-relaxed text-muted">
+          요리 사진은 Pexels 참고 이미지로, 실제 완성 모습과 다를 수 있어요.
+        </p>
+      )}
+
       {/* 공공 레시피 DB — 식약처 (키 있을 때만 서버가 부착) */}
       {r.db_recipes && r.db_recipes.length > 0 && (
         <section className="card animate-fade-up p-5">
@@ -793,7 +832,13 @@ function UseView({ r }: { r: GroceryUseResult }) {
               <div key={i} className="overflow-hidden rounded-xl border border-line">
                 {d.image && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={d.image} alt={d.name} className="h-36 w-full object-cover" />
+                  <img
+                    src={d.image}
+                    alt={d.name}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-36 w-full object-cover"
+                  />
                 )}
                 <div className="p-3.5">
                   <div className="flex items-center gap-2">

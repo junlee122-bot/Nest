@@ -21,6 +21,7 @@ import {
   matchKamis,
 } from "@/lib/integrations/kamis";
 import { fetchDbRecipes } from "@/lib/integrations/recipeDb";
+import { fetchFoodImage } from "@/lib/integrations/foodImages";
 import { kstParts } from "@/lib/integrations/core";
 import type {
   GroceryMeta,
@@ -229,10 +230,21 @@ async function enrichUse(
 
   // 2) 공공 레시피 DB — 가장 급한 재료 기준 검색 (키 없으면 null)
   const query = notes[0]?.name ?? ingredients[0];
-  const db = query ? await fetchDbRecipes(query, 3).catch(() => null) : null;
+  const dbPromise = query ? fetchDbRecipes(query, 3).catch(() => null) : Promise.resolve(null);
+
+  // 3) AI 레시피 참고 사진 (Pexels, /grocery 한정) — 키 없으면 텍스트 카드 폴백
+  const recipes = await Promise.all(
+    (r.recipes || []).slice(0, 4).map(async (rec) => {
+      const photo = await fetchFoodImage(rec.name).catch(() => null);
+      return photo ? { ...rec, photo } : rec;
+    })
+  );
+
+  const db = await dbPromise;
 
   return {
     ...r,
+    recipes: recipes.length > 0 ? recipes : r.recipes,
     storage_notes: notes.length > 0 ? notes : undefined,
     db_recipes: db ?? undefined,
   };
