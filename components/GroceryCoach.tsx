@@ -115,7 +115,11 @@ export default function GroceryCoach() {
 
       <div className="container-app space-y-5 pt-5">
         {/* 탭 토글 */}
-        <div className="no-print grid grid-cols-2 rounded-2xl bg-[#F0F2F0] p-1">
+        <div
+          role="tablist"
+          aria-label="장보기 모드"
+          className="no-print grid grid-cols-2 rounded-2xl bg-[#F0F2F0] p-1"
+        >
           {(
             [
               ["plan", "식단 짜기"],
@@ -125,6 +129,8 @@ export default function GroceryCoach() {
             <button
               key={t}
               type="button"
+              role="tab"
+              aria-selected={tab === t}
               onClick={() => switchTab(t)}
               className={`rounded-xl px-4 py-2.5 text-sm transition-all ${
                 tab === t ? "bg-card font-bold text-ink shadow-card" : "font-semibold text-muted"
@@ -265,8 +271,11 @@ function PlanForm(props: {
   return (
     <div className="space-y-3">
       <div>
-        <label className="text-sm font-bold text-ink">1주 예산</label>
+        <label htmlFor="grocery-budget" className="text-sm font-bold text-ink">
+          1주 예산
+        </label>
         <input
+          id="grocery-budget"
           value={props.budget}
           onChange={(e) => props.setBudget(e.target.value)}
           inputMode="numeric"
@@ -275,7 +284,13 @@ function PlanForm(props: {
         />
         <div className="mt-2 flex flex-wrap gap-2">
           {["2만원", "3만원", "5만원", "7만원"].map((b) => (
-            <button key={b} type="button" onClick={() => props.setBudget(b)} className="chip">
+            <button
+              key={b}
+              type="button"
+              onClick={() => props.setBudget(b)}
+              aria-pressed={props.budget === b}
+              className={`chip ${props.budget === b ? "bg-brand-tint font-bold text-brand-deep" : ""}`}
+            >
               {b}
             </button>
           ))}
@@ -283,8 +298,11 @@ function PlanForm(props: {
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-sm font-bold text-ink">기간</label>
+          <label htmlFor="grocery-days" className="text-sm font-bold text-ink">
+            기간
+          </label>
           <select
+            id="grocery-days"
             value={props.days}
             onChange={(e) => props.setDays(e.target.value)}
             className="mt-1.5 w-full rounded-xl border border-line bg-bg p-3 text-base text-ink outline-none focus:border-brand"
@@ -295,8 +313,11 @@ function PlanForm(props: {
           </select>
         </div>
         <div>
-          <label className="text-sm font-bold text-ink">끼니</label>
+          <label htmlFor="grocery-meals" className="text-sm font-bold text-ink">
+            끼니
+          </label>
           <select
+            id="grocery-meals"
             value={props.meals}
             onChange={(e) => props.setMeals(e.target.value)}
             className="mt-1.5 w-full rounded-xl border border-line bg-bg p-3 text-base text-ink outline-none focus:border-brand"
@@ -332,8 +353,11 @@ function PlanForm(props: {
         </div>
       </div>
       <div>
-        <label className="text-sm font-bold text-ink">식성·제약 (선택)</label>
+        <label htmlFor="grocery-diet" className="text-sm font-bold text-ink">
+          식성·제약 (선택)
+        </label>
         <input
+          id="grocery-diet"
           value={props.diet}
           onChange={(e) => props.setDiet(e.target.value)}
           placeholder="예) 매운 거 싫어요, 채식 위주"

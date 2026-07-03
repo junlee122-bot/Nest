@@ -316,6 +316,7 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
                 value={clarifyCustom}
                 onChange={(e) => setClarifyCustom(e.target.value)}
                 placeholder="직접 입력해도 돼요"
+                aria-label="되묻기에 직접 답 입력"
                 className="min-w-0 flex-1 rounded-xl border border-line bg-bg px-3 py-2.5 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
               />
               <button type="submit" disabled={!clarifyCustom.trim()} className="btn-ghost shrink-0 text-sm">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { ImagePlus, X } from "lucide-react";
 
 const MAX_DIM = 1568; // 비전 입력 권장 상한 — 다운스케일로 토큰/용량 절약
@@ -14,18 +14,24 @@ export default function PhotoUpload({
   onChange: (dataUrl: string | null) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   async function handleFile(file: File) {
     if (!file.type.startsWith("image/")) {
-      alert("이미지 파일만 올릴 수 있어요.");
+      setFileError("사진은 JPG·PNG·WebP 같은 이미지 파일만 올릴 수 있어요.");
       return;
     }
     if (file.size > MAX_BYTES) {
-      alert("이미지가 너무 커요. 5MB 이하로 올려주세요.");
+      setFileError("사진은 5MB 이하만 올릴 수 있어요. 용량을 줄여 다시 시도해주세요.");
       return;
     }
-    const dataUrl = await downscale(file);
-    onChange(dataUrl);
+    setFileError(null);
+    try {
+      const dataUrl = await downscale(file);
+      onChange(dataUrl);
+    } catch {
+      setFileError("사진을 읽지 못했어요. 다른 사진으로 다시 시도해주세요.");
+    }
   }
 
   return (
@@ -66,6 +72,11 @@ export default function PhotoUpload({
           <span className="text-sm font-medium">사진 올리기 (선택)</span>
           <span className="text-xs text-muted">곰팡이·누수 등 상태가 보이면 진단이 정확해져요</span>
         </button>
+      )}
+      {fileError && (
+        <p role="alert" className="mt-2 text-[13px] font-medium leading-relaxed text-danger">
+          {fileError}
+        </p>
       )}
     </div>
   );

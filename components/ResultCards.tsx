@@ -310,6 +310,7 @@ function ToneMessage({
             key={t}
             type="button"
             onClick={() => setTone(t)}
+            aria-pressed={tone === t}
             className={`rounded-xl px-4 py-2 text-sm transition-all ${
               tone === t ? "bg-card font-bold text-ink shadow-card" : "font-semibold text-muted"
             }`}
@@ -497,7 +498,8 @@ function HelpConnect({ r }: { r: RepairResult }) {
         type="text"
         value={region}
         onChange={(e) => setRegion(e.target.value)}
-        placeholder="동네(구/동) — 예: 마포구 (선택)"
+        placeholder="동네(구/동) 예: 마포구 (선택)"
+        aria-label="업체 검색 동네 입력 (선택)"
         className="w-full rounded-xl border border-line bg-bg p-3 text-base text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
       />
       <div className="mt-2 space-y-2">
