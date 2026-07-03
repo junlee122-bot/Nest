@@ -19,13 +19,13 @@ export interface KamisPrice {
 
 interface DailySalesItem {
   product_cls_code?: string; // 01 소매 / 02 도매
-  productName?: string;
+  productName?: string; // "쌀/20kg" 형태
   item_name?: string;
   unit?: string;
-  dpr1?: string; // 당일
+  dpr1?: string; // 당일 (콤마 포함 문자열, 결측 "-")
   dpr2?: string; // 1일전
-  lastest_day?: string;
-  direction?: string; // 0 하락 / 1 상승 / 2 보합
+  lastest_day?: string; // 조사일 — API 원문 필드명 오타 그대로(lastest)
+  direction?: string; // 0 하락 / 1 상승 / 2 등락없음
 }
 
 function toPrice(s: string | undefined): number | null {
@@ -37,6 +37,10 @@ function toPrice(s: string | undefined): number | null {
 /**
  * 주요 품목 당일 소매가 전체(dailySalesList). 6시간 캐시.
  * 실패/미설정 시 null.
+ *
+ * KAMIS 서버는 정상 호출도 20~90초 걸릴 수 있다(실측) — 타임아웃을 넉넉히 두고,
+ * 호출부는 fetchKamisTodayFast()로 짧게만 기다린 뒤 폴백하는 것을 권장.
+ * (이 함수의 프로미스는 계속 진행되어 캐시를 채우므로 다음 요청부터 시세가 반영된다)
  */
 export async function fetchKamisToday(): Promise<{
   date: string;
@@ -54,17 +58,21 @@ export async function fetchKamisToday(): Promise<{
     const data = await safeJson<{
       price?: DailySalesItem[];
       error_code?: string;
-    }>(await safeFetch(url, { timeoutMs: 8000 }));
-    const rows = data?.price;
+    }>(await safeFetch(url, { timeoutMs: 55_000 }));
+    // error_code "000"=성공 — 에러 시 price 가 없거나 형태가 달라질 수 있어 방어
+    if (!data || (data.error_code && data.error_code !== "000")) return null;
+    const rows = data.price;
     if (!rows || !Array.isArray(rows)) return null;
 
     const items: KamisPrice[] = [];
+    let surveyDay: string | null = null;
     for (const r of rows) {
       // 소매가만 (product_cls_code "01")
       if (r.product_cls_code && r.product_cls_code !== "01") continue;
       const name = (r.productName || r.item_name || "").trim();
       const price = toPrice(r.dpr1);
       if (!name || price === null) continue;
+      if (!surveyDay && r.lastest_day) surveyDay = r.lastest_day;
       const dir =
         r.direction === "1" ? "up" : r.direction === "0" ? "down" : "flat";
       items.push({ name, unit: (r.unit || "").trim(), price, direction: dir });
@@ -72,8 +80,23 @@ export async function fetchKamisToday(): Promise<{
     if (items.length === 0) return null;
 
     const { year, month, day } = kstParts();
-    return { date: `${year}-${month}-${day}`, items };
+    return { date: surveyDay ?? `${year}-${month}-${day}`, items };
   });
+}
+
+/**
+ * 사용자 요청 경로용 — waitMs 안에 안 오면 null(폴백)을 돌려주되,
+ * 원 호출은 백그라운드에서 계속되어 캐시를 채운다(stale-while-revalidate).
+ */
+export async function fetchKamisTodayFast(
+  waitMs = 2500
+): Promise<Awaited<ReturnType<typeof fetchKamisToday>>> {
+  if (!isKamisConfigured()) return null;
+  const inflight = fetchKamisToday().catch(() => null);
+  return Promise.race([
+    inflight,
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), waitMs)),
+  ]);
 }
 
 // 장보기 품목명과 KAMIS 품목명 매칭 (부분 포함, 긴 이름 우선)

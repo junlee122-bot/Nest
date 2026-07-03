@@ -13,7 +13,12 @@ import {
   seasonalPromptBlock,
   storagePromptBlock,
 } from "@/lib/grocery";
-import { fetchKamisToday, kamisPromptBlock, matchKamis } from "@/lib/integrations/kamis";
+import {
+  fetchKamisToday,
+  fetchKamisTodayFast,
+  kamisPromptBlock,
+  matchKamis,
+} from "@/lib/integrations/kamis";
 import { fetchDbRecipes } from "@/lib/integrations/recipeDb";
 import { kstParts } from "@/lib/integrations/core";
 import type {
@@ -88,7 +93,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<GroceryRespon
     if (seasonBlock) dynamicBlocks.push(seasonBlock);
     dynamicBlocks.push(priceRefPromptBlock());
 
-    kamis = await fetchKamisToday().catch(() => null);
+    // KAMIS는 매우 느릴 수 있어(실측 20~90초) 2.5초만 기다리고 폴백 —
+    // 백그라운드에서 완료되면 캐시에 들어가 다음 요청부터 '오늘 시세'가 붙는다.
+    kamis = await fetchKamisTodayFast(2500);
     if (kamis) {
       const block = kamisPromptBlock(kamis, priceRefNames());
       if (block) dynamicBlocks.push(block);
