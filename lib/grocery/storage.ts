@@ -1,0 +1,80 @@
+// 식재료 보관법·신선 소비 목안 DB (v6) — 내장 큐레이션 데이터
+// 키 불필요. '먼저 쓸 순서'·장보기 항목 보관 팁·프롬프트 주입에 사용.
+// 일반적인 가정 보관 기준 목안(참고용) — 상태가 이상하면 기한과 무관하게 폐기 안내.
+
+export interface StorageInfo {
+  name: string;
+  aliases: string[]; // 매칭용 별칭
+  method: "냉장" | "냉동" | "실온" | "냉장/냉동";
+  days: string; // 신선 소비 목안 (예: "3~5일")
+  tip: string;
+  freezable?: boolean;
+}
+
+export const STORAGE_DB: StorageInfo[] = [
+  { name: "대파", aliases: ["파", "흙대파", "대파 한 단"], method: "냉장", days: "1~2주", tip: "물기 닦고 키친타월에 싸서 밀폐용기에, 썰어서 냉동하면 한 달 사용 가능", freezable: true },
+  { name: "쪽파", aliases: ["실파", "쪽파 한 단"], method: "냉장", days: "5~7일", tip: "씻지 않은 채 키친타월로 감싸 밀폐 보관, 송송 썰어 소분 냉동 가능", freezable: true },
+  { name: "양파", aliases: ["양파 망", "깐양파"], method: "실온", days: "2~4주", tip: "망째 통풍 잘 되는 서늘한 곳에 걸어두고, 깐 양파는 랩 씌워 냉장", freezable: true },
+  { name: "마늘", aliases: ["깐마늘", "다진마늘", "통마늘"], method: "냉장", days: "1~2주", tip: "다진 마늘은 지퍼백에 납작하게 펴 냉동해두면 조각내 쓰기 편리", freezable: true },
+  { name: "감자", aliases: ["수미감자", "알감자"], method: "실온", days: "2~4주", tip: "빛이 안 드는 서늘한 곳에 두고 사과 한 개를 넣으면 싹이 늦게 남", freezable: false },
+  { name: "고구마", aliases: ["밤고구마", "호박고구마"], method: "실온", days: "2~4주", tip: "냉장하면 냉해로 맛이 떨어지니 신문지에 싸서 서늘한 실온에", freezable: false },
+  { name: "당근", aliases: ["세척당근", "흙당근"], method: "냉장", days: "1~2주", tip: "물기 닦고 키친타월에 하나씩 싸서 세워 보관", freezable: true },
+  { name: "오이", aliases: ["백오이", "다다기오이", "가시오이"], method: "냉장", days: "5~7일", tip: "물기에 약하니 키친타월로 감싸 꼭지가 위로 가게 세워 보관", freezable: false },
+  { name: "애호박", aliases: ["호박", "주키니"], method: "냉장", days: "5~7일", tip: "쓰다 남은 것은 단면을 랩으로 밀착 포장, 썰어 냉동하면 찌개용으로 사용 가능", freezable: true },
+  { name: "시금치", aliases: ["시금치 한 단"], method: "냉장", days: "3~5일", tip: "젖은 키친타월에 싸서 뿌리가 아래로 가게 세워 보관, 데치면 냉동 가능", freezable: true },
+  { name: "상추", aliases: ["청상추", "꽃상추", "쌈채소"], method: "냉장", days: "3~5일", tip: "씻지 않은 채 키친타월 깐 밀폐용기에, 물기가 닿으면 금방 무름", freezable: false },
+  { name: "깻잎", aliases: ["깻잎 한 묶음"], method: "냉장", days: "5~7일", tip: "물기 없이 키친타월에 싸서 밀폐용기에 세워 보관", freezable: false },
+  { name: "양배추", aliases: ["양배추 반통", "적양배추"], method: "냉장", days: "2~3주", tip: "심지를 도려내고 그 자리에 젖은 키친타월을 채워 랩핑하면 오래 감", freezable: true },
+  { name: "버섯", aliases: ["팽이버섯", "새송이버섯", "느타리버섯", "표고버섯"], method: "냉장", days: "5~7일", tip: "씻지 말고 키친타월에 싸서 보관, 손질해 냉동하면 국물맛이 진해짐", freezable: true },
+  { name: "고추", aliases: ["청양고추", "풋고추", "홍고추"], method: "냉장", days: "1~2주", tip: "물기 제거 후 키친타월과 함께 밀폐용기에, 썰어 냉동해두면 바로 사용 가능", freezable: true },
+  { name: "콩나물", aliases: ["콩나물 한 봉"], method: "냉장", days: "2~3일", tip: "밀폐용기에 물을 부어 잠기게 냉장하고 물은 매일 갈아주기", freezable: false },
+  { name: "브로콜리", aliases: ["브로컬리"], method: "냉장", days: "3~5일", tip: "송이째 두면 금방 무르니 소분해 데친 뒤 냉동하면 2~3주 사용", freezable: true },
+  { name: "파프리카", aliases: ["피망", "미니 파프리카"], method: "냉장", days: "1~2주", tip: "물기 닦고 하나씩 랩이나 봉지에 싸서 야채칸에", freezable: true },
+  { name: "사과", aliases: ["부사", "홍로", "아오리"], method: "냉장", days: "2~4주", tip: "에틸렌 가스가 다른 과일·채소를 익히니 봉지에 따로 담아 냉장", freezable: false },
+  { name: "바나나", aliases: ["바나나 한 송이"], method: "실온", days: "3~5일", tip: "꼭지를 랩으로 감싸 걸어두면 천천히 익고, 검어지면 껍질 벗겨 냉동", freezable: true },
+  { name: "귤", aliases: ["감귤", "밀감", "한라봉"], method: "실온", days: "1~2주", tip: "겹쳐 쌓지 말고 서늘한 곳에 펼쳐두고 무른 것은 바로 골라내기", freezable: true },
+  { name: "딸기", aliases: ["설향"], method: "냉장", days: "2~3일", tip: "씻지 말고 꼭지째 겹치지 않게 담아 냉장, 먹기 직전에 세척", freezable: true },
+  { name: "포도", aliases: ["샤인머스캣", "캠벨", "거봉"], method: "냉장", days: "3~5일", tip: "씻지 않고 봉지째 냉장, 알알이 떼어 얼리면 여름 간식으로 좋음", freezable: true },
+  { name: "방울토마토", aliases: ["대추방울토마토", "토마토"], method: "냉장", days: "5~7일", tip: "꼭지를 떼고 보관해야 곰팡이가 덜 생김, 먹기 직전에 세척", freezable: true },
+  { name: "블루베리", aliases: ["생블루베리", "냉동블루베리"], method: "냉장", days: "5~7일", tip: "씻지 않고 키친타월 깐 밀폐용기에 냉장, 얼리면 두 달 이상 보관", freezable: true },
+  { name: "수박", aliases: ["조각수박", "컷수박"], method: "냉장", days: "2~3일(자른 후)", tip: "자른 단면은 랩으로 밀착 포장, 깍둑썰어 밀폐용기에 담으면 먹기 편함", freezable: false },
+  { name: "돼지고기", aliases: ["삼겹살", "목살", "앞다리살", "대패삼겹살"], method: "냉장/냉동", days: "냉장 2~3일 / 냉동 1개월", tip: "핏물을 키친타월로 닦고 1회분씩 랩+지퍼백 이중 포장해 냉동", freezable: true },
+  { name: "소고기", aliases: ["차돌박이", "국거리", "불고기용", "등심", "우삼겹"], method: "냉장/냉동", days: "냉장 2~3일 / 냉동 1~2개월", tip: "덩어리째가 썬 고기보다 오래 가니 소분은 조리 직전에", freezable: true },
+  { name: "닭고기", aliases: ["닭가슴살", "닭다리살", "닭봉", "닭볶음탕용", "생닭"], method: "냉장/냉동", days: "냉장 1~2일 / 냉동 1개월", tip: "상하기 쉬우니 구매 당일 조리하거나 바로 소분 냉동", freezable: true },
+  { name: "다짐육", aliases: ["다진고기", "다진돼지고기", "다진소고기", "민찌"], method: "냉장/냉동", days: "냉장 1~2일 / 냉동 2~3주", tip: "지퍼백에 납작하게 펴서 얼리면 필요한 만큼 부러뜨려 쓰기 좋음", freezable: true },
+  { name: "계란", aliases: ["달걀", "계란 한 판", "특란"], method: "냉장", days: "3~4주", tip: "뾰족한 쪽을 아래로, 온도 변화가 큰 문쪽 대신 안쪽 칸에", freezable: false },
+  { name: "훈제오리", aliases: ["오리고기", "훈제오리 슬라이스"], method: "냉장", days: "개봉 후 2~3일", tip: "남은 것은 랩핑해 밀폐 보관, 소분 냉동하면 한 달 사용 가능", freezable: true },
+  { name: "고등어", aliases: ["자반고등어", "간고등어", "고등어살"], method: "냉장/냉동", days: "냉장 1~2일 / 냉동 1개월", tip: "손질 후 한 토막씩 랩핑해 냉동, 해동은 냉장실에서 천천히", freezable: true },
+  { name: "연어", aliases: ["생연어", "연어회", "훈제연어", "연어 스테이크"], method: "냉장", days: "1~2일", tip: "회로 먹을 것은 당일 소비, 구이용은 소분해 냉동", freezable: true },
+  { name: "오징어", aliases: ["손질오징어", "총알오징어", "한치"], method: "냉장/냉동", days: "냉장 1~2일 / 냉동 1개월", tip: "내장 제거 후 씻어 물기 닦고 한 마리씩 랩핑해 냉동", freezable: true },
+  { name: "새우", aliases: ["냉동새우", "칵테일새우", "흰다리새우", "생새우"], method: "냉동", days: "1~2개월", tip: "쓸 만큼만 꺼내 해동하고 한 번 녹인 것은 재냉동 금지", freezable: true },
+  { name: "멸치", aliases: ["건멸치", "국물용 멸치", "볶음용 멸치", "잔멸치"], method: "냉동", days: "3~6개월", tip: "실온에 두면 기름이 산패하니 지퍼백에 담아 냉동 보관", freezable: true },
+  { name: "우유", aliases: ["흰우유", "저지방 우유", "멸균우유"], method: "냉장", days: "개봉 후 3~5일", tip: "온도 변화가 큰 문쪽보다 안쪽에 두고 입 대고 마시지 않기", freezable: false },
+  { name: "두부", aliases: ["순두부", "연두부", "부침두부", "찌개두부"], method: "냉장", days: "개봉 후 2~3일", tip: "남은 두부는 물에 잠기게 담아 밀폐하고 물은 매일 교체", freezable: true },
+  { name: "슬라이스 치즈", aliases: ["슬라이스치즈", "체다치즈", "치즈"], method: "냉장", days: "개봉 후 2~3주", tip: "낱장 포장이라도 지퍼백에 한 번 더 밀봉하면 마르지 않음", freezable: true },
+  { name: "피자치즈", aliases: ["모짜렐라", "모차렐라", "슈레드 치즈"], method: "냉동", days: "1~2개월", tip: "개봉 후엔 덩어리지지 않게 평평히 펴서 지퍼백에 냉동", freezable: true },
+  { name: "요거트", aliases: ["요구르트", "그릭요거트", "플레인 요거트"], method: "냉장", days: "개봉 후 3~5일", tip: "깨끗한 숟가락으로 덜어 먹고 뚜껑을 바로 닫아야 오래 감", freezable: false },
+  { name: "버터", aliases: ["무염버터", "가염버터"], method: "냉장", days: "개봉 후 2~4주", tip: "쓸 만큼씩 잘라 소분하고 남은 것은 냉동하면 3~6개월 보관", freezable: true },
+  { name: "두유", aliases: ["멸균두유", "검은콩 두유", "베지밀"], method: "냉장", days: "개봉 후 2~3일", tip: "멸균팩도 개봉하면 꼭 냉장하고 빨대 꽂은 채 방치하지 않기", freezable: false },
+  { name: "김치", aliases: ["배추김치", "포기김치", "묵은지"], method: "냉장", days: "1~3개월", tip: "국물에 잠기게 꾹꾹 눌러 담고 덜 때는 깨끗한 집게 사용", freezable: false },
+  { name: "고추장", aliases: ["태양초 고추장", "초고추장"], method: "냉장", days: "개봉 후 3~6개월", tip: "마른 숟가락으로 덜고 표면을 평평하게 눌러두면 마르지 않음", freezable: false },
+  { name: "된장", aliases: ["재래된장", "집된장"], method: "냉장", days: "개봉 후 6개월 이상", tip: "표면에 랩을 밀착시켜 공기를 차단하면 곰팡이 예방", freezable: false },
+  { name: "간장", aliases: ["진간장", "양조간장", "국간장"], method: "냉장", days: "개봉 후 6개월 이상", tip: "빛과 열을 피하고, 양조간장은 개봉 후 냉장해야 풍미 유지", freezable: false },
+  { name: "참기름", aliases: ["참깨기름"], method: "실온", days: "개봉 후 6개월", tip: "냉장하면 굳고 침전물이 생기니 어두운 실온 찬장에", freezable: false },
+  { name: "식용유", aliases: ["콩기름", "카놀라유", "포도씨유", "튀김기름"], method: "실온", days: "개봉 후 1~3개월", tip: "가스레인지 옆은 산패를 앞당기니 서늘하고 어두운 곳에", freezable: false },
+  { name: "마요네즈", aliases: ["마요", "하프마요"], method: "냉장", days: "개봉 후 1~2개월", tip: "너무 찬 곳은 분리될 수 있으니 냉장고 문쪽 보관이 적당", freezable: false },
+  { name: "소시지", aliases: ["비엔나소시지", "후랑크소시지", "햄"], method: "냉장", days: "개봉 후 3~5일", tip: "개봉 후 남은 것은 랩핑해 밀폐, 오래 두려면 소분 냉동", freezable: true },
+  { name: "스팸", aliases: ["통조림햄", "런천미트", "리챔"], method: "냉장", days: "개봉 후 3~5일", tip: "캔째 두면 산화되니 밀폐용기에 옮겨 담아 냉장", freezable: true },
+  { name: "베이컨", aliases: ["베이컨 슬라이스"], method: "냉장", days: "개봉 후 5~7일", tip: "낱장 사이에 종이포일을 끼워 소분 냉동하면 붙지 않음", freezable: true },
+  { name: "어묵", aliases: ["오뎅", "사각어묵", "부산어묵"], method: "냉장", days: "개봉 후 3~4일", tip: "끓는 물에 살짝 데쳐 기름기 제거 후 소분 냉동 가능", freezable: true },
+  { name: "냉동만두", aliases: ["만두", "군만두", "물만두", "교자"], method: "냉동", days: "1~3개월", tip: "개봉 후엔 지퍼백에 옮겨 담아야 성에와 냄새 배임 방지", freezable: true },
+  { name: "참치캔", aliases: ["참치", "캔참치"], method: "냉장", days: "개봉 후 1~2일", tip: "기름을 따라내고 밀폐용기에 옮겨 담아 냉장", freezable: false },
+  { name: "고춧가루", aliases: ["고추가루", "굵은 고춧가루", "고운 고춧가루"], method: "냉동", days: "6개월~1년", tip: "실온에 두면 색이 바래고 벌레가 생기니 지퍼백째 냉동", freezable: true },
+  { name: "쌀", aliases: ["백미", "현미", "쌀 10kg"], method: "실온", days: "1~2개월", tip: "페트병이나 밀폐용기에 담고 여름철엔 냉장고 채소칸이 안전", freezable: false },
+  { name: "즉석밥", aliases: ["햇반", "오뚜기밥", "컵반"], method: "실온", days: "6~9개월(유통기한 내)", tip: "냉장 보관하면 전분이 굳어 맛이 떨어지니 실온 그대로", freezable: false },
+  { name: "라면", aliases: ["봉지라면", "컵라면"], method: "실온", days: "5~6개월(유통기한 내)", tip: "유탕면은 직사광선에 산패하니 어둡고 서늘한 곳에", freezable: false },
+  { name: "소면", aliases: ["국수", "중면", "파스타면", "스파게티면"], method: "실온", days: "6개월 이상", tip: "개봉 후엔 지퍼백이나 긴 밀폐용기에 담아 습기 차단", freezable: false },
+  { name: "남은 밥", aliases: ["찬밥", "밥", "냉동밥"], method: "냉동", days: "2~3주", tip: "김이 날 때 1인분씩 소분해 냉동해야 데웠을 때 촉촉함", freezable: true },
+  { name: "떡", aliases: ["떡국떡", "떡볶이떡", "가래떡", "절편"], method: "냉동", days: "1~2개월", tip: "냉장하면 금방 딱딱해지니 바로 냉동, 조리 전 물에 담가 해동", freezable: true },
+  { name: "식빵", aliases: ["빵", "우유식빵", "모닝빵"], method: "실온", days: "2~3일", tip: "냉장하면 더 빨리 퍼석해지니 바로 안 먹을 분량은 낱장 냉동", freezable: true },
+];

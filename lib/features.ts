@@ -77,7 +77,7 @@ export const FEATURES: Feature[] = [
     icon: ShoppingBasket,
     title: "혼밥 장보기 코치",
     short: "장보기",
-    desc: "예산 맞춤 식단부터 남은 재료 요리까지",
+    desc: "제철·오늘 시세 반영 식단부터 남은 재료 요리까지",
     tone: "brand",
     group: "money",
   },

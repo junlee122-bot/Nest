@@ -12,6 +12,9 @@ import {
   Clock,
   Printer,
   CircleAlert,
+  Sprout,
+  ChevronDown,
+  CookingPot,
 } from "lucide-react";
 import AppBar from "./AppBar";
 import Doongi from "./mascot/Doongi";
@@ -105,7 +108,7 @@ export default function GroceryCoach() {
       <AppBar title="혼밥 장보기 코치" />
       <div className="no-print container-app pt-3">
         <p className="px-1 text-[13px] font-medium text-muted">
-          식비 절약 · 음식물쓰레기 줄이기
+          제철·시세·보관까지 챙기는 식비 절약 코치
         </p>
       </div>
 
@@ -407,6 +410,36 @@ function PlanView({ r }: { r: GroceryPlanResult }) {
         )}
       </div>
 
+      {/* 이번 달 제철 (서버 부착 메타) */}
+      {r.meta && (
+        <section className="card animate-fade-up p-5">
+          <h2 className="flex items-center gap-2 text-base font-bold text-ink">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-tint text-brand-deep">
+              <Sprout size={18} />
+            </span>
+            {r.meta.month}월 제철 재료
+          </h2>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {r.meta.seasonal_picks.map((pk) => (
+              <span
+                key={pk.name}
+                title={pk.note}
+                className="rounded-full bg-brand-tint px-2.5 py-1 text-xs font-semibold text-brand-deep"
+              >
+                {pk.name}
+              </span>
+            ))}
+          </div>
+          {r.meta.seasonal_used.length > 0 && (
+            <p className="mt-2.5 text-xs leading-relaxed text-muted">
+              이번 장보기에 제철 재료{" "}
+              <b className="text-brand-deep">{r.meta.seasonal_used.join(", ")}</b>
+              를 담았어요. 제철이 맛도 값도 유리해요.
+            </p>
+          )}
+        </section>
+      )}
+
       {/* 요일별 식단 */}
       <section className="card animate-fade-up p-5">
         <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-ink">
@@ -468,6 +501,11 @@ function PlanView({ r }: { r: GroceryPlanResult }) {
                         <span className="flex items-center justify-between gap-2">
                           <span className={`text-sm font-medium ${checked[idx] ? "text-muted line-through" : "text-ink"}`}>
                             {it.item} <span className="text-xs text-muted">· {it.qty}</span>
+                            {it.seasonal && (
+                              <span className="ml-1.5 rounded-full bg-brand-tint px-1.5 py-0.5 text-[10px] font-bold text-brand-deep">
+                                제철
+                              </span>
+                            )}
                             {it.fresh_label && (
                               <span className="ml-1.5 rounded-full bg-warn-tint px-1.5 py-0.5 text-[10px] font-bold text-[#9A6B00]">
                                 {it.fresh_label}
@@ -479,6 +517,23 @@ function PlanView({ r }: { r: GroceryPlanResult }) {
                         {it.used_in?.length > 0 && (
                           <span className="mt-0.5 block text-xs text-muted">→ {it.used_in.join(", ")}</span>
                         )}
+                        {(it.today_price || it.price_ref) && (
+                          <span className="mt-0.5 block truncate text-[11px] text-muted">
+                            {it.today_price ? (
+                              <>
+                                오늘 시세 <b className="text-brand-deep">{it.today_price}</b>
+                              </>
+                            ) : (
+                              <>참고가 {it.price_ref}</>
+                            )}
+                          </span>
+                        )}
+                        {it.storage_days && (
+                          <span className="mt-0.5 block truncate text-[11px] text-muted">
+                            {it.storage_days}
+                            {it.storage_tip ? ` · ${it.storage_tip}` : ""}
+                          </span>
+                        )}
                       </span>
                     </label>
                   </li>
@@ -489,8 +544,16 @@ function PlanView({ r }: { r: GroceryPlanResult }) {
         </div>
         <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
           <span className="text-sm font-bold text-ink">합계 (예상)</span>
-          <span className="text-base font-extrabold text-brand">{won(r.total_est_price)}</span>
+          <span className="text-base font-extrabold text-brand-deep">{won(r.total_est_price)}</span>
         </div>
+        {r.meta && (
+          <p className="mt-2 text-[11px] leading-relaxed text-muted">
+            {r.meta.price_source === "kamis"
+              ? `오늘 소매 시세(aT KAMIS, ${r.meta.kamis_date ?? ""})를 반영한 예상치예요.`
+              : "내장 참고 가격표 기준 예상치예요."}{" "}
+            실제 가격은 마트·시점에 따라 달라요.
+          </p>
+        )}
       </section>
 
       {r.tips?.length > 0 && (
@@ -527,6 +590,44 @@ function UseView({ r }: { r: GroceryUseResult }) {
             <p className="mt-1 text-sm leading-relaxed text-ink">{r.priority_note}</p>
           </div>
         </div>
+      )}
+
+      {/* 먼저 쓸 순서 — 내장 보관법 DB (서버 부착) */}
+      {r.storage_notes && r.storage_notes.length > 0 && (
+        <section className="card animate-fade-up p-5">
+          <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-ink">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-tint text-sky-deep">
+              <Refrigerator size={18} />
+            </span>
+            먼저 쓸 순서
+          </h2>
+          <ol className="space-y-3">
+            {r.storage_notes.map((n, i) => (
+              <li key={i} className="flex gap-3 text-sm">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-bg text-xs font-bold text-brand-deep">
+                  {i + 1}
+                </span>
+                <div className="min-w-0">
+                  <p className="font-semibold text-ink">
+                    {n.name}
+                    <span className="ml-1.5 text-xs font-medium text-muted">
+                      {n.method} {n.days}
+                    </span>
+                    {n.freezable && (
+                      <span className="ml-1.5 rounded-full bg-sky-tint px-1.5 py-0.5 text-[10px] font-bold text-sky-deep">
+                        냉동 가능
+                      </span>
+                    )}
+                  </p>
+                  <p className="mt-0.5 text-xs leading-relaxed text-muted">{n.tip}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-3 text-[11px] leading-relaxed text-muted">
+            보관 기한은 일반적인 목안(참고용)이에요. 냄새·색이 이상하면 기한과 무관하게 버리세요.
+          </p>
+        </section>
       )}
 
       {(r.recipes || []).map((rec, i) => (
@@ -578,6 +679,60 @@ function UseView({ r }: { r: GroceryUseResult }) {
           {rec.note && <p className="mt-3 rounded-xl bg-bg p-2.5 text-xs leading-relaxed text-muted">{rec.note}</p>}
         </section>
       ))}
+
+      {/* 공공 레시피 DB — 식약처 (키 있을 때만 서버가 부착) */}
+      {r.db_recipes && r.db_recipes.length > 0 && (
+        <section className="card animate-fade-up p-5">
+          <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-ink">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sun-tint text-sun-deep">
+              <CookingPot size={18} />
+            </span>
+            공공 레시피로 더 해먹기
+          </h2>
+          <div className="space-y-3">
+            {r.db_recipes.map((d, i) => (
+              <div key={i} className="overflow-hidden rounded-xl border border-line">
+                {d.image && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={d.image} alt={d.name} className="h-36 w-full object-cover" />
+                )}
+                <div className="p-3.5">
+                  <div className="flex items-center gap-2">
+                    <p className="min-w-0 truncate font-bold text-ink">{d.name}</p>
+                    {d.kcal && (
+                      <span className="shrink-0 rounded-full bg-bg px-2 py-0.5 text-[10px] font-bold text-muted">
+                        {d.kcal}
+                      </span>
+                    )}
+                  </div>
+                  {d.ingredients && (
+                    <p className="mt-1 text-xs leading-relaxed text-muted line-clamp-2">
+                      {d.ingredients}
+                    </p>
+                  )}
+                  {d.steps.length > 0 && (
+                    <details className="group mt-2 [&_summary::-webkit-details-marker]:hidden">
+                      <summary className="flex cursor-pointer list-none items-center gap-1 text-xs font-bold text-brand-deep">
+                        만드는 법 보기
+                        <ChevronDown size={13} className="transition-transform group-open:rotate-180" />
+                      </summary>
+                      <ol className="mt-2 space-y-1.5">
+                        {d.steps.map((st, j) => (
+                          <li key={j} className="flex gap-2 text-xs leading-relaxed text-ink">
+                            <span className="shrink-0 font-bold text-muted">{j + 1}.</span>
+                            <span>{st}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </details>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-2.5 text-[11px] text-muted">출처: {r.db_recipes[0].source}</p>
+        </section>
+      )}
 
       {(!r.recipes || r.recipes.length === 0) && (
         <div className="card flex flex-col items-center gap-2 px-6 py-8 text-center">

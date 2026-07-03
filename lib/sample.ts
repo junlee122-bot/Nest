@@ -185,11 +185,11 @@ export const SAMPLE_GROCERY_PLAN: GroceryPlanResult = {
     },
   ],
   shopping_list: [
-    { item: "계란", qty: "10구", est_price: 3500, used_in: ["계란 김치볶음밥", "계란말이 덮밥"], category: "정육·계란", fresh_label: "" },
-    { item: "두부", qty: "2모", est_price: 2400, used_in: ["두부 된장찌개", "두부김치"], category: "유제품", fresh_label: "3일 내" },
+    { item: "계란", qty: "10구", est_price: 3500, used_in: ["계란 김치볶음밥", "계란말이 덮밥"], category: "정육·계란", fresh_label: "", price_ref: "3,000~4,500원/10구", storage_days: "냉장 3~4주", storage_tip: "뾰족한 쪽을 아래로 두고 문 쪽 말고 안쪽 칸에 보관하세요." },
+    { item: "두부", qty: "2모", est_price: 2400, used_in: ["두부 된장찌개", "두부김치"], category: "유제품", fresh_label: "3일 내", price_ref: "1,000~2,000원/1모(300g)", storage_days: "냉장 3~5일", storage_tip: "개봉 후엔 물에 담가 밀폐하고 물을 매일 갈아주세요." },
     { item: "김치", qty: "1봉(소)", est_price: 4000, used_in: ["계란 김치볶음밥", "김치 참치 비빔밥", "두부김치"], category: "양념·기타", fresh_label: "" },
-    { item: "대파", qty: "1단(소)", est_price: 2000, used_in: ["계란말이 덮밥", "된장찌개"], category: "채소·과일", fresh_label: "3일 내" },
-    { item: "애호박", qty: "1개", est_price: 1500, used_in: ["애호박 된장찌개"], category: "채소·과일", fresh_label: "3일 내" },
+    { item: "대파", qty: "1단(소)", est_price: 2000, used_in: ["계란말이 덮밥", "된장찌개"], category: "채소·과일", fresh_label: "3일 내", price_ref: "1,500~3,500원/1단", storage_days: "냉장 1~2주", storage_tip: "송송 썰어 냉동하면 한 달 이상 쓸 수 있어요.", today_price: "2,180원/1kg" },
+    { item: "애호박", qty: "1개", est_price: 1500, used_in: ["애호박 된장찌개"], category: "채소·과일", fresh_label: "3일 내", seasonal: true, price_ref: "1,000~2,500원/1개", storage_days: "냉장 5~7일", storage_tip: "랩으로 싸서 냉장하면 마르지 않아요.", today_price: "1,320원/1개" },
     { item: "참치캔", qty: "1개", est_price: 2000, used_in: ["김치 참치 비빔밥"], category: "냉동·가공", fresh_label: "" },
     { item: "쌀", qty: "1kg(소포장)", est_price: 4000, used_in: ["전 끼니"], category: "양념·기타", fresh_label: "" },
   ],
@@ -199,6 +199,20 @@ export const SAMPLE_GROCERY_PLAN: GroceryPlanResult = {
     "대파는 송송 썰어 냉동해두면 오래 쓸 수 있어요.",
     "된장찌개는 한 번 끓일 때 넉넉히 만들어 2끼로 나눠 드세요.",
   ],
+  meta: {
+    month: 7,
+    seasonal_picks: [
+      { name: "애호박", note: "여름 노지 제철, 값도 착함" },
+      { name: "오이", note: "수분 가득, 무침·냉국" },
+      { name: "가지", note: "볶음 한 접시 뚝딱" },
+      { name: "복숭아", note: "지금이 가장 달아요" },
+      { name: "수박", note: "여름 대표 과일" },
+      { name: "오징어", note: "볶음·국 다 잘 어울림" },
+    ],
+    seasonal_used: ["애호박"],
+    price_source: "kamis",
+    kamis_date: "2026-07-02",
+  },
 };
 
 export const SAMPLE_GROCERY_USE: GroceryUseResult = {
@@ -221,5 +235,26 @@ export const SAMPLE_GROCERY_USE: GroceryUseResult = {
       note: "대파를 많이 소진할 수 있어요.",
     },
   ],
-  priority_note: "두부와 대파가 가장 빨리 상해요. 오늘 두부 김치덮밥부터 만들어 두부를 먼저 쓰세요.",
+  priority_note: "두부(냉장 3~5일)와 대파가 가장 빨리 상해요. 오늘 두부 김치덮밥부터 만들어 두부를 먼저 쓰세요.",
+  storage_notes: [
+    { name: "두부", method: "냉장", days: "3~5일", tip: "개봉 후엔 물에 담가 밀폐하고 물을 매일 갈아주세요.", freezable: true },
+    { name: "대파", method: "냉장", days: "1~2주", tip: "송송 썰어 냉동하면 한 달 이상 쓸 수 있어요.", freezable: true },
+    { name: "계란", method: "냉장", days: "3~4주", tip: "문 쪽 말고 안쪽 칸에 보관하세요.", freezable: false },
+    { name: "김치", method: "냉장", days: "1개월+", tip: "국물에 잠기게 눌러 보관하면 군내가 덜 나요.", freezable: false },
+  ],
+  db_recipes: [
+    {
+      name: "두부조림",
+      ingredients: "두부 300g, 간장 2큰술, 고춧가루 1큰술, 대파 약간, 물 1/2컵",
+      steps: [
+        "두부를 1.5cm 두께로 잘라 물기를 닦는다",
+        "팬에 두부를 노릇하게 굽는다",
+        "간장·고춧가루·물을 섞은 양념을 붓고 조린다",
+        "대파를 올려 한소끔 더 끓인다",
+      ],
+      image: null,
+      kcal: "220kcal",
+      source: "식약처 식품안전나라 조리식품 레시피DB (예시)",
+    },
+  ],
 };

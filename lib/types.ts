@@ -133,7 +133,23 @@ export interface ShoppingItem {
   used_in: string[]; // 어느 메뉴에 쓰이는지
   category?: string; // 마트 코너 (채소·과일/정육·계란/유제품/냉동·가공/양념·기타)
   fresh_label?: string; // 상하기 쉬운 재료의 대략 기한 (예: "3일 내")
+  seasonal?: boolean; // 제철 재료 여부 (AI + 서버 매칭 보정)
+  // ↓ 서버 후처리로 부착 (내장 데이터 매칭 — AI 출력 아님)
+  storage_tip?: string; // 보관 팁 한 줄
+  storage_days?: string; // 보관 기한 목안 (예: "냉장 3~5일")
+  price_ref?: string; // 참고가 범위 (예: "3,000~4,500원")
+  today_price?: string; // 오늘 소매 시세 (KAMIS)
 }
+
+// 식단 결과에 서버가 부착하는 메타 (데이터 출처·제철 반영 내역)
+export interface GroceryMeta {
+  month: number; // 기준 월
+  seasonal_picks: { name: string; note: string }[]; // 이번 달 제철 추천
+  seasonal_used: string[]; // 장보기 리스트 중 제철 재료명
+  price_source: "kamis" | "reference"; // 가격 근거 데이터
+  kamis_date?: string; // KAMIS 시세 기준일 (YYYY-MM-DD)
+}
+
 export interface GroceryPlanResult {
   mode: "plan";
   plan_days: GroceryDay[];
@@ -141,6 +157,7 @@ export interface GroceryPlanResult {
   total_est_price: number;
   budget_note?: string; // 예산 초과 시 대안
   tips: string[];
+  meta?: GroceryMeta; // 서버 부착
 }
 
 // 탭 B — 남은 재료 처리
@@ -152,10 +169,31 @@ export interface GroceryRecipe {
   time_min: number;
   note?: string;
 }
+// 공공 레시피 DB(식약처 식품안전나라) 실제 레시피 — 서버 부착
+export interface DbRecipe {
+  name: string;
+  ingredients: string; // 재료 원문(요약)
+  steps: string[];
+  image?: string | null;
+  kcal?: string | null; // 1인분 열량(kcal)
+  source: string; // 출처 표기
+}
+
+// 가진 재료의 보관 요령 — 내장 데이터 매칭, 서버 부착
+export interface StorageNote {
+  name: string;
+  method: string; // 냉장/냉동/실온
+  days: string; // 신선 소비 목안
+  tip: string;
+  freezable?: boolean;
+}
+
 export interface GroceryUseResult {
   mode: "use";
   recipes: GroceryRecipe[];
   priority_note: string; // 상하기 쉬운 재료 먼저
+  db_recipes?: DbRecipe[]; // 서버 부착 (키 없으면 생략)
+  storage_notes?: StorageNote[]; // 서버 부착 (내장 데이터)
 }
 
 export type GroceryResult = GroceryPlanResult | GroceryUseResult;

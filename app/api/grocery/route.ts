@@ -2,11 +2,36 @@ import { NextRequest, NextResponse } from "next/server";
 import { grocerySystemPrompt } from "@/lib/prompts";
 import { callClaudeJson } from "@/lib/llm";
 import { validateGrocery } from "@/lib/validate";
-import type { GroceryMode, GroceryResponse, GroceryResult } from "@/lib/types";
+import {
+  findPriceRef,
+  findStorage,
+  matchSeasonal,
+  parseIngredients,
+  priceRefNames,
+  priceRefPromptBlock,
+  seasonalPicks,
+  seasonalPromptBlock,
+  storagePromptBlock,
+} from "@/lib/grocery";
+import { fetchKamisToday, kamisPromptBlock, matchKamis } from "@/lib/integrations/kamis";
+import { fetchDbRecipes } from "@/lib/integrations/recipeDb";
+import { kstParts } from "@/lib/integrations/core";
+import type {
+  GroceryMeta,
+  GroceryMode,
+  GroceryPlanResult,
+  GroceryResponse,
+  GroceryResult,
+  GroceryUseResult,
+  ShoppingItem,
+  StorageNote,
+} from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
+
+const won = (n: number) => n.toLocaleString("ko-KR");
 
 export async function POST(req: NextRequest): Promise<NextResponse<GroceryResponse>> {
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -36,7 +61,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<GroceryRespon
     return NextResponse.json({ ok: false, error: "알 수 없는 요청입니다." }, { status: 400 });
   }
 
+  const month = parseInt(kstParts().month, 10);
+
+  // ── 요청별 데이터 컨텍스트 구성 (v6) ─────────────────────────
+  // 정적 DB(제철·참고가·보관기한)는 항상, KAMIS는 키가 있을 때만.
+  const dynamicBlocks: string[] = [];
   let userText: string;
+  let ingredients: string[] = [];
+  let kamis: Awaited<ReturnType<typeof fetchKamisToday>> = null;
+
   if (mode === "plan") {
     const budget = (body.budget || "").trim();
     const days = (body.days || "7일").trim();
@@ -44,35 +77,46 @@ export async function POST(req: NextRequest): Promise<NextResponse<GroceryRespon
     const diet = (body.diet || "").trim();
     const difficulty = (body.difficulty || "간단한 것").trim();
     if (!budget) {
-      return NextResponse.json(
-        { ok: false, error: "예산을 입력해주세요." },
-        { status: 400 }
-      );
+      return NextResponse.json({ ok: false, error: "예산을 입력해주세요." }, { status: 400 });
     }
     userText =
       `1주 예산: ${budget}\n기간: ${days}\n끼니 범위: ${meals}\n` +
       `식성/제약: ${diet || "특별히 없음"}\n조리 난이도 선호: ${difficulty}\n` +
       `위 조건으로 1인 가구 식단과 장보기 리스트를 짜주세요.`;
+
+    const seasonBlock = seasonalPromptBlock(month);
+    if (seasonBlock) dynamicBlocks.push(seasonBlock);
+    dynamicBlocks.push(priceRefPromptBlock());
+
+    kamis = await fetchKamisToday().catch(() => null);
+    if (kamis) {
+      const block = kamisPromptBlock(kamis, priceRefNames());
+      if (block) dynamicBlocks.push(block);
+    }
   } else {
-    const ingredients = (body.ingredients || "").trim();
-    if (!ingredients) {
+    const raw = (body.ingredients || "").trim();
+    if (!raw) {
       return NextResponse.json(
         { ok: false, error: "가지고 있는 재료를 입력해주세요." },
         { status: 400 }
       );
     }
-    if (ingredients.length > 1000) {
+    if (raw.length > 1000) {
       return NextResponse.json(
         { ok: false, error: "재료 목록이 너무 길어요. 줄여서 입력해주세요." },
         { status: 400 }
       );
     }
-    userText = `가지고 있는 재료: ${ingredients}\n이 재료들을 최대한 소진하는 메뉴를 추천해주세요.`;
+    userText = `가지고 있는 재료: ${raw}\n이 재료들을 최대한 소진하는 메뉴를 추천해주세요.`;
+    ingredients = parseIngredients(raw);
+    const block = storagePromptBlock(ingredients);
+    if (block) dynamicBlocks.push(block);
   }
 
   try {
     const call = await callClaudeJson({
       systemStatic: grocerySystemPrompt(mode),
+      systemDynamic: dynamicBlocks.length > 0 ? dynamicBlocks.join("\n\n") : undefined,
       messages: [{ role: "user", content: userText }],
       maxTokens: 2800,
       // 식단은 약간의 다양성이 좋아 상한(0.3)을 사용
@@ -86,7 +130,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<GroceryRespon
       );
     }
 
-    const result = { mode, ...call.parsed } as GroceryResult;
+    let result = { mode, ...call.parsed } as GroceryResult;
+
+    // ── 서버 후처리: 내장 DB·시세 매칭 부착 (AI 출력과 분리) ────
+    if (result.mode === "plan") {
+      result = enrichPlan(result as GroceryPlanResult, month, kamis);
+    } else {
+      result = await enrichUse(result as GroceryUseResult, ingredients);
+    }
+
     return NextResponse.json({ ok: true, result });
   } catch (err) {
     const e = err as { status?: number };
@@ -102,4 +154,75 @@ export async function POST(req: NextRequest): Promise<NextResponse<GroceryRespon
       { status: 500 }
     );
   }
+}
+
+function enrichPlan(
+  r: GroceryPlanResult,
+  month: number,
+  kamis: Awaited<ReturnType<typeof fetchKamisToday>>
+): GroceryPlanResult {
+  const list: ShoppingItem[] = (r.shopping_list || []).map((it) => {
+    const seasonal = it.seasonal === true || !!matchSeasonal(it.item, month);
+    const st = findStorage(it.item);
+    const pr = findPriceRef(it.item);
+    const km = kamis ? matchKamis(it.item, kamis.items) : null;
+    return {
+      ...it,
+      seasonal,
+      storage_days: st ? `${st.method} ${st.days}` : undefined,
+      storage_tip: st?.tip,
+      price_ref: pr ? `${won(pr.low)}~${won(pr.high)}원/${pr.unit}` : undefined,
+      today_price: km ? `${won(km.price)}원/${km.unit}` : undefined,
+    };
+  });
+
+  const meta: GroceryMeta = {
+    month,
+    seasonal_picks: seasonalPicks(month),
+    seasonal_used: list.filter((i) => i.seasonal).map((i) => i.item),
+    price_source: kamis ? "kamis" : "reference",
+    kamis_date: kamis?.date,
+  };
+
+  return { ...r, shopping_list: list, meta };
+}
+
+// days 문자열("3~5일", "1~2주")에서 최소 일수 추출 — 먼저 쓸 순서 정렬용
+function minDays(days: string): number {
+  const m = days.match(/(\d+)/);
+  if (!m) return 99;
+  const n = parseInt(m[1], 10);
+  return days.includes("주") ? n * 7 : days.includes("개월") ? n * 30 : n;
+}
+
+async function enrichUse(
+  r: GroceryUseResult,
+  ingredients: string[]
+): Promise<GroceryUseResult> {
+  // 1) 가진 재료의 보관 요령 (내장 DB, 기한 짧은 순)
+  const seen = new Set<string>();
+  const notes: StorageNote[] = [];
+  for (const ing of ingredients) {
+    const s = findStorage(ing);
+    if (!s || seen.has(s.name)) continue;
+    seen.add(s.name);
+    notes.push({
+      name: ing,
+      method: s.method,
+      days: s.days,
+      tip: s.tip,
+      freezable: s.freezable,
+    });
+  }
+  notes.sort((a, b) => minDays(a.days) - minDays(b.days));
+
+  // 2) 공공 레시피 DB — 가장 급한 재료 기준 검색 (키 없으면 null)
+  const query = notes[0]?.name ?? ingredients[0];
+  const db = query ? await fetchDbRecipes(query, 3).catch(() => null) : null;
+
+  return {
+    ...r,
+    storage_notes: notes.length > 0 ? notes : undefined,
+    db_recipes: db ?? undefined,
+  };
 }
