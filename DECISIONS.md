@@ -224,3 +224,21 @@ AI 추측 → 실데이터 접지(grounding). 워크플로(병렬 에이전트)�
   도메인 화이트리스트 유지보수 비용 대비 이득 낮다고 판단(레이아웃 시프트 없음 확인).
 - extract confidence 필드: 프롬프트가 '확실한 것만'을 강제하므로 string[] 유지(스펙 허용).
 - 데이터 소스 네트워크 그래픽·OG 이미지 생성: 시간 대비 임팩트 낮아 보류.
+
+---
+
+## v11. 잔여 격차 마감 (2026-07-03)
+
+- 집주인 메시지: 표시 전용 → 수정 가능한 textarea (톤 전환 시 원문 복원, 저장 안 함 고지).
+- 증거 기록: 체크박스화 + 결과 해시별 localStorage (NextSteps와 동일 패턴, 키 v1).
+- 냉장고 사진: 스캔 오버레이(animate-scan, reduced-motion 정지) + 추출 칩 순차 등장·
+  개별 삭제(입력창 동기화). "사진은 저장하지 않아요" 문구.
+- 장보기 '리스트 복사'(코너별 □ 체크 텍스트 + 참고용 합계), 시세 '계약 전 확인 문구' 복사 카드.
+- 홈 쇼케이스 카드 카피를 일반 사용자용("서비스 흐름 90초로 보기")으로, Judge 배지는 유지.
+- 발표자 모드 Space 재생/일시정지.
+- 문서: SECURITY_PRIVACY / API_FALLBACKS / DESIGN_SYSTEM 신설, JUDGE_WOW_NOTES 전면 갱신.
+- npm audit: next@14 high 1(이미지 최적화·미들웨어·RSC advisory 묶음)·postcss moderate 1 —
+  해결에 next@16 메이저 필요 → 마감 전 보류, 노출면 제한적(next/image·middleware 미사용).
+  별도 브랜치에서 Next/PostCSS/ESLint 동시 검증 권장 (SECURITY_PRIVACY.md 기록).
+- 컴포넌트 분리(showcase/grocery 등 디렉터리 재편)는 마감 전 회귀 위험 대비 이득이 낮아
+  보류 — 기능 안정성 우선 원칙.
