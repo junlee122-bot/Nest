@@ -1,12 +1,26 @@
 "use client";
 
-// 홈 상단 (v5) — 실제 앱의 홈 헤더 감각: 인사 + 둥이 + 메인 CTA
+// 홈 상단 (v5 → v12) — 인사 + 둥이 + 메인 CTA + 증상·상황 칩.
+// 칩은 사용자 언어(누수·곰팡이·계약서·월세)를 한 번의 탭으로 기능에 연결한다.
 import Link from "next/link";
 import { m } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import Doongi from "../mascot/Doongi";
 import NestMark from "../NestMark";
 import { fadeUp, stagger } from "@/lib/motion";
+import { HOME_SYMPTOM_CHIPS, type HomeSymptomChip } from "@/lib/features";
+
+// Tailwind JIT — 동적 조합 금지, 정적 매핑만 (칩 전용: 보더 포함)
+const CHIP_TONE_CLS: Record<HomeSymptomChip["tone"], string> = {
+  brand: "border-brand/10 bg-brand-tint text-brand-deep",
+  sky: "border-sky/10 bg-sky-tint text-sky-deep",
+  sun: "border-sun/10 bg-sun-tint text-sun-deep",
+};
+
+function chipHref(chip: HomeSymptomChip): string {
+  if (!chip.prefill) return chip.href;
+  return `${chip.href}?q=${encodeURIComponent(chip.prefill)}`;
+}
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -46,7 +60,7 @@ export default function HomeHero() {
               <span className="marker">무슨 일</span> 있어요?
             </h1>
             <p className="mt-2 text-[13px] leading-relaxed text-muted">
-              곰팡이, 누수, 계약서, 공과금까지 챙겨드려요.
+              사진이나 한 줄 설명만 있어도, 응급처치와 다음 행동을 정리해드려요.
             </p>
           </m.div>
           <m.div variants={fadeUp} className="relative shrink-0 pr-1">
@@ -75,6 +89,28 @@ export default function HomeHero() {
             </Link>{" "}
             진단해드려요.
           </p>
+        </m.div>
+
+        {/* 증상·상황 칩 — 주 CTA의 넓은 진입 보완 (위계는 CTA 아래) */}
+        <m.div variants={fadeUp} className="mt-4" role="group" aria-label="증상과 상황별 빠른 시작">
+          <p className="px-1 text-[12px] font-bold text-brand-deep">내 상황으로 바로 시작해요</p>
+          {/* pt-1.5: overflow-x-auto가 세로도 클리핑하므로 포커스 링(offset 2px) 여유 확보 */}
+          <div className="-mx-5 mt-0.5 flex gap-2 overflow-x-auto scroll-px-5 px-5 pb-1.5 pt-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {HOME_SYMPTOM_CHIPS.map((chip) => {
+              const Icon = chip.icon;
+              return (
+                <Link
+                  key={chip.label}
+                  href={chipHref(chip)}
+                  aria-label={chip.ariaLabel}
+                  className={`inline-flex min-h-[44px] shrink-0 items-center gap-1.5 whitespace-nowrap rounded-2xl border px-3.5 py-2.5 text-[13px] font-bold shadow-sm transition active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${CHIP_TONE_CLS[chip.tone]}`}
+                >
+                  <Icon size={16} strokeWidth={2.4} aria-hidden />
+                  <span>{chip.label}</span>
+                </Link>
+              );
+            })}
+          </div>
         </m.div>
       </m.div>
     </section>

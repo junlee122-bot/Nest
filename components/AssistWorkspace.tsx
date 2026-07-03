@@ -66,6 +66,17 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 홈 증상 칩에서 진입 (?q=<상황>) — 입력창에만 미리 채움 (자동 제출·저장 없음)
+  // ?h=(기록 열기)가 있으면 양보하고, 사용자가 이미 쓴 텍스트는 덮어쓰지 않는다.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("h")) return;
+    if (config.topic !== "repair") return;
+    const q = params.get("q")?.trim();
+    if (!q) return;
+    setText((prev) => (prev.trim() ? prev : q.slice(0, 120)));
+  }, [config.topic]);
+
   // 텍스트 영역 자동 높이
   useEffect(() => {
     const el = textareaRef.current;

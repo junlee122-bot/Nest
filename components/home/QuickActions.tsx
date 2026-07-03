@@ -52,12 +52,12 @@ export default function QuickActions() {
                   </span>
                   <div>
                     <p className="text-[15px] font-bold leading-snug text-ink">
-                      {f.href === "/contract" ? "계약서 위험 조항 보기" : "월세·시세 확인하기"}
+                      {f.href === "/contract" ? "계약서, 사인해도 될까요?" : "이 월세, 적정할까요?"}
                     </p>
                     <p className="mt-0.5 text-[12px] leading-snug text-muted">
                       {f.href === "/contract"
-                        ? "계약 전 독소조항 무료 점검"
-                        : "우리 동네 실거래가 기준"}
+                        ? "특약만 붙여넣어도 위험 조항을 찾아드려요"
+                        : "우리 동네 실거래가 기준으로 참고 비교"}
                     </p>
                   </div>
                 </div>
