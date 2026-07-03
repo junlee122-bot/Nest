@@ -15,6 +15,7 @@ import {
   Image as ImageIcon,
   MapPin,
   MessageSquareText,
+  Pause,
   Play,
   ReceiptText,
   RotateCcw,
@@ -96,13 +97,14 @@ const SCENARIOS: Scenario[] = [
   },
 ];
 
+// tag는 실제 동작 기준의 정직한 상태 표기 — 키가 없을 때 앱이 어떻게 폴백하는지 그대로 씁니다.
 const DATA_SIGNALS = [
-  { key: "법령", icon: ShieldCheck, title: "수선의무·임대차 룰북", body: "AI 판단을 법/룰 기반 체크리스트로 한 번 더 묶어 신뢰감을 줍니다." },
-  { key: "RTMS", icon: Home, title: "실거래가·월세 비교", body: "주소/면적/보증금 조건을 넣으면 주변 거래 기준으로 과도 여부를 보여줍니다." },
-  { key: "KAMIS", icon: Banknote, title: "오늘 장보기 시세", body: "농축수산물 가격을 참고해 예산 초과/대체재 추천으로 연결합니다." },
-  { key: "식약처", icon: ReceiptText, title: "공공 레시피 DB", body: "레시피 이미지, 조리 단계, 열량 정보를 장보기 결과에 붙일 수 있습니다." },
-  { key: "Pexels", icon: ImageIcon, title: "음식 이미지 API", body: "AI가 만든 메뉴명으로 사진을 검색해 결과 카드의 시각적 완성도를 올립니다." },
-  { key: "Kakao", icon: MapPin, title: "동네 수리·생활 장소", body: "사용자 동네 주변의 도움 받을 곳을 지도/리스트로 연결할 수 있습니다." },
+  { key: "법령", icon: ShieldCheck, title: "수선의무·임대차 룰북", tag: "내장 · 항상 동작", body: "민법 제623조와 판례 기반 룰북으로 AI 판단을 한 번 더 검증합니다. 법제처 API를 연동하면 근거가 현행 법령 원문으로 승격됩니다." },
+  { key: "RTMS", icon: Home, title: "실거래가·월세 비교", tag: "공공데이터 연동", body: "국토교통부 전월세 실거래가를 연동해 동네·면적 기준으로 내 조건이 과한지 비교해 보여줍니다." },
+  { key: "KAMIS", icon: Banknote, title: "오늘 장보기 시세", tag: "무키 시 참고가 폴백", body: "aT KAMIS 일일 소매가를 장보기 리스트에 붙입니다. 키가 없어도 내장 참고가격표로 가격 감각을 항상 제공합니다." },
+  { key: "식약처", icon: ReceiptText, title: "공공 레시피 DB", tag: "공공데이터 연동", body: "식품안전나라 레시피의 조리 단계·열량·사진을 남은 재료 결과에 붙입니다." },
+  { key: "Pexels", icon: ImageIcon, title: "음식 이미지 API", tag: "무키 시 텍스트 폴백", body: "AI가 만든 메뉴명으로 사진을 검색해 결과 카드의 시각적 완성도를 올립니다. 키가 없으면 텍스트 카드로 동작합니다." },
+  { key: "Kakao", icon: MapPin, title: "동네 수리·생활 장소", tag: "오픈API 연동", body: "수리 진단 결과에 주변 설비·인테리어 업체 미리보기를 붙여 다음 행동으로 연결합니다." },
 ];
 
 const DEMO_STEPS = ["입력", "AI 판단", "공공데이터 보강", "바로 행동"];
@@ -149,6 +151,12 @@ export default function ShowcaseExperience() {
     setStep(0);
   }
 
+  function restartDemo() {
+    setActiveId("repair");
+    setStep(0);
+    setAutoPlay(true);
+  }
+
   const ActiveIcon = active.icon;
 
   return (
@@ -167,9 +175,12 @@ export default function ShowcaseExperience() {
         }}
         aria-hidden
       />
-      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(255,255,255,.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.045)_1px,transparent_1px)] bg-[size:42px_42px] [mask-image:linear-gradient(to_bottom,black,transparent_78%)]" />
+      <div
+        className="pointer-events-none fixed inset-0 bg-[linear-gradient(rgba(255,255,255,.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.045)_1px,transparent_1px)] bg-[size:42px_42px] [mask-image:linear-gradient(to_bottom,black,transparent_78%)]"
+        aria-hidden
+      />
 
-      <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-[#07150f]/72 backdrop-blur-xl">
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-white/10 bg-[#07150f]/70 backdrop-blur-xl">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5">
           <Link href="/" className="group inline-flex items-center gap-2 rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand">
             <span className="grid h-9 w-9 place-items-center rounded-2xl bg-white text-ink shadow-cta">
@@ -199,7 +210,7 @@ export default function ShowcaseExperience() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45 }}
-            className="inline-flex items-center gap-2 rounded-full border border-white/14 bg-white/8 px-3 py-2 text-xs font-bold text-brand-tint shadow-card backdrop-blur"
+            className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-bold text-brand-tint shadow-card backdrop-blur"
           >
             <Sparkles size={15} />
             90초 안에 이해되는 주거 생활 AI 데모
@@ -209,7 +220,7 @@ export default function ShowcaseExperience() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.05 }}
-            className="mt-6 max-w-3xl font-display text-5xl font-black leading-[1.02] tracking-[-0.04em] text-white sm:text-6xl lg:text-7xl"
+            className="mt-6 max-w-3xl break-keep font-display text-5xl font-black leading-[1.08] tracking-[-0.04em] text-white sm:text-6xl sm:leading-[1.02] lg:text-7xl"
           >
             설명하지 말고,
             <span className="block bg-gradient-to-r from-brand-tint via-white to-sun bg-clip-text text-transparent">
@@ -221,12 +232,12 @@ export default function ShowcaseExperience() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.12 }}
-            className="mt-5 max-w-2xl text-base leading-8 text-white/72 sm:text-lg"
+            className="mt-5 max-w-2xl break-keep text-base leading-8 text-white/70 sm:text-lg"
           >
             심사위원이 스크롤하고 탭하면 둥지가 사진, 계약서, 장보기 데이터를 어떻게 행동 카드로 바꾸는지 바로 보입니다. 실제 앱으로 들어가기 전, 제품 가치를 압축해서 보여주는 인터랙티브 웹사이트입니다.
           </m.p>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={() => setAutoPlay((v) => !v)}
@@ -236,13 +247,27 @@ export default function ShowcaseExperience() {
               )}
               aria-pressed={autoPlay}
             >
-              {autoPlay ? <RotateCcw size={18} /> : <Play size={18} />}
-              {autoPlay ? "데모 자동 재생 중" : "90초 데모 시작"}
+              {autoPlay ? <Pause size={18} /> : <Play size={18} />}
+              {autoPlay ? "일시정지" : "90초 데모 시작"}
             </button>
-            <Link href="/grocery" className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl border border-white/14 bg-white/8 px-5 py-3 text-sm font-bold text-white backdrop-blur transition hover:bg-white/14">
-              음식 이미지 API 보기 <ChevronRight size={18} />
+            <button
+              type="button"
+              onClick={restartDemo}
+              className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm font-bold text-white backdrop-blur transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
+              aria-label="데모를 처음부터 다시 재생"
+            >
+              <RotateCcw size={17} />
+              처음부터
+            </button>
+            <Link href="/grocery" className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl border border-white/15 bg-white/10 px-5 py-3 text-sm font-bold text-white backdrop-blur transition hover:bg-white/15 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand">
+              실제 장보기 코치 열기 <ChevronRight size={18} />
             </Link>
           </div>
+          {reduceMotion && (
+            <p className="mt-3 text-xs leading-5 text-white/55">
+              동작 줄이기 설정을 감지했어요. 자동 재생 대신 아래 시나리오 버튼으로 천천히 살펴볼 수 있어요.
+            </p>
+          )}
 
           <div className="mt-8 grid gap-3 sm:grid-cols-3">
             {SCENARIOS.map((s) => {
@@ -258,7 +283,7 @@ export default function ShowcaseExperience() {
                     "group rounded-3xl border p-4 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand",
                     isActive
                       ? "border-brand/70 bg-white text-ink shadow-lift"
-                      : "border-white/12 bg-white/8 text-white/72 hover:border-white/28 hover:bg-white/12"
+                      : "border-white/15 bg-white/10 text-white/70 hover:border-white/30 hover:bg-white/15"
                   )}
                 >
                   <span className={cx("mb-3 inline-grid h-10 w-10 place-items-center rounded-2xl", isActive ? "bg-brand-tint text-brand-deep" : "bg-white/10 text-white")}> <Icon size={20} /> </span>
@@ -285,7 +310,11 @@ export default function ShowcaseExperience() {
             </div>
           </m.div>
 
-          <div className="rounded-[3rem] border border-white/14 bg-white/10 p-3 shadow-[0_30px_90px_rgba(0,0,0,.38)] backdrop-blur-xl">
+          <div
+            role="group"
+            aria-label={`데모 미리보기 — ${active.label}`}
+            className="rounded-[3rem] border border-white/15 bg-white/10 p-3 shadow-[0_30px_90px_rgba(0,0,0,.38)] backdrop-blur-xl"
+          >
             <div className="overflow-hidden rounded-[2.35rem] bg-[#f7f8f5] text-ink">
               <div className="flex items-center justify-between border-b border-line bg-card/95 px-5 py-4">
                 <div className="flex items-center gap-2">
@@ -295,7 +324,7 @@ export default function ShowcaseExperience() {
                     <p className="text-sm font-black">둥지 Live</p>
                   </div>
                 </div>
-                <span className="rounded-full bg-ok-tint px-2.5 py-1 text-[10px] font-black text-ok">실시간</span>
+                <span className="rounded-full bg-ok-tint px-2.5 py-1 text-[10px] font-black text-ok">데모 재현</span>
               </div>
 
               <div className={cx("bg-gradient-to-br p-5", active.accent)}>
@@ -326,14 +355,14 @@ export default function ShowcaseExperience() {
                       </div>
                       <div className="mt-4 grid grid-cols-4 gap-1.5" aria-label="데모 진행 단계">
                         {DEMO_STEPS.map((name, i) => (
-                          <span key={name} className={cx("h-1.5 rounded-full", i <= step ? "bg-brand" : "bg-white/12")} />
+                          <span key={name} className={cx("h-1.5 rounded-full", i <= step ? "bg-brand" : "bg-white/15")} />
                         ))}
                       </div>
                       <div className="mt-4 space-y-2.5">
                         {[active.primarySignal, active.secondarySignal].map((line) => (
-                          <div key={line} className="flex items-start gap-2 rounded-2xl bg-white/8 p-3">
+                          <div key={line} className="flex items-start gap-2 rounded-2xl bg-white/10 p-3">
                             <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-brand-tint" />
-                            <p className="text-[12px] leading-5 text-white/82">{line}</p>
+                            <p className="text-[12px] leading-5 text-white/80">{line}</p>
                           </div>
                         ))}
                       </div>
@@ -357,6 +386,9 @@ export default function ShowcaseExperience() {
               </div>
             </div>
           </div>
+          <p className="mt-3 text-center text-[11px] leading-5 text-white/45">
+            실제 앱 화면을 재현한 심사용 예시예요. 진짜 결과는 아래 버튼으로 바로 체험할 수 있어요.
+          </p>
         </div>
       </section>
 
@@ -385,29 +417,35 @@ export default function ShowcaseExperience() {
                   onClick={() => setSelectedSignal(signal)}
                   className={cx(
                     "rounded-[1.6rem] border p-4 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand",
-                    activeSignal ? "border-brand/60 bg-white text-ink shadow-lift" : "border-white/12 bg-white/8 text-white hover:bg-white/12"
+                    activeSignal ? "border-brand/60 bg-white text-ink shadow-lift" : "border-white/15 bg-white/10 text-white hover:bg-white/15"
                   )}
                   aria-pressed={activeSignal}
                 >
-                  <span className={cx("inline-grid h-11 w-11 place-items-center rounded-2xl", activeSignal ? "bg-brand-tint text-brand-deep" : "bg-white/10 text-white")}> <Icon size={21} /> </span>
+                  <span className="flex items-start justify-between gap-2">
+                    <span className={cx("inline-grid h-11 w-11 place-items-center rounded-2xl", activeSignal ? "bg-brand-tint text-brand-deep" : "bg-white/10 text-white")}> <Icon size={21} /> </span>
+                    <span className={cx("rounded-full px-2 py-1 text-[10px] font-bold", activeSignal ? "bg-brand-tint text-brand-deep" : "bg-white/10 text-white/55")}>{signal.tag}</span>
+                  </span>
                   <p className="mt-4 text-sm font-black">{signal.title}</p>
-                  <p className={cx("mt-2 text-xs leading-5", activeSignal ? "text-muted" : "text-white/55")}>{signal.body}</p>
+                  <p className={cx("mt-2 break-keep text-xs leading-5", activeSignal ? "text-muted" : "text-white/55")}>{signal.body}</p>
                 </button>
               );
             })}
           </div>
         </div>
 
-        <div className="mt-10 overflow-hidden rounded-[2rem] border border-white/12 bg-white/8 p-5 shadow-lift backdrop-blur">
+        <div className="mt-10 overflow-hidden rounded-[2rem] border border-white/15 bg-white/10 p-5 shadow-lift backdrop-blur">
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-tint">selected signal</p>
-              <h3 className="mt-2 text-2xl font-black">{selectedSignal.title}</h3>
-              <p className="mt-2 max-w-2xl text-sm leading-7 text-white/65">{selectedSignal.body}</p>
+              <h3 className="mt-2 flex flex-wrap items-center gap-2 text-2xl font-black">
+                {selectedSignal.title}
+                <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white/70">{selectedSignal.tag}</span>
+              </h3>
+              <p className="mt-2 max-w-2xl break-keep text-sm leading-7 text-white/65">{selectedSignal.body}</p>
             </div>
             <div className="grid min-w-[250px] grid-cols-3 gap-2 rounded-3xl bg-[#07150f]/70 p-3">
               {["수집", "검증", "카드화"].map((label, idx) => (
-                <div key={label} className="rounded-2xl bg-white/8 p-3 text-center">
+                <div key={label} className="rounded-2xl bg-white/10 p-3 text-center">
                   <p className="text-2xl font-black text-sun">0{idx + 1}</p>
                   <p className="mt-1 text-[11px] font-bold text-white/55">{label}</p>
                 </div>
@@ -418,7 +456,7 @@ export default function ShowcaseExperience() {
       </section>
 
       <section id="impact" className="relative z-10 mx-auto w-full max-w-6xl px-5 py-20">
-        <div className="rounded-[2.4rem] border border-white/12 bg-white p-5 text-ink shadow-[0_30px_90px_rgba(0,0,0,.35)] md:p-8">
+        <div className="rounded-[2.4rem] border border-white/15 bg-white p-5 text-ink shadow-[0_30px_90px_rgba(0,0,0,.35)] md:p-8">
           <div className="grid gap-8 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
             <div>
               <p className="text-sm font-black text-brand-deep">심사위원이 기억하는 한 장면</p>
@@ -457,7 +495,7 @@ export default function ShowcaseExperience() {
                 </div>
                 <div className="relative overflow-hidden rounded-[1.6rem] bg-[#07150f] p-5 text-white shadow-lift">
                   <div
-                    className="absolute inset-y-0 left-0 bg-brand/18"
+                    className="absolute inset-y-0 left-0 bg-brand/20"
                     style={{ width: `${slider}%` }}
                     aria-hidden
                   />
@@ -473,7 +511,7 @@ export default function ShowcaseExperience() {
                       ].map((item) => (
                         <div key={item} className="flex items-start gap-2 rounded-2xl bg-white/10 p-3">
                           <CheckCircle2 size={17} className="mt-0.5 shrink-0 text-brand-tint" />
-                          <p className="text-sm leading-6 text-white/82">{item}</p>
+                          <p className="text-sm leading-6 text-white/80">{item}</p>
                         </div>
                       ))}
                     </div>
@@ -486,7 +524,7 @@ export default function ShowcaseExperience() {
       </section>
 
       <section className="relative z-10 mx-auto w-full max-w-6xl px-5 pb-24 pt-8">
-        <div className="rounded-[2.2rem] border border-white/12 bg-gradient-to-br from-white via-brand-tint to-sun-tint p-6 text-ink shadow-lift md:p-8">
+        <div className="rounded-[2.2rem] border border-white/15 bg-gradient-to-br from-white via-brand-tint to-sun-tint p-6 text-ink shadow-lift md:p-8">
           <div className="grid gap-8 md:grid-cols-[1fr_auto] md:items-center">
             <div>
               <p className="inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1.5 text-xs font-black text-brand-deep">
