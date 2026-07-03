@@ -388,6 +388,9 @@ export default function RentCheck() {
               />
             )}
 
+            {/* 계약 전 확인 문구 (복사용) */}
+            <AskTemplateCard />
+
             {/* 건축물대장 (선택) */}
             {addr && !isSample && <BuildingLookup addr={addr} />}
 
@@ -481,6 +484,49 @@ function RentCompare({
           </p>
         </div>
       )}
+    </m.section>
+  );
+}
+
+// 계약 전 중개사·집주인에게 보낼 확인 질문 문구 (v11) — 단정 없는 확인 요청 톤
+const ASK_TEMPLATE =
+  "안녕하세요. 계약 전에 몇 가지 확인하고 싶습니다. " +
+  "관리비 세부 항목과 월세 포함 여부, 옵션(에어컨·세탁기 등) 상태, " +
+  "최근 수리 이력, 전세보증보험 가입 가능 여부를 알려주실 수 있을까요? " +
+  "등기부등본도 함께 확인하고 싶습니다.";
+
+function AskTemplateCard() {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(ASK_TEMPLATE);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = ASK_TEMPLATE;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
+  }
+
+  return (
+    <m.section variants={fadeUp} className="card p-5">
+      <h3 className="text-sm font-bold text-ink">계약 전에 이렇게 물어보세요</h3>
+      <p className="mt-2 whitespace-pre-wrap rounded-xl bg-bg p-3 text-sm leading-relaxed text-ink">
+        {ASK_TEMPLATE}
+      </p>
+      <button type="button" onClick={copy} className="btn-ghost mt-3 w-full text-sm">
+        {copied ? "복사됐어요! 그대로 보내거나 고쳐 쓰세요" : "확인 문구 복사"}
+      </button>
+      <p className="mt-2 text-xs leading-relaxed text-muted">
+        시세가 높아 보여도 단정하기보다, 유사 거래를 근거로 조건을 확인하는 쪽이 안전해요.
+      </p>
     </m.section>
   );
 }

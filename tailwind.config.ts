@@ -103,10 +103,16 @@ const config: Config = {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
+        // 냉장고 사진 스캔 오버레이 — 위→아래로 지나가는 스캔 라인
+        scan: {
+          "0%": { top: "-20%" },
+          "100%": { top: "100%" },
+        },
       },
       animation: {
         "fade-up": "fade-up 0.4s ease-out both",
         shimmer: "shimmer 1.6s linear infinite",
+        scan: "scan 1.4s linear infinite",
       },
     },
   },

@@ -110,10 +110,17 @@ function Section({
 
 /* ───────────────── 집 수리 (메인) ───────────────── */
 function RepairCards({ r }: { r: RepairResult }) {
-  const [tone, setTone] = useState<"polite" | "firm">("polite");
+  const [tone, setToneState] = useState<"polite" | "firm">("polite");
+  // 사용자가 직접 고친 문구 — 톤을 바꾸면 원래 문구로 초기화
+  const [customMsg, setCustomMsg] = useState<string | null>(null);
+  const setTone = (t: "polite" | "firm") => {
+    setToneState(t);
+    setCustomMsg(null);
+  };
   const msg =
-    (tone === "polite" ? r.message_polite : r.message_firm) ||
-    "문구를 생성하지 못했어요. 다시 시도해 주세요.";
+    customMsg ??
+    ((tone === "polite" ? r.message_polite : r.message_firm) ||
+      "문구를 생성하지 못했어요. 다시 시도해 주세요.");
   const emergency =
     r.emergency && r.emergency.length > 0
       ? r.emergency
@@ -173,7 +180,7 @@ function RepairCards({ r }: { r: RepairResult }) {
         collapsible
         defaultOpen
       >
-        <ToneMessage tone={tone} setTone={setTone} message={msg} />
+        <ToneMessage tone={tone} setTone={setTone} message={msg} onEdit={setCustomMsg} />
         {r.certified_mail_suggested && <CertifiedMailAccordion />}
       </Section>
 
@@ -300,10 +307,12 @@ function ToneMessage({
   tone,
   setTone,
   message,
+  onEdit,
 }: {
   tone: "polite" | "firm";
   setTone: (t: "polite" | "firm") => void;
   message: string;
+  onEdit: (v: string) => void;
 }) {
   return (
     <div>
@@ -322,9 +331,20 @@ function ToneMessage({
           </button>
         ))}
       </div>
-      <div className="whitespace-pre-wrap rounded-xl border border-line bg-bg p-4 text-sm leading-relaxed text-ink">
-        {message}
-      </div>
+      <label htmlFor="landlord-message" className="sr-only">
+        집주인에게 보낼 문구 (수정 가능)
+      </label>
+      <textarea
+        id="landlord-message"
+        value={message}
+        onChange={(e) => onEdit(e.target.value)}
+        rows={Math.min(8, Math.max(4, message.split("\n").length + 2))}
+        className="w-full resize-y rounded-xl border border-line bg-bg p-4 text-base leading-relaxed text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20 sm:text-sm"
+      />
+      <p className="mt-1.5 text-xs leading-relaxed text-muted">
+        보내기 전에 자유롭게 고칠 수 있어요. 관계가 걱정된다면 정중한 톤을 먼저 권장해요. 고친
+        내용은 저장되지 않아요.
+      </p>
     </div>
   );
 }
@@ -501,6 +521,30 @@ const EVIDENCE_ITEMS = [
 
 function EvidenceKit({ r }: { r: RepairResult }) {
   const [copied, setCopied] = useState(false);
+  // 체크 상태는 결과별로 분리 저장 (이 기기에만, 다른 결과와 섞이지 않게)
+  const STORAGE = `nest:evidence:repair:v1:${resultHash(r)}`;
+  const [checked, setChecked] = useState<Record<number, boolean>>({});
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE);
+      setChecked(raw ? JSON.parse(raw) : {});
+    } catch {
+      setChecked({});
+    }
+  }, [STORAGE]);
+
+  function toggle(i: number) {
+    setChecked((prev) => {
+      const next = { ...prev, [i]: !prev[i] };
+      try {
+        localStorage.setItem(STORAGE, JSON.stringify(next));
+      } catch {
+        // 저장 실패해도 화면 동작엔 지장 없음
+      }
+      return next;
+    });
+  }
 
   async function copyMemo() {
     const d = new Date();
@@ -540,14 +584,23 @@ function EvidenceKit({ r }: { r: RepairResult }) {
       <p className="text-xs leading-relaxed text-muted">
         수리 요청이나 분쟁 조정에서 기록이 가장 힘이 세요. 지금 5분만 들여 남겨두세요.
       </p>
-      <ul className="mt-3 space-y-2">
-        {EVIDENCE_ITEMS.map((item) => (
-          <li key={item} className="flex items-start gap-2.5 text-sm leading-relaxed text-ink">
-            <Check size={15} className="mt-0.5 shrink-0 text-brand" aria-hidden />
-            <span>{item}</span>
+      <ul className="mt-3 space-y-1">
+        {EVIDENCE_ITEMS.map((item, i) => (
+          <li key={item}>
+            <label className="flex cursor-pointer items-start gap-2.5 rounded-xl px-1 py-1.5 text-sm leading-relaxed text-ink transition-colors hover:bg-bg">
+              <input
+                type="checkbox"
+                checked={!!checked[i]}
+                onChange={() => toggle(i)}
+                className="mt-0.5 shrink-0 accent-brand"
+                style={{ width: 18, height: 18 }}
+              />
+              <span className={checked[i] ? "text-muted line-through" : ""}>{item}</span>
+            </label>
           </li>
         ))}
       </ul>
+      <p className="mt-2 text-[11px] text-muted/80">체크 상태는 이 기기에만 저장돼요.</p>
       <button type="button" onClick={copyMemo} className="btn-ghost mt-3 w-full text-sm">
         {copied ? (
           <>

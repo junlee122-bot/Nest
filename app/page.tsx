@@ -36,7 +36,10 @@ export default function Home() {
               Judge demo
             </span>
             <span className="mt-0.5 block text-[14px] font-bold">
-              90초 인터랙티브 쇼케이스
+              서비스 흐름 90초로 보기
+            </span>
+            <span className="mt-0.5 block text-[11px] text-white/55">
+              사진·계약서·시세가 행동 카드가 되는 과정
             </span>
           </span>
           <span

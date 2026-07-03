@@ -15,6 +15,7 @@ import {
   Sprout,
   ChevronDown,
   CookingPot,
+  X,
 } from "lucide-react";
 import AppBar from "./AppBar";
 import Doongi from "./mascot/Doongi";
@@ -391,15 +392,18 @@ function UseForm({
   ingredients: string;
   setIngredients: (v: string | ((p: string) => string)) => void;
 }) {
-  // C-2: 냉장고 사진 → 재료 자동 추출. 결과는 아래 입력창에 채워지고 수정 가능.
+  // C-2: 냉장고 사진 → 재료 자동 추출. 결과는 칩과 입력창에 채워지고 수정 가능.
   // 실패해도 수동 입력이 그대로 살아 있는 '보조 입력' 경로다.
   const [photo, setPhoto] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
   const [extractNote, setExtractNote] = useState<string | null>(null);
+  // 최근 추출분 — 칩으로 보여주고 개별 삭제 가능
+  const [extracted, setExtracted] = useState<string[]>([]);
 
   async function onPhoto(dataUrl: string | null) {
     setPhoto(dataUrl);
     setExtractNote(null);
+    setExtracted([]);
     if (!dataUrl) return;
     setExtracting(true);
     try {
@@ -414,7 +418,7 @@ function UseForm({
         return;
       }
       if (data.ingredients.length === 0) {
-        setExtractNote("사진에서 재료를 찾지 못했어요. 재료를 직접 입력해주세요.");
+        setExtractNote("사진에서 재료를 확실히 찾지 못했어요. 아래에 직접 적어도 돼요.");
         return;
       }
       setIngredients((prev: string) => {
@@ -426,7 +430,8 @@ function UseForm({
         const added = data.ingredients.filter((s) => !haveSet.has(s.replace(/\s/g, "")));
         return [...have, ...added].join(", ");
       });
-      setExtractNote(`사진에서 ${data.ingredients.length}개 재료를 찾아 채웠어요. 아래에서 고칠 수 있어요.`);
+      setExtracted(data.ingredients);
+      setExtractNote("사진에서 찾은 재료를 아래에 채웠어요. 틀린 항목은 지울 수 있어요.");
     } catch {
       setExtractNote("사진 인식에 실패했어요. 재료를 직접 입력해주세요.");
     } finally {
@@ -434,14 +439,35 @@ function UseForm({
     }
   }
 
+  // 추출 칩 삭제 → 입력창에서도 같이 제거
+  function removeExtracted(name: string) {
+    setExtracted((prev) => prev.filter((n) => n !== name));
+    setIngredients((prev: string) =>
+      prev
+        .split(/[,\n]/)
+        .map((s) => s.trim())
+        .filter((s) => s && s !== name)
+        .join(", ")
+    );
+  }
+
   return (
     <div>
-      <PhotoUpload
-        value={photo}
-        onChange={onPhoto}
-        label="냉장고·재료 사진으로 채우기 (선택)"
-        hint="사진 속 재료를 읽어 아래 입력창에 채워드려요"
-      />
+      <div className="relative">
+        <PhotoUpload
+          value={photo}
+          onChange={onPhoto}
+          label="냉장고 사진으로 재료 자동 채우기 (선택)"
+          hint="사진은 재료 확인에만 쓰고 저장하지 않아요"
+        />
+        {/* 스캔 오버레이 — 추출 중일 때만, 장식용 */}
+        {extracting && photo && (
+          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl" aria-hidden>
+            <div className="absolute inset-0 bg-brand/5" />
+            <div className="animate-scan absolute inset-x-0 h-14 bg-gradient-to-b from-transparent via-brand/35 to-transparent" />
+          </div>
+        )}
+      </div>
       {extracting && (
         <p className="mt-2 flex items-center gap-1.5 text-[13px] font-medium text-muted" aria-live="polite">
           <Loader2 size={14} className="animate-spin" /> 사진에서 재료를 읽는 중이에요…
@@ -451,6 +477,27 @@ function UseForm({
         <p role="status" className="mt-2 text-[13px] font-medium leading-relaxed text-muted">
           {extractNote}
         </p>
+      )}
+      {extracted.length > 0 && !extracting && (
+        <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="사진에서 찾은 재료">
+          {extracted.map((name, i) => (
+            <li
+              key={name}
+              className="animate-fade-up inline-flex items-center gap-1 rounded-full bg-brand-tint py-1 pl-2.5 pr-1 text-[13px] font-semibold text-brand-deep"
+              style={{ animationDelay: `${Math.min(i * 70, 500)}ms` }}
+            >
+              {name}
+              <button
+                type="button"
+                onClick={() => removeExtracted(name)}
+                aria-label={`${name} 빼기`}
+                className="grid h-6 w-6 place-items-center rounded-full text-brand-deep/70 transition-colors hover:bg-brand/10 hover:text-brand-deep"
+              >
+                <X size={13} aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
 
       <label htmlFor="ingredients" className="mt-4 block text-sm font-bold text-ink">
@@ -521,6 +568,49 @@ function PriceSourceBadge({ it }: { it: { today_price?: string; price_ref?: stri
     <span className="inline-flex rounded-full bg-[#EEF0EE] px-1.5 py-0.5 text-[10px] font-bold text-muted">
       AI 추정
     </span>
+  );
+}
+
+/* 장보기 리스트 텍스트 복사 — 마트에서 메모장으로 바로 쓰기 (v11) */
+function CopyListButton({
+  grouped,
+  total,
+}: {
+  grouped: { cat: string; items: { it: { item: string; qty: string; est_price: number } }[] }[];
+  total: number;
+}) {
+  const [copied, setCopied] = useState(false);
+
+  async function copy() {
+    const lines: string[] = ["[둥지 장보기 리스트]"];
+    for (const g of grouped) {
+      lines.push("", `■ ${g.cat}`);
+      for (const { it } of g.items) {
+        lines.push(`□ ${it.item} ${it.qty} (약 ${won(it.est_price)})`);
+      }
+    }
+    lines.push("", `예상 합계: ${won(total)} — 참고용, 실제 매장 가격과 다를 수 있어요`);
+    const text = lines.join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
+  }
+
+  return (
+    <button type="button" onClick={copy} className="btn-ghost text-sm">
+      {copied ? "복사됨!" : "리스트 복사"}
+    </button>
   );
 }
 
@@ -665,9 +755,12 @@ function PlanView({ r }: { r: GroceryPlanResult }) {
             </span>
             장보기 리스트
           </h2>
-          <button onClick={() => window.print()} className="no-print btn-ghost text-sm">
-            <Printer size={15} /> 저장
-          </button>
+          <div className="no-print flex items-center gap-1.5">
+            <CopyListButton grouped={grouped} total={r.total_est_price} />
+            <button onClick={() => window.print()} className="btn-ghost text-sm">
+              <Printer size={15} /> 저장
+            </button>
+          </div>
         </div>
         <div className="space-y-3">
           {grouped.map((g) => (

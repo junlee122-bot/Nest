@@ -353,6 +353,10 @@ export default function ShowcaseExperience() {
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
         advance(-1);
+      } else if (e.key === " ") {
+        // Space로 재생/일시정지 (스크롤 방지)
+        e.preventDefault();
+        setAutoPlay((v) => !v);
       } else if (e.key === "Escape") {
         setPresent(false);
       }
