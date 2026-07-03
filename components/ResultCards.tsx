@@ -143,7 +143,13 @@ function RepairCards({ r }: { r: RepairResult }) {
         </ul>
       </Section>
 
-      <Section index="②" icon={<Scale size={18} />} title="이거 누구 책임?">
+      <Section
+        index="②"
+        icon={<Scale size={18} />}
+        title="왜 그런지 근거 보기"
+        collapsible
+        defaultOpen={false}
+      >
         <span className="inline-flex items-center gap-1.5 rounded-full bg-bg px-3 py-1 text-xs font-semibold text-muted ring-1 ring-line">
           <BookOpen size={12} /> 참고: 민법 제623조
         </span>
@@ -159,19 +165,20 @@ function RepairCards({ r }: { r: RepairResult }) {
         </div>
       </Section>
 
+      {/* 문구를 보지 않고 하단 복사/문자를 누르는 사고 방지 — 기본 열기 (v7 P2) */}
       <Section
         index="③"
         icon={<MessageSquareText size={18} />}
         title="집주인에게 보낼 연락 문구"
         collapsible
-        defaultOpen={false}
+        defaultOpen
       >
         <ToneMessage tone={tone} setTone={setTone} message={msg} />
         {r.certified_mail_suggested && <CertifiedMailAccordion />}
       </Section>
 
-      {/* 다음 단계 미니 체크리스트 */}
-      <NextSteps />
+      {/* 다음 단계 미니 체크리스트 (접힘) */}
+      <NextSteps r={r} />
 
       {/* 도움받기 — verdict/urgency 맥락에 맞춰 업체·긴급 연결 */}
       <HelpConnect r={r} />
@@ -402,8 +409,16 @@ const REPAIR_STEPS = [
   "그래도 미해결이면 주택임대차분쟁조정위원회에 문의하기",
 ];
 
-function NextSteps() {
-  const STORAGE = "nest:nextsteps:repair:v1";
+// 결과 내용 기반 짧은 해시 — 문제(결과)마다 체크 상태를 분리 (v7 P2)
+function resultHash(r: RepairResult): string {
+  const src = `${r.responsibility?.summary ?? ""}|${r.firstAction ?? ""}|${(r.message_polite ?? "").slice(0, 60)}`;
+  let h = 5381;
+  for (let i = 0; i < src.length; i++) h = ((h << 5) + h + src.charCodeAt(i)) | 0;
+  return Math.abs(h).toString(36);
+}
+
+function NextSteps({ r }: { r: RepairResult }) {
+  const STORAGE = `nest:nextsteps:repair:v2:${resultHash(r)}`;
   const [checked, setChecked] = useState<boolean[]>(() => REPAIR_STEPS.map(() => false));
 
   useEffect(() => {
@@ -412,11 +427,13 @@ function NextSteps() {
       if (raw) {
         const a = JSON.parse(raw);
         if (Array.isArray(a)) setChecked(REPAIR_STEPS.map((_, i) => !!a[i]));
+        return;
       }
     } catch {
       /* noop */
     }
-  }, []);
+    setChecked(REPAIR_STEPS.map(() => false)); // 다른 결과로 바뀌면 초기화
+  }, [STORAGE]);
 
   function toggle(i: number) {
     setChecked((prev) => {
@@ -432,7 +449,7 @@ function NextSteps() {
   }
 
   return (
-    <Section icon={<ListChecks size={18} />} title="다음 단계">
+    <Section icon={<ListChecks size={18} />} title="다음 단계" collapsible defaultOpen={false}>
       <ul className="space-y-1">
         {REPAIR_STEPS.map((s, i) => (
           <li key={i}>
@@ -578,7 +595,7 @@ function HelpConnect({ r }: { r: RepairResult }) {
   // 세입자 부담: 업체 찾기가 1순위
   if (r.responsibility?.verdict === "tenant") {
     return (
-      <Section icon={<Wrench size={18} />} title="도움받기: 직접 해결">
+      <Section icon={<Wrench size={18} />} title="도움받기: 직접 해결" collapsible defaultOpen={false}>
         <p className="mb-1 text-sm leading-relaxed text-ink">
           이 문제는 보통 세입자가 직접 처리하는 사안이에요. 가까운 업체를 찾아보세요.
         </p>
@@ -591,7 +608,7 @@ function HelpConnect({ r }: { r: RepairResult }) {
   // 집주인 책임(비긴급): 집주인 문구가 1순위 — 업체 찾기는 '대안'으로 접어둠
   if (r.responsibility?.verdict === "landlord") {
     return (
-      <Section icon={<Wrench size={18} />} title="도움받기: 집주인이 응답 없을 때">
+      <Section icon={<Wrench size={18} />} title="도움받기: 집주인이 응답 없을 때" collapsible defaultOpen={false}>
         <p className="text-sm leading-relaxed text-ink">
           이 문제는 보통 <b>집주인 수선의무</b>예요. 먼저 위 문구로 집주인에게 요청하세요. 집주인이
           응답이 없거나 급할 땐 직접 수리할 수 있고, 그 비용은 집주인에게 청구할 수 있어요(민법
@@ -611,7 +628,7 @@ function HelpConnect({ r }: { r: RepairResult }) {
 
   // 사안에 따라 다름(depends): 상의 우선 + 업체 점검은 보조
   return (
-    <Section icon={<Wrench size={18} />} title="도움받기">
+    <Section icon={<Wrench size={18} />} title="도움받기" collapsible defaultOpen={false}>
       <p className="text-sm leading-relaxed text-ink">
         원인에 따라 책임이 갈리는 사안이에요. 집주인과 상의가 우선이며, 필요하면 업체에 점검을 의뢰해
         원인을 확인할 수 있어요.
