@@ -180,6 +180,9 @@ function RepairCards({ r }: { r: RepairResult }) {
       {/* 다음 단계 미니 체크리스트 (접힘) */}
       <NextSteps r={r} />
 
+      {/* 나중을 위한 증거 기록 패키지 (v10 P1) */}
+      <EvidenceKit r={r} />
+
       {/* 도움받기 — verdict/urgency 맥락에 맞춰 업체·긴급 연결 */}
       <HelpConnect r={r} />
 
@@ -487,6 +490,79 @@ function NextSteps({ r }: { r: RepairResult }) {
 }
 
 /* ── 도움받기 (수리 업체·긴급 연결) ── */
+// 증거 기록 패키지 — 분쟁·수리 요청 대비용 기록 안내 + 메모 템플릿 복사 (v10 P1)
+const EVIDENCE_ITEMS = [
+  "사진 3장: 전체 모습 · 문제 부분 가까이 · 주변(바닥·가구 피해)",
+  "영상 10초: 물이 떨어지는 장면 등 진행 중인 증상",
+  "발견한 날짜와 시간",
+  "집주인에게 연락한 시간과 방법 (문자면 캡처)",
+  "수리 요청에 대한 답변 내용",
+];
+
+function EvidenceKit({ r }: { r: RepairResult }) {
+  const [copied, setCopied] = useState(false);
+
+  async function copyMemo() {
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const memo =
+      `[증거 기록 메모]\n` +
+      `발견일시: ${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}\n` +
+      `위치: \n` +
+      `증상: ${r.responsibility?.summary || ""}\n` +
+      `사진/영상 기록: \n` +
+      `집주인 연락 여부: \n` +
+      `수리 답변: \n` +
+      `추가 피해: `;
+    try {
+      await navigator.clipboard.writeText(memo);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = memo;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
+  }
+
+  return (
+    <Section
+      icon={<ClipboardCheck size={18} />}
+      title="나중을 위해 남겨둘 증거"
+      collapsible
+      defaultOpen={false}
+    >
+      <p className="text-xs leading-relaxed text-muted">
+        수리 요청이나 분쟁 조정에서 기록이 가장 힘이 세요. 지금 5분만 들여 남겨두세요.
+      </p>
+      <ul className="mt-3 space-y-2">
+        {EVIDENCE_ITEMS.map((item) => (
+          <li key={item} className="flex items-start gap-2.5 text-sm leading-relaxed text-ink">
+            <Check size={15} className="mt-0.5 shrink-0 text-brand" aria-hidden />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+      <button type="button" onClick={copyMemo} className="btn-ghost mt-3 w-full text-sm">
+        {copied ? (
+          <>
+            <Check size={15} className="text-brand" /> 복사됨! 메모장에 붙여넣으세요
+          </>
+        ) : (
+          <>
+            <Copy size={15} /> 기록용 메모 양식 복사
+          </>
+        )}
+      </button>
+    </Section>
+  );
+}
+
 function HelpConnect({ r }: { r: RepairResult }) {
   const [region, setRegion] = useState("");
   const cat = r.category;

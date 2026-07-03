@@ -379,6 +379,15 @@ export default function RentCheck() {
               )}
             </m.section>
 
+            {/* 내 조건 비교 (선택) — 이 기기에서만 계산, 서버 전송 없음 */}
+            {data.summary.wolseRentMedian !== null && data.summary.wolseCount > 0 && (
+              <RentCompare
+                median={data.summary.wolseRentMedian}
+                count={data.summary.wolseCount}
+                isSample={isSample}
+              />
+            )}
+
             {/* 건축물대장 (선택) */}
             {addr && !isSample && <BuildingLookup addr={addr} />}
 
@@ -390,6 +399,89 @@ export default function RentCheck() {
         )}
       </div>
     </main>
+  );
+}
+
+// 내 월세를 최근 거래 중앙값과 비교하는 참고 미터 (v10 P1)
+// 계산은 이 기기(브라우저)에서만 하고 서버로 보내지 않는다.
+function RentCompare({
+  median,
+  count,
+  isSample,
+}: {
+  median: number; // 월세 중앙값(만원)
+  count: number; // 표본 수
+  isSample: boolean;
+}) {
+  const [myRent, setMyRent] = useState("");
+  const rent = parseInt(myRent.replace(/[^0-9]/g, ""), 10);
+  const valid = Number.isFinite(rent) && rent > 0 && median > 0;
+
+  const ratio = valid ? rent / median : 1;
+  // 0.5배~1.5배 구간을 0~100%로 매핑 (참고 비교용 시각화)
+  const pos = Math.min(100, Math.max(0, ((ratio - 0.5) / 1) * 100));
+  const status =
+    ratio < 0.9
+      ? { label: "낮은 편", cls: "text-ok", bg: "bg-ok" }
+      : ratio <= 1.1
+        ? { label: "비슷한 편", cls: "text-sun-deep", bg: "bg-sun" }
+        : { label: "높은 편", cls: "text-coral-deep", bg: "bg-coral" };
+
+  return (
+    <m.section variants={fadeUp} className="card p-5">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-sm font-bold text-ink">내 월세와 비교해보기</h3>
+        <span className="rounded-full bg-[#EEF0EE] px-2 py-0.5 text-[10px] font-bold text-muted">
+          참고 비교
+        </span>
+      </div>
+      <label htmlFor="my-rent" className="mt-2 block text-xs font-semibold text-muted">
+        내 월세 (만원) — 이 기기에서만 계산하고 저장하지 않아요
+      </label>
+      <div className="mt-2 flex items-center gap-2">
+        <input
+          id="my-rent"
+          type="text"
+          inputMode="numeric"
+          value={myRent}
+          onChange={(e) => setMyRent(e.target.value)}
+          placeholder="예) 60"
+          className="w-32 rounded-xl border border-line bg-bg p-3 text-base text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+        />
+        <span className="text-sm font-semibold text-muted">만원</span>
+      </div>
+
+      {valid && (
+        <div className="mt-4">
+          <div
+            role="img"
+            aria-label={`내 월세 ${rent}만원은 최근 거래 중앙값 ${median}만원 대비 ${status.label}으로 보여요 (참고 비교)`}
+          >
+            <div className="relative h-2.5 overflow-hidden rounded-full bg-gradient-to-r from-ok-tint via-sun-tint to-coral-tint">
+              <div
+                className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-2 border-white shadow-card ${status.bg}`}
+                style={{ left: `calc(${pos}% - 8px)` }}
+              />
+            </div>
+            <div className="mt-1.5 flex justify-between text-[10px] font-semibold text-muted" aria-hidden>
+              <span>낮음</span>
+              <span>중앙값 {median}만</span>
+              <span>높음</span>
+            </div>
+          </div>
+          <p className="mt-3 text-sm leading-relaxed text-ink">
+            최근 신고 {count}건의 중앙값({median}만원) 기준으로 내 월세는{" "}
+            <b className={status.cls}>{status.label}</b>일 수 있어요.
+          </p>
+          <p className="mt-1.5 text-xs leading-relaxed text-muted">
+            면적·옵션·관리비 포함 여부·층에 따라 달라질 수 있어 참고만 해주세요.
+            {isSample && " 지금은 예시 데이터 기준이라 실제 시세와 달라요."}
+            {ratio > 1.1 &&
+              " 계약 전이라면 관리비 포함 여부를 확인하고, 유사 거래를 근거로 조정을 물어볼 수 있어요."}
+          </p>
+        </div>
+      )}
+    </m.section>
   );
 }
 

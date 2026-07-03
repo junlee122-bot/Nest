@@ -26,6 +26,14 @@ const RISK_BADGE: Record<RiskLevel, { label: string; cls: string }> = {
   low: { label: "참고", cls: "bg-gray-200 text-ink" },
 };
 
+// 자주 문제되는 특약 예시 — 입력창에 한 줄씩 추가하는 칩
+const TOXIC_EXAMPLES: { label: string; clause: string }[] = [
+  { label: "모든 수선비 임차인 부담", clause: "임차인은 모든 수선비를 부담한다." },
+  { label: "보증금 반환은 새 세입자 후", clause: "보증금 반환은 신규 임차인 입주 후 지급한다." },
+  { label: "원상복구 과도 요구", clause: "퇴거 시 도배·장판 등 원상복구 비용은 임차인이 전액 부담한다." },
+  { label: "관리비 내역 미기재", clause: "관리비는 임대인이 정하는 바에 따르며 세부 내역은 별도로 고지하지 않는다." },
+];
+
 const OVERALL: Record<
   ContractResult["overall_risk"],
   { label: string; box: string; text: string }
@@ -119,7 +127,8 @@ export default function ContractChecker() {
               계약서 내용을 붙여넣으세요
             </label>
             <p className="mt-1 text-xs text-muted">
-              특약사항을 포함해 붙여넣으면 더 정확해요. (입력은 저장하지 않아요)
+              전체가 아니어도 돼요. <b className="text-ink">특약사항만 붙여넣어도</b> 검토해드려요.
+              입력한 내용은 서버에 저장하지 않아요.
             </p>
             <textarea
               id="contract-text"
@@ -141,6 +150,22 @@ export default function ContractChecker() {
               </p>
             )}
 
+            <p className="mt-3 text-xs font-semibold text-muted">이런 특약, 자주 문제돼요</p>
+            <div className="mt-1.5 flex flex-wrap gap-2">
+              {TOXIC_EXAMPLES.map((ex) => (
+                <button
+                  key={ex.label}
+                  type="button"
+                  disabled={loading}
+                  onClick={() =>
+                    setText((prev) => (prev.includes(ex.clause) ? prev : prev ? `${prev}\n${ex.clause}` : ex.clause))
+                  }
+                  className="chip"
+                >
+                  + {ex.label}
+                </button>
+              ))}
+            </div>
             <div className="mt-3 flex flex-wrap gap-2">
               <button type="button" onClick={fillSample} disabled={loading} className="chip">
                 예시 계약서 채우기
@@ -240,6 +265,11 @@ function ContractResultView({
 }) {
   const o = OVERALL[result.overall_risk] || OVERALL.none;
   const none = result.overall_risk === "none" || result.findings.length === 0;
+  // 위험 높은 조항이 먼저 보이도록 정렬 (원래 순서는 risk 안에서 유지)
+  const RANK: Record<RiskLevel, number> = { high: 0, medium: 1, low: 2 };
+  const findings = [...result.findings].sort(
+    (a, b) => (RANK[a.risk] ?? 3) - (RANK[b.risk] ?? 3)
+  );
   const highN = result.findings.filter((f) => f.risk === "high").length;
   const medN = result.findings.filter((f) => f.risk === "medium").length;
   const gradeLabel =
@@ -294,16 +324,16 @@ function ContractResultView({
         )}
       </div>
 
-      {/* 원문 하이라이트 (best-effort) */}
+      {/* 원문 하이라이트 (best-effort, 위험도별 색) */}
       {!none && sourceText && (
         <HighlightedSource
           text={sourceText}
-          clauses={result.findings.map((f) => f.clause_text)}
+          clauses={findings.map((f) => ({ text: f.clause_text, risk: f.risk }))}
         />
       )}
 
-      {/* 발견 항목 카드 */}
-      {result.findings.map((f, i) => (
+      {/* 발견 항목 카드 — 위험 높은 순 */}
+      {findings.map((f, i) => (
         <FindingCard key={i} finding={f} index={i + 1} />
       ))}
 
@@ -351,17 +381,20 @@ function FindingCard({
       </div>
 
       {finding.clause_text && (
-        <blockquote
-          className={`rounded-r-lg border-l-[3px] bg-bg px-3 py-2 text-sm leading-relaxed text-ink ${
-            finding.risk === "high"
-              ? "border-danger"
-              : finding.risk === "medium"
-                ? "border-warn"
-                : "border-line"
-          }`}
-        >
-          “{finding.clause_text}”
-        </blockquote>
+        <div>
+          <p className="mb-1 text-[11px] font-bold text-muted">계약서 원문</p>
+          <blockquote
+            className={`rounded-r-lg border-l-[3px] px-3 py-2 text-sm leading-relaxed text-ink ${
+              finding.risk === "high"
+                ? "border-danger bg-danger-tint/60"
+                : finding.risk === "medium"
+                  ? "border-warn bg-warn-tint/60"
+                  : "border-line bg-bg"
+            }`}
+          >
+            “{finding.clause_text}”
+          </blockquote>
+        </div>
       )}
 
       {finding.legal_basis?.length > 0 && (
@@ -382,8 +415,8 @@ function FindingCard({
       )}
 
       {finding.action && (
-        <div className="mt-3 rounded-xl border border-line bg-bg p-3">
-          <p className="mb-2 text-xs font-bold text-muted">이렇게 요청해보세요</p>
+        <div className="mt-2 rounded-xl border border-ok/30 bg-ok-tint p-3">
+          <p className="mb-1.5 text-[11px] font-bold text-ok">이렇게 수정을 요청해보세요</p>
           <p className="text-sm leading-relaxed text-ink">{finding.action}</p>
           <div className="mt-2 flex justify-end">
             <CopyChip text={finding.action} />
@@ -439,20 +472,32 @@ function CopyChip({ text }: { text: string }) {
   );
 }
 
-// 원문에서 문제 조항을 형광펜 표시 (best-effort, 실패해도 카드로 충분)
-function HighlightedSource({ text, clauses }: { text: string; clauses: string[] }) {
+// 원문에서 문제 조항을 위험도별 형광펜으로 표시 (best-effort, 실패해도 카드로 충분)
+const MARK_CLS: Record<RiskLevel, string> = {
+  high: "bg-danger-tint",
+  medium: "bg-warn-tint",
+  low: "bg-sky-tint",
+};
+
+function HighlightedSource({
+  text,
+  clauses,
+}: {
+  text: string;
+  clauses: { text: string; risk: RiskLevel }[];
+}) {
   const segments = useMemo(() => buildHighlight(text, clauses), [text, clauses]);
   if (segments.length <= 1) return null; // 매칭 없으면 표시 생략
   return (
-    <details className="card group p-5 [&_summary::-webkit-details-marker]:hidden">
+    <details className="card group p-5 [&_summary::-webkit-details-marker]:hidden" open>
       <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-bold text-ink">
         원문에서 표시해 보기
         <span className="ml-auto text-xs font-medium text-muted group-open:hidden">펼치기</span>
       </summary>
       <p className="mt-3 whitespace-pre-wrap rounded-xl bg-bg p-3 text-sm leading-relaxed text-ink">
         {segments.map((s, i) =>
-          s.mark ? (
-            <mark key={i} className="rounded bg-warn-tint px-0.5 text-ink">
+          s.risk ? (
+            <mark key={i} className={`rounded px-0.5 text-ink ${MARK_CLS[s.risk]}`}>
               {s.text}
             </mark>
           ) : (
@@ -460,39 +505,49 @@ function HighlightedSource({ text, clauses }: { text: string; clauses: string[] 
           )
         )}
       </p>
+      <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold text-muted" aria-hidden>
+        <span><span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-danger-tint ring-1 ring-danger/30 align-middle" />위험 높음</span>
+        <span><span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-warn-tint ring-1 ring-warn/40 align-middle" />주의</span>
+        <span><span className="mr-1 inline-block h-2.5 w-2.5 rounded-sm bg-sky-tint ring-1 ring-sky/40 align-middle" />참고</span>
+      </p>
     </details>
   );
 }
 
 function buildHighlight(
   text: string,
-  clauses: string[]
-): { text: string; mark: boolean }[] {
-  // 매칭 구간 수집
-  const ranges: [number, number][] = [];
+  clauses: { text: string; risk: RiskLevel }[]
+): { text: string; risk: RiskLevel | null }[] {
+  const RANK: Record<RiskLevel, number> = { high: 0, medium: 1, low: 2 };
+  // 매칭 구간 수집 (위험도 포함)
+  const ranges: { s: number; e: number; risk: RiskLevel }[] = [];
   for (const c of clauses) {
-    const needle = (c || "").trim();
+    const needle = (c.text || "").trim();
     if (needle.length < 6) continue;
     const idx = text.indexOf(needle);
-    if (idx !== -1) ranges.push([idx, idx + needle.length]);
+    if (idx !== -1) ranges.push({ s: idx, e: idx + needle.length, risk: c.risk });
   }
-  if (ranges.length === 0) return [{ text, mark: false }];
-  // 정렬 + 병합
-  ranges.sort((a, b) => a[0] - b[0]);
-  const merged: [number, number][] = [];
+  if (ranges.length === 0) return [{ text, risk: null }];
+  // 정렬 + 병합 (겹치면 더 높은 위험도 유지)
+  ranges.sort((a, b) => a.s - b.s);
+  const merged: { s: number; e: number; risk: RiskLevel }[] = [];
   for (const r of ranges) {
     const last = merged[merged.length - 1];
-    if (last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1]);
-    else merged.push([r[0], r[1]]);
+    if (last && r.s <= last.e) {
+      last.e = Math.max(last.e, r.e);
+      if (RANK[r.risk] < RANK[last.risk]) last.risk = r.risk;
+    } else {
+      merged.push({ ...r });
+    }
   }
   // 세그먼트화
-  const out: { text: string; mark: boolean }[] = [];
+  const out: { text: string; risk: RiskLevel | null }[] = [];
   let cur = 0;
-  for (const [s, e] of merged) {
-    if (s > cur) out.push({ text: text.slice(cur, s), mark: false });
-    out.push({ text: text.slice(s, e), mark: true });
+  for (const { s, e, risk } of merged) {
+    if (s > cur) out.push({ text: text.slice(cur, s), risk: null });
+    out.push({ text: text.slice(s, e), risk });
     cur = e;
   }
-  if (cur < text.length) out.push({ text: text.slice(cur), mark: false });
+  if (cur < text.length) out.push({ text: text.slice(cur), risk: null });
   return out;
 }
