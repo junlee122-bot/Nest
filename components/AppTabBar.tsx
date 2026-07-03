@@ -25,8 +25,13 @@ const TABS: { href: string; label: string; icon: LucideIcon }[] = [
 // '전체' 탭이 하이라이트되는 서브 경로들
 const MENU_PATHS = ["/menu", "/utility", "/grocery", "/money", "/admin"];
 
+// 탭바를 숨기는 경로 (풀스크린 경험 — 심사용 쇼케이스 등)
+const HIDE_PATHS = ["/showcase"];
+
 export default function AppTabBar() {
   const pathname = usePathname();
+
+  if (HIDE_PATHS.some((p) => pathname.startsWith(p))) return null;
 
   function isActive(href: string): boolean {
     if (href === "/") return pathname === "/";

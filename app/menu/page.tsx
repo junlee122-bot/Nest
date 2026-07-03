@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import NestGrowth from "@/components/home/NestGrowth";
 import RecentProblems from "@/components/RecentProblems";
 import FeatureRow from "@/components/FeatureRow";
@@ -41,6 +42,33 @@ export default function MenuPage() {
           </section>
         );
       })}
+
+      {/* 심사용 인터랙티브 쇼케이스 */}
+      <section className="container-app pt-5">
+        <h2 className="mb-2 px-1 font-sans text-[15px] font-bold text-ink">데모</h2>
+        <Link
+          href="/showcase"
+          className="group flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-[#07150f] via-brand-deep to-brand px-4 py-3.5 text-white shadow-lift transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand active:scale-[0.99]"
+        >
+          <span>
+            <span className="block text-[10px] font-black uppercase tracking-[0.18em] text-white/60">
+              Judge demo
+            </span>
+            <span className="mt-0.5 block text-[14px] font-bold">
+              90초 인터랙티브 쇼케이스
+            </span>
+            <span className="mt-1 block text-[11px] leading-relaxed text-white/55">
+              사진·계약서·장보기가 행동 카드가 되는 과정을 한 화면에서 보여줘요.
+            </span>
+          </span>
+          <span
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/15 text-white transition-transform group-hover:translate-x-0.5"
+            aria-hidden
+          >
+            →
+          </span>
+        </Link>
+      </section>
 
       {/* 최근 본 문제 */}
       <RecentProblems />

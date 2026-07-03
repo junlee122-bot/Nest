@@ -25,6 +25,29 @@ export default function Home() {
       {/* 보조 CTA 2종 (계약서·시세) */}
       <QuickActions />
 
+      {/* 심사용 인터랙티브 쇼케이스 (주 CTA를 밀지 않게 아래·작게) */}
+      <section className="container-app pt-3">
+        <Link
+          href="/showcase"
+          className="group flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-[#07150f] via-brand-deep to-brand px-4 py-3.5 text-white shadow-lift transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand active:scale-[0.99]"
+        >
+          <span>
+            <span className="block text-[10px] font-black uppercase tracking-[0.18em] text-white/60">
+              Judge demo
+            </span>
+            <span className="mt-0.5 block text-[14px] font-bold">
+              90초 인터랙티브 쇼케이스
+            </span>
+          </span>
+          <span
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/15 text-white transition-transform group-hover:translate-x-0.5"
+            aria-hidden
+          >
+            →
+          </span>
+        </Link>
+      </section>
+
       {/* 내 둥지 (둥지 키우기, 잔가지 0이면 숨김) */}
       <NestGrowth />
 
