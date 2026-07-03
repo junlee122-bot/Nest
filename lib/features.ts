@@ -110,9 +110,10 @@ export function featureByHref(href: string): Feature | undefined {
   return FEATURES.find((f) => f.href === href);
 }
 
-// ── 홈 히어로 증상·상황 칩 (v12) ─────────────────────────────
-// 사용자 언어(곰팡이·누수·계약서·월세)를 진입 경로로 바로 연결.
-// 수리 칩은 /repair?q=<prefill> 로 이동해 입력창에 미리 채워진다 (자동 제출 없음).
+// ── 홈 히어로 수리 증상 빠른 시작 버튼 (v12 → v13) ──────────────
+// 수리 증상 4개만 담는다 — 계약서·월세는 QuickActions 큰 카드가 담당(중복 제거).
+// 4개라 가로 스크롤 없이 2×2 그리드로 전부 보인다 (발견성 확보).
+// 버튼은 /repair?q=<prefill> 로 이동해 입력창에 미리 채워진다 (자동 제출 없음).
 // FEATURES와 별개 — 기존 FeatureRow·QuickActions·AppTabBar에 영향 없음.
 
 export interface HomeSymptomChip {
@@ -121,7 +122,6 @@ export interface HomeSymptomChip {
   /** 있으면 ?q= 로 입력창에 미리 채울 문장 (80자 이하 유지) */
   prefill?: string;
   icon: LucideIcon;
-  tone: Extract<Tone, "brand" | "sky" | "sun">;
   ariaLabel: string;
 }
 
@@ -131,7 +131,6 @@ export const HOME_SYMPTOM_CHIPS: HomeSymptomChip[] = [
     href: "/repair",
     prefill: "천장이나 벽에서 물이 새요.",
     icon: Droplets,
-    tone: "brand",
     ariaLabel: "누수·물샘 상황으로 집수리 진단 시작하기",
   },
   {
@@ -139,7 +138,6 @@ export const HOME_SYMPTOM_CHIPS: HomeSymptomChip[] = [
     href: "/repair",
     prefill: "벽지에 곰팡이나 결로가 생겼어요.",
     icon: Wind,
-    tone: "brand",
     ariaLabel: "곰팡이·결로 상황으로 집수리 진단 시작하기",
   },
   {
@@ -147,7 +145,6 @@ export const HOME_SYMPTOM_CHIPS: HomeSymptomChip[] = [
     href: "/repair",
     prefill: "보일러나 난방이 잘 안 돼요.",
     icon: Flame,
-    tone: "brand",
     ariaLabel: "보일러·난방 문제로 집수리 진단 시작하기",
   },
   {
@@ -155,21 +152,6 @@ export const HOME_SYMPTOM_CHIPS: HomeSymptomChip[] = [
     href: "/repair",
     prefill: "벽에 균열이나 하자가 보여요.",
     icon: Hammer,
-    tone: "brand",
     ariaLabel: "벽 균열·하자 상황으로 집수리 진단 시작하기",
-  },
-  {
-    label: "계약서 걱정",
-    href: "/contract",
-    icon: ScrollText,
-    tone: "sky",
-    ariaLabel: "계약서 걱정, 계약서 독소조항 체커로 이동",
-  },
-  {
-    label: "이 월세 적정?",
-    href: "/rent",
-    icon: BarChart3,
-    tone: "sun",
-    ariaLabel: "이 월세 적정? 전월세 시세 확인으로 이동",
   },
 ];
