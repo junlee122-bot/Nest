@@ -17,8 +17,9 @@ export default function FeatureRow({ f }: { f: Feature }) {
   return (
     <Link href={f.href} className="block">
       <div className="group flex items-center gap-3.5 px-4 py-3.5 transition-colors hover:bg-bg active:bg-bg">
+        {/* 아이콘 컨테이너 규격 통일 (v13): 44px 타일은 rounded-2xl (QuickActions와 동일) */}
         <span
-          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${TONE_CLS[f.tone]}`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${TONE_CLS[f.tone]}`}
         >
           <Icon size={21} strokeWidth={2.3} />
         </span>
