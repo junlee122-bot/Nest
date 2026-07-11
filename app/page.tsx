@@ -3,31 +3,35 @@ import RecentProblems from "@/components/RecentProblems";
 import Onboarding from "@/components/Onboarding";
 import IntroSplash from "@/components/intro/IntroSplash";
 import HomeHero from "@/components/home/HomeHero";
+import CoreFeatures from "@/components/home/CoreFeatures";
 import NestGrowth from "@/components/home/NestGrowth";
-import QuickActions from "@/components/home/QuickActions";
 import FeatureRow from "@/components/FeatureRow";
 import { FEATURES } from "@/lib/features";
 
-// 상단 = 수리(히어로 주 CTA) + 계약·시세(보조 CTA). 나머지는 '생활 도구'로 강등 (v7)
-const TOP = ["/repair", "/contract", "/rent"];
+// 핵심 기능(집수리·계약서·시세)은 CoreFeatures가 담당. 나머지는 '생활 도구' (v14)
+const CORE = ["/repair", "/contract", "/rent"];
 
 export default function Home() {
-  const tools = FEATURES.filter((f) => !TOP.includes(f.href));
+  const tools = FEATURES.filter((f) => !CORE.includes(f.href));
   return (
     <main className="min-h-dvh pb-8">
       {/* 인트로 스플래시 (세션 1회) → 첫 방문 1회 사용법 오버레이 */}
       <IntroSplash />
       <Onboarding />
 
-      {/* 홈 헤더 — 인사 + 둥이 + 메인 CTA */}
+      {/* 홈 헤더 — 인사 + 둥이 (짧게) */}
       <HomeHero />
 
-      {/* 보조 CTA 2종 (계약서·시세) */}
-      <QuickActions />
+      {/* 핵심 기능 — 집수리·계약서·시세 3종 연속 그룹 */}
+      <CoreFeatures />
 
-      {/* 생활 도구 */}
-      <section className="container-app pt-5">
-        <h2 className="mb-2 px-1 font-sans text-[15px] font-bold text-ink">생활 도구</h2>
+      {/* 구분선 후 생활 도구 — 핵심 기능과 위계 구분 */}
+      <section className="container-app pt-6">
+        <div className="mb-3 border-t border-line" aria-hidden />
+        <h2 className="mb-1 px-1 font-sans text-[16px] font-bold text-ink">생활 도구</h2>
+        <p className="mb-2.5 px-1 text-[13px] leading-relaxed text-muted">
+          주거 문제를 해결한 뒤, 생활비와 살림도 챙겨보세요.
+        </p>
         <div className="card divide-y divide-line overflow-hidden p-0">
           {tools.map((f) => (
             <FeatureRow key={f.href} f={f} />

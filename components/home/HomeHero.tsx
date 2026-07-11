@@ -1,20 +1,12 @@
 "use client";
 
-// 홈 상단 (v5 → v13) — 인사 + 둥이 + 메인 CTA + 수리 증상 빠른 시작 버튼.
-// 증상 버튼 4개는 가로 스크롤 없이 2×2 그리드로 전부 보인다 (숨김 없음).
-// 계약서·월세 진입은 아래 QuickActions 큰 카드가 담당한다.
-import Link from "next/link";
+// 홈 상단 (v5 → v14) — 인사 + 둥이 + 소개.
+// 핵심 기능 진입은 아래 "핵심 기능" 섹션 카드가 담당한다.
+// 상단을 짧게 유지해 '핵심 기능' 제목과 카드가 첫 화면에서 바로 보이게 한다.
 import { m } from "framer-motion";
-import { ArrowRight } from "lucide-react";
 import Doongi from "../mascot/Doongi";
 import NestMark from "../NestMark";
 import { fadeUp, stagger } from "@/lib/motion";
-import { HOME_SYMPTOM_CHIPS, type HomeSymptomChip } from "@/lib/features";
-
-function chipHref(chip: HomeSymptomChip): string {
-  if (!chip.prefill) return chip.href;
-  return `${chip.href}?q=${encodeURIComponent(chip.prefill)}`;
-}
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -31,7 +23,7 @@ export default function HomeHero() {
         variants={stagger(0.04, 0.08)}
         initial="hidden"
         animate="show"
-        className="container-app pb-5 pt-4"
+        className="container-app pb-4 pt-4"
       >
         {/* 상단 바 — 로고 */}
         <m.div variants={fadeUp} className="flex h-11 items-center justify-between">
@@ -66,47 +58,11 @@ export default function HomeHero() {
             </span>
             <Doongi
               mood="hello"
-              size={108}
+              size={96}
               className="rotate-2 drop-shadow-[0_8px_12px_rgba(23,28,25,0.14)]"
             />
           </m.div>
         </div>
-
-        <m.div variants={fadeUp} className="mt-3">
-          <Link href="/repair" className="btn-primary w-full">
-            사진으로 수리·하자 진단하기 <ArrowRight size={17} />
-          </Link>
-          <p className="mt-2 text-center text-[12px] text-muted">
-            사진이 없어도 괜찮아요.{" "}
-            <Link href="/repair" className="font-semibold text-brand-deep underline underline-offset-2">
-              상황만 글로 적어도
-            </Link>{" "}
-            진단해드려요.
-          </p>
-        </m.div>
-
-        {/* 수리 증상 빠른 시작 — 주 CTA의 하위 진입, 4개 전부 노출(스크롤 숨김 없음) */}
-        <m.div variants={fadeUp} className="mt-4" role="group" aria-label="수리 증상 빠른 시작">
-          <p className="px-1 text-[12px] font-bold text-brand-deep">수리 증상으로 바로 시작해요</p>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            {HOME_SYMPTOM_CHIPS.map((chip) => {
-              const Icon = chip.icon;
-              return (
-                <Link
-                  key={chip.label}
-                  href={chipHref(chip)}
-                  aria-label={chip.ariaLabel}
-                  className="inline-flex min-h-[48px] items-center justify-start gap-2 rounded-[18px] border border-brand/10 bg-brand-tint/80 px-3.5 py-2.5 text-[13px] font-bold text-brand-deep shadow-[0_8px_20px_rgba(13,160,92,0.08)] transition hover:border-brand/20 hover:bg-white active:scale-[0.985] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-                >
-                  <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-white/80 text-brand shadow-sm">
-                    <Icon size={16} strokeWidth={2.4} aria-hidden />
-                  </span>
-                  <span className="whitespace-nowrap">{chip.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </m.div>
       </m.div>
     </section>
   );
