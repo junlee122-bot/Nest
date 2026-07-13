@@ -25,6 +25,8 @@ import {
   formatWonApproxSmall,
   formatWonRange,
 } from "@/lib/electricity/format";
+import { powerSourceText } from "@/lib/aircon/power";
+import type { CoolingPowerSource, SelectedAirconProduct } from "@/lib/aircon/types";
 
 export interface AirconResultsProps {
   type: AirconType;
@@ -39,6 +41,10 @@ export interface AirconResultsProps {
   environment: CoolingEnvironment;
   /** 같은 설정에서 하루 2·4·6·8시간으로 각각 다시 계산한 값 */
   hoursComparison: { hours: number; monthlyKwh: number; cost: number; low: number; high: number }[];
+  /** v16 — 적용된 냉방 소비전력의 출처와 확인된 제품 (선택) */
+  powerSource: CoolingPowerSource;
+  appliedPowerW: number | null;
+  product: SelectedAirconProduct | null;
 }
 
 export default function AirconResults(props: AirconResultsProps) {
@@ -70,14 +76,27 @@ export default function AirconResults(props: AirconResultsProps) {
             추정치
           </span>
           <span className="rounded-full bg-white/70 px-2.5 py-1 text-[11px] font-semibold text-coral-deep">
-            {usage.ratedSource === "label" ? "제품 라벨 소비전력 반영" : "평수 기준 자동 추정"}
+            {powerSourceText(props.powerSource, props.appliedPowerW)}
           </span>
+          {props.product && (
+            <span className="rounded-full bg-white/70 px-2.5 py-1 text-[11px] font-semibold text-coral-deep">
+              {[props.product.brand, props.product.modelNumber].filter(Boolean).join(" ") ||
+                "모델 확인됨"}
+            </span>
+          )}
           <span className="rounded-full bg-white/70 px-2.5 py-1 text-[11px] font-semibold text-coral-deep">
             {cost.baseline.userProvided
               ? "평소 사용량 직접 입력"
               : `평소 ${cost.baseline.low}~${cost.baseline.high}kWh 가정`}
           </span>
         </div>
+
+        {props.product && props.appliedPowerW === null && (
+          <p role="status" className="mt-2 text-[12px] leading-relaxed text-muted">
+            제품 모델은 찾았지만 냉방 소비전력은 확인하지 못했어요. 현재는 평수 기준으로 계산하고
+            있어요.
+          </p>
+        )}
 
         <p className="mt-3 text-[12px] font-medium text-muted">{conditionLine}</p>
         <p className="mt-1 text-sm font-semibold text-ink">한 달 예상 추가요금</p>
@@ -288,6 +307,9 @@ function CalculationBasisCard({
   inverter,
   environment,
   month,
+  powerSource,
+  appliedPowerW,
+  product,
 }: AirconResultsProps) {
   return (
     <details className="card group p-5 [&_summary::-webkit-details-marker]:hidden">
@@ -301,10 +323,16 @@ function CalculationBasisCard({
           k="소비전력 산정 방식"
           v={
             usage.ratedSource === "label"
-              ? `제품 라벨 ${Math.round(usage.ratedInputKw * 1000)}W 사용`
+              ? powerSourceText(powerSource, appliedPowerW ?? Math.round(usage.ratedInputKw * 1000))
               : `${areaPyeong}평 × 평수 기반 추정`
           }
         />
+        {product && (
+          <Row
+            k="확인한 제품"
+            v={[product.brand, product.modelNumber].filter(Boolean).join(" ") || product.title}
+          />
+        )}
         <Row k="에어컨 방식" v={INVERTER_LABELS[inverter]} />
         <Row k="냉방 환경" v={ENVIRONMENT_LABELS[environment]} />
         <Row

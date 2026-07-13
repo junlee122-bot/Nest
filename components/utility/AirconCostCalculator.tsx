@@ -7,6 +7,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Minus, Plus } from "lucide-react";
 import AirconTypeSelector from "./AirconTypeSelector";
 import AirconResults from "./AirconResults";
+import AirconIdentify from "./AirconIdentify";
+import type { CoolingPowerSource, SelectedAirconProduct } from "@/lib/aircon/types";
 import {
   calculateAirconCost,
   calculateAirconUsage,
@@ -34,7 +36,18 @@ interface SavedState {
   baseline: number | null;
   voltage: VoltageType;
   environment: CoolingEnvironment;
+  /** v16 — 없으면 기본값 (구버전 저장값과 호환) */
+  powerSource?: CoolingPowerSource;
+  product?: SelectedAirconProduct | null;
 }
+
+const POWER_SOURCES: CoolingPowerSource[] = [
+  "label-photo",
+  "user-input",
+  "manufacturer",
+  "cross-checked-search",
+  "area-estimate",
+];
 
 const AIRCON_TYPES: AirconType[] = ["wall", "standing", "window", "portable", "multi"];
 
@@ -66,6 +79,9 @@ export default function AirconCostCalculator({ initialMonth }: { initialMonth: n
   const [month, setMonth] = useState(clamp(Math.round(initialMonth) || 1, 1, 12));
   const [environment, setEnvironment] = useState<CoolingEnvironment>(DEFAULTS.environment);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  // v16 — 소비전력 출처 + 확인한 제품 (선택 기능, 없어도 계산은 동일하게 동작)
+  const [powerSource, setPowerSource] = useState<CoolingPowerSource>("area-estimate");
+  const [product, setProduct] = useState<SelectedAirconProduct | null>(null);
 
   // ── 로컬 저장 (설정만, 개인정보 없음) — mount 후 복원해 hydration mismatch 방지 ──
   // ref가 아니라 state 플래그를 쓰는 이유: 복원된 값이 "렌더에 반영된 뒤"에만
@@ -85,8 +101,11 @@ export default function AirconCostCalculator({ initialMonth }: { initialMonth: n
           if (typeof s.hours === "number" && Number.isFinite(s.hours)) setHours(clamp(s.hours, 0.5, 24));
           if (typeof s.days === "number" && Number.isFinite(s.days))
             setDays(clamp(Math.round(s.days), 1, 31));
-          if (typeof s.labelW === "number" && Number.isFinite(s.labelW))
+          if (typeof s.labelW === "number" && Number.isFinite(s.labelW)) {
             setLabelW(clamp(s.labelW, 100, 5000));
+            // v15 저장값(powerSource 없음)은 사용자가 직접 입력한 값 — 출처를 맞춰준다
+            if (!s.powerSource) setPowerSource("user-input");
+          }
           if (s.inverter === "inverter" || s.inverter === "fixed" || s.inverter === "unknown")
             setInverter(s.inverter);
           if (typeof s.baseline === "number" && Number.isFinite(s.baseline))
@@ -94,6 +113,28 @@ export default function AirconCostCalculator({ initialMonth }: { initialMonth: n
           if (s.voltage === "low" || s.voltage === "high") setVoltage(s.voltage);
           if (s.environment === "favorable" || s.environment === "normal" || s.environment === "harsh")
             setEnvironment(s.environment);
+          if (s.powerSource && POWER_SOURCES.includes(s.powerSource)) setPowerSource(s.powerSource);
+          if (
+            s.product &&
+            typeof s.product === "object" &&
+            typeof s.product.title === "string" &&
+            typeof s.product.productUrl === "string"
+          ) {
+            const p = s.product;
+            // 손상된 저장값이 렌더 크래시(TYPE_ICONS[미지 유형])를 만들지 않게 필드별 정제
+            setProduct({
+              brand: typeof p.brand === "string" ? p.brand : null,
+              modelNumber: typeof p.modelNumber === "string" ? p.modelNumber : null,
+              title: p.title,
+              imageUrl: typeof p.imageUrl === "string" ? p.imageUrl : null,
+              productUrl: p.productUrl,
+              sourceLabel: typeof p.sourceLabel === "string" ? p.sourceLabel : "검색 결과",
+              productType:
+                p.productType && [...AIRCON_TYPES, "unknown"].includes(p.productType)
+                  ? p.productType
+                  : "unknown",
+            });
+          }
         }
       }
     } catch {
@@ -107,12 +148,13 @@ export default function AirconCostCalculator({ initialMonth }: { initialMonth: n
     try {
       const s: SavedState = {
         v: 1, type, multiMode, area, hours, days, labelW, inverter, baseline, voltage, environment,
+        powerSource, product,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
     } catch {
       // 저장 실패는 무시 (기능 동작에 영향 없음)
     }
-  }, [hydrated, type, multiMode, area, hours, days, labelW, inverter, baseline, voltage, environment]);
+  }, [hydrated, type, multiMode, area, hours, days, labelW, inverter, baseline, voltage, environment, powerSource, product]);
 
   function resetToDefaults() {
     // 종류 선택은 유지, 나머지는 정의된 초기 상태로
@@ -126,6 +168,18 @@ export default function AirconCostCalculator({ initialMonth }: { initialMonth: n
     setVoltage(DEFAULTS.voltage);
     setEnvironment(DEFAULTS.environment);
     setMonth(clamp(Math.round(initialMonth) || 1, 1, 12));
+    setPowerSource("area-estimate");
+    setProduct(null);
+  }
+
+  // 라벨W 필드 직접 편집 — 값이 그대로면 기존 출처(라벨 판독 등)를 유지
+  function commitLabelW(v: number | null) {
+    setLabelW(v);
+    setPowerSource((prev) => {
+      if (v === null) return "area-estimate";
+      if (v === labelW && prev !== "area-estimate") return prev;
+      return "user-input";
+    });
   }
 
   // ── 계산 (순수 엔진, 즉시) ──
@@ -253,7 +307,7 @@ export default function AirconCostCalculator({ initialMonth }: { initialMonth: n
               min={100}
               max={5000}
               value={labelW}
-              onCommit={setLabelW}
+              onCommit={commitLabelW}
               placeholder="예) 700"
             />
 
@@ -337,6 +391,20 @@ export default function AirconCostCalculator({ initialMonth }: { initialMonth: n
         )}
       </div>
 
+      {/* 내 에어컨 찾기 (v16, 선택) — 실패하거나 닫아도 아래 계산은 그대로 동작 */}
+      <AirconIdentify
+        currentType={type}
+        appliedPowerW={labelW}
+        powerSource={powerSource}
+        onApplyPower={(w, s) => {
+          setLabelW(clamp(Math.round(w), 100, 5000));
+          setPowerSource(s);
+        }}
+        onApplyType={setType}
+        product={product}
+        onProductChange={setProduct}
+      />
+
       {/* 결과 / 빈 상태 */}
       {!type && (
         <div className="card flex flex-col items-center gap-1.5 px-6 py-9 text-center">
@@ -359,6 +427,9 @@ export default function AirconCostCalculator({ initialMonth }: { initialMonth: n
           inverter={inverter}
           environment={environment}
           hoursComparison={result.hoursComparison}
+          powerSource={powerSource}
+          appliedPowerW={labelW}
+          product={product}
         />
       )}
 

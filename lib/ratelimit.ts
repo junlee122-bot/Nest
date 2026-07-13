@@ -14,7 +14,9 @@ type Bucket =
   | "grocery" // 장보기 식단·남은 재료
   | "grocery-extract" // 냉장고 사진 재료 추출 (비전)
   | "rent" // 실거래가 조회 (공공데이터 프록시)
-  | "openbanking"; // 오픈뱅킹 테스트베드
+  | "openbanking" // 오픈뱅킹 테스트베드
+  | "aircon-identify" // 에어컨 라벨 사진 판독 (비전)
+  | "aircon-search"; // 에어컨 제품 검색 (네이버 프록시)
 
 const WINDOW_MS = 5 * 60_000; // 5분
 
@@ -27,6 +29,8 @@ const MAX_HITS: Record<Bucket, number> = {
   "grocery-extract": 10,
   rent: 30,
   openbanking: 30,
+  "aircon-identify": 10,
+  "aircon-search": 30,
 };
 
 const hits = new Map<string, number[]>();
