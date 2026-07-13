@@ -41,7 +41,14 @@ export interface TopicConfig {
   sampleResult?: AssistResult; // "예시로 둘러보기"용 정적 결과
 }
 
-export default function AssistWorkspace({ config }: { config: TopicConfig }) {
+export default function AssistWorkspace({
+  config,
+  embedded = false,
+}: {
+  config: TopicConfig;
+  /** true면 자체 main/AppBar/서브타이틀 없이 본문만 렌더 (탭 내부 재사용용) */
+  embedded?: boolean;
+}) {
   const [text, setText] = useState("");
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -212,15 +219,9 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
     runAssist(`${base}\n\n추가 질문: ${q}`, { disallowClarify: true });
   }
 
-  return (
-    <main className={`min-h-dvh ${stickyBar ? "pb-28" : "pb-16"}`}>
-      {/* 상단 앱바 + 서브타이틀 */}
-      <AppBar title={config.title} />
-      <div className="no-print container-app pt-3">
-        <p className="px-1 text-[13px] font-medium text-muted">{config.subtitle}</p>
-      </div>
-
-      <div className="container-app space-y-5 pt-5">
+  // 본문 (embedded 모드에서는 이 부분만 렌더 — 입력·호출·결과·기록 동작은 동일)
+  const body = (
+    <div className="container-app space-y-5 pt-5">
         {/* 입력 카드 */}
         <div className="no-print card p-5">
           <label htmlFor="assist-text" className="block text-base font-bold text-ink">
@@ -411,6 +412,18 @@ export default function AssistWorkspace({ config }: { config: TopicConfig }) {
           </>
         )}
       </div>
+  );
+
+  if (embedded) return body;
+
+  return (
+    <main className={`min-h-dvh ${stickyBar ? "pb-28" : "pb-16"}`}>
+      {/* 상단 앱바 + 서브타이틀 */}
+      <AppBar title={config.title} />
+      <div className="no-print container-app pt-3">
+        <p className="px-1 text-[13px] font-medium text-muted">{config.subtitle}</p>
+      </div>
+      {body}
     </main>
   );
 }

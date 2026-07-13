@@ -8,8 +8,8 @@ import NestGrowth from "@/components/home/NestGrowth";
 import FeatureRow from "@/components/FeatureRow";
 import { FEATURES } from "@/lib/features";
 
-// 핵심 기능(집수리·계약서·시세)은 CoreFeatures가 담당. 나머지는 '생활 도구' (v14)
-const CORE = ["/repair", "/contract", "/rent"];
+// 핵심 기능(집수리·계약서·시세·전기요금)은 CoreFeatures가 담당. 나머지는 '생활 도구' (v15)
+const CORE = ["/repair", "/contract", "/rent", "/utility"];
 
 export default function Home() {
   const tools = FEATURES.filter((f) => !CORE.includes(f.href));

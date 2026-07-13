@@ -66,9 +66,9 @@ export const FEATURES: Feature[] = [
   {
     href: "/utility",
     icon: Zap,
-    title: "공과금 점검",
-    short: "공과금",
-    desc: "이번 달 공과금이 평소보다 많이 나왔는지 확인하고 절약 방법을 알아봐요.",
+    title: "에어컨 전기요금 계산",
+    short: "전기요금",
+    desc: "에어컨 종류·냉방 평수·사용시간으로 이번 달 추가 전기요금을 미리 계산해요.",
     tone: "coral",
     group: "money",
   },
@@ -106,8 +106,8 @@ export function featureByHref(href: string): Feature | undefined {
   return FEATURES.find((f) => f.href === href);
 }
 
-// ── 홈 "핵심 기능" 3종 (v14) ─────────────────────────────────
-// 집수리·계약서·시세를 하나의 연속된 기능 그룹으로 보여준다.
+// ── 홈 "핵심 기능" (v14 → v15) ────────────────────────────────
+// 집수리·계약서·시세·전기요금 계산을 하나의 연속된 기능 그룹으로 보여준다.
 // 화면 표기용 이름·설명은 FEATURES와 별개로 둔다(홈에서 더 또렷한 카피 사용).
 // href·아이콘은 기존 라우트와 동일 — 링크/동작 변경 없음.
 
@@ -116,7 +116,7 @@ export interface HomeCoreFeature {
   icon: LucideIcon;
   name: string;
   desc: string;
-  tone: Extract<Tone, "brand" | "sky" | "sun">;
+  tone: Extract<Tone, "brand" | "sky" | "sun" | "coral">;
   badge?: "메인";
 }
 
@@ -142,5 +142,12 @@ export const HOME_CORE_FEATURES: HomeCoreFeature[] = [
     name: "전월세 시세 확인",
     desc: "우리 동네 실거래가를 기준으로 현재 전월세 가격을 비교해요.",
     tone: "sun",
+  },
+  {
+    href: "/utility",
+    icon: Zap,
+    name: "에어컨 전기요금 계산",
+    desc: "종류·냉방 평수·사용시간으로 한 달 추가요금을 미리 봐요.",
+    tone: "coral",
   },
 ];

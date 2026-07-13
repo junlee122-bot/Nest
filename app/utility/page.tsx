@@ -1,7 +1,19 @@
-import AssistWorkspace, { TopicConfig } from "@/components/AssistWorkspace";
+import type { Metadata } from "next";
+import UtilityHub from "@/components/utility/UtilityHub";
+import { TopicConfig } from "@/components/AssistWorkspace";
 import { SAMPLE_UTILITY } from "@/lib/sample";
+import { kstParts } from "@/lib/integrations/core";
 
-const config: TopicConfig = {
+export const metadata: Metadata = {
+  title: "전기요금 계산 — 둥지 Nest",
+  description:
+    "에어컨 종류·냉방 평수·사용시간으로 한 달 예상 추가 전기요금을 계산하고, 고지서·공과금은 AI로 점검해요.",
+};
+
+// 계산 월 기본값을 요청 시점 KST 기준으로 전달 (hydration mismatch 방지)
+export const dynamic = "force-dynamic";
+
+const billConfig: TopicConfig = {
   topic: "utility",
   sampleResult: SAMPLE_UTILITY,
   emoji: "💡",
@@ -24,6 +36,14 @@ const config: TopicConfig = {
   ],
 };
 
-export default function UtilityPage() {
-  return <AssistWorkspace config={config} />;
+export default function UtilityPage({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) {
+  const initialMonth = parseInt(kstParts().month, 10);
+  // 서버에서 초기 탭을 결정해 첫 페인트부터 올바른 탭 표시 (?h= 기록 링크 → 고지서 탭)
+  const initialTab =
+    searchParams?.h || searchParams?.tab === "bill" ? ("bill" as const) : ("aircon" as const);
+  return <UtilityHub initialMonth={initialMonth} initialTab={initialTab} billConfig={billConfig} />;
 }
