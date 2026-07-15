@@ -12,6 +12,8 @@ import {
 import NestMark from "./NestMark";
 import AppBar from "./AppBar";
 import ShareButton from "./ShareButton";
+import { summarize } from "@/lib/housing";
+import { SAMPLE_COMMENT, SAMPLE_PERIOD, SAMPLE_TRANSACTIONS } from "@/lib/housingSample";
 
 interface Category {
   key: string;
@@ -22,6 +24,8 @@ interface Category {
 interface AnalyzeData {
   ok: true;
   mock?: boolean;
+  /** 내장 예시 데이터 미리보기 (오픈뱅킹 미연동) */
+  demo?: boolean;
   empty?: boolean;
   message?: string;
   total?: number;
@@ -80,6 +84,24 @@ export default function MoneyBeta({ configured }: { configured: boolean }) {
     }
   }
 
+  // 예시 데이터 미리보기 — 분류·집계는 실제 코드 경로(summarize) 그대로,
+  // 데이터만 내장 샘플. 네트워크 요청 없음.
+  function showDemo() {
+    const s = summarize(SAMPLE_TRANSACTIONS);
+    setData({
+      ok: true,
+      demo: true,
+      total: s.total,
+      etc: s.etc,
+      txCount: s.txCount,
+      categories: s.categories,
+      comment: SAMPLE_COMMENT,
+      period: { from: SAMPLE_PERIOD.from, to: SAMPLE_PERIOD.to },
+    });
+    setError(null);
+    setStatus("done");
+  }
+
   return (
     <main className="min-h-dvh pb-16">
       <AppBar
@@ -104,16 +126,20 @@ export default function MoneyBeta({ configured }: { configured: boolean }) {
           </p>
         </div>
 
-        {/* 설정 안됨 → 베타 준비중 안내 (대부분의 심사 환경) */}
-        {!configured && (
+        {/* 설정 안됨 → 승인 대기 안내 + 예시 미리보기 (대부분의 심사 환경) */}
+        {!configured && status !== "done" && (
           <div className="card flex flex-col items-center gap-3 px-6 py-10 text-center">
             <NestMark size={44} className="text-brand/70" />
-            <h2 className="text-base font-bold text-ink">베타 준비중 — 설정이 필요해요</h2>
+            <h2 className="text-base font-bold text-ink">오픈뱅킹 승인 대기중이에요</h2>
             <p className="text-sm leading-relaxed text-muted">
-              이 기능은 금융결제원 오픈뱅킹 테스트베드 연동 설정(환경변수)이 있어야 동작해요. 설정이
-              완료되면 모의계좌의 거래내역으로 주거비를 자동 집계해 보여드립니다.
+              금융결제원 오픈뱅킹 테스트베드의 이용 승인이 나면 모의계좌 거래내역으로 동작해요.
+              그 전에도 <b className="text-ink">예시 데이터</b>로 자동 분류·집계 흐름을 그대로
+              볼 수 있어요. (분류 로직은 실제 코드와 동일, 데이터만 가상)
             </p>
-            <Link href="/" className="btn-ghost mt-1">
+            <button type="button" onClick={showDemo} className="btn-primary mt-1 w-full">
+              <Wallet size={18} /> 예시 데이터로 미리보기
+            </button>
+            <Link href="/" className="btn-ghost">
               메인으로 돌아가기
             </Link>
           </div>
@@ -134,9 +160,14 @@ export default function MoneyBeta({ configured }: { configured: boolean }) {
                 <span className="text-sm font-medium text-ink">거래내역을 분석하는 중…</span>
               </div>
             ) : (
-              <a href="/api/openbanking/connect" className="btn-primary mt-4 w-full">
-                <Landmark size={18} /> 내 주거비 분석해보기 (베타)
-              </a>
+              <>
+                <a href="/api/openbanking/connect" className="btn-primary mt-4 w-full">
+                  <Landmark size={18} /> 내 주거비 분석해보기 (베타)
+                </a>
+                <button type="button" onClick={showDemo} className="btn-ghost mt-2 w-full">
+                  <Wallet size={16} /> 예시 데이터로 미리보기
+                </button>
+              </>
             )}
 
             {status === "error" && error && (
@@ -158,7 +189,7 @@ export default function MoneyBeta({ configured }: { configured: boolean }) {
 
         {/* 결과 */}
         {status === "done" && data && (
-          <MoneyResult data={data} onRetry={analyze} />
+          <MoneyResult data={data} onRetry={data.demo ? showDemo : analyze} />
         )}
 
         {/* 프라이버시 고지 */}
@@ -190,7 +221,7 @@ function MoneyResult({ data, onRetry }: { data: AnalyzeData; onRetry: () => void
   return (
     <div className="space-y-4">
       <div className="card animate-fade-up p-5">
-        <MockBadge />
+        {data.demo ? <DemoBadge /> : <MockBadge />}
         <p className="mt-3 text-sm text-muted">
           {fmtDate(data.period?.from)} ~ {fmtDate(data.period?.to)} · 출금 {data.txCount}건 기준
         </p>
@@ -240,11 +271,21 @@ function MoneyResult({ data, onRetry }: { data: AnalyzeData; onRetry: () => void
         </div>
       )}
 
+      {data.demo && (
+        <p className="px-1 text-xs leading-relaxed text-muted">
+          위 내역은 실제 계좌가 아니라 손으로 만든 가상 예시예요. 오픈뱅킹 테스트베드 이용
+          승인이 완료되면 같은 화면이 모의계좌 거래내역으로 채워집니다.
+        </p>
+      )}
+
       <div className="grid grid-cols-2 gap-2">
         <button onClick={onRetry} className="btn-ghost">
-          다시 분석
+          {data.demo ? "예시 다시 보기" : "다시 분석"}
         </button>
-        <ShareButton text={`[둥지] 주거비 분석 — 총 ${won(data.total || 0)}`} className="btn-ghost" />
+        <ShareButton
+          text={`[둥지] 주거비 ${data.demo ? "예시 " : ""}분석 — 총 ${won(data.total || 0)}`}
+          className="btn-ghost"
+        />
       </div>
     </div>
   );
@@ -254,6 +295,14 @@ function MockBadge() {
   return (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-2.5 py-1 text-xs font-bold text-white">
       <Info size={12} /> 테스트베드 모의데이터
+    </span>
+  );
+}
+
+function DemoBadge() {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-sun-tint px-2.5 py-1 text-xs font-bold text-sun-deep">
+      <Info size={12} /> 예시 데이터 · 실제 연동 아님
     </span>
   );
 }
