@@ -1,7 +1,8 @@
 "use client";
 
 // 심사용 인터랙티브 쇼케이스 v2
-// - 시나리오 4종(수리·계약서·장보기·시세) × 4단계(입력→AI 판단→데이터 보강→바로 행동)
+// - 시나리오 5종(수리·계약서·에어컨 요금·장보기·시세) × 4단계(입력→판단→데이터 보강→바로 행동)
+//   에어컨 요금은 AI가 아니라 결정론 엔진이라 2단계 라벨을 "엔진 계산"으로 바꿔 표기(steps/judgeLabel)
 // - 클릭 가능한 스테퍼 + 단계별로 목업 카드가 스켈레톤→결과로 쌓이는 진행형 데모
 // - 발표자 모드(?present=1 또는 버튼): 발표 멘트·진행바·방향키 이동·Esc 종료
 // - 모든 데모 내용은 '데모 재현' 배지와 고지로 실제 결과가 아님을 표기한다.
@@ -30,15 +31,17 @@ import {
   Scale,
   ShieldCheck,
   Sparkles,
+  Search,
   Utensils,
   Wrench,
   X,
+  Zap,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import NestMark from "@/components/NestMark";
 import TrustBadges from "@/components/TrustBadges";
 
-type ScenarioId = "repair" | "contract" | "grocery" | "rent";
+type ScenarioId = "repair" | "contract" | "aircon" | "grocery" | "rent";
 
 type Scenario = {
   id: ScenarioId;
@@ -59,6 +62,10 @@ type Scenario = {
   appHref: string;
   appLabel: string;
   presenterLine: string;
+  /** 2단계 카드 배지 — 기본 "AI 판단". 에어컨 요금은 AI 미사용이라 "엔진 계산"으로 표기 */
+  judgeLabel?: string;
+  /** 스테퍼 라벨 오버라이드 (길이 4 고정) */
+  steps?: readonly [string, string, string, string];
 };
 
 const SCENARIOS: Scenario[] = [
@@ -105,6 +112,31 @@ const SCENARIOS: Scenario[] = [
     appLabel: "계약서 체커 열기",
     presenterLine:
       "계약서에서는 위험한 특약을 카드로 분리하고, 왜 위험할 수 있는지 근거와 함께 수정 요청 문구를 만들어줍니다.",
+  },
+  {
+    id: "aircon",
+    label: "에어컨 요금 계산",
+    icon: Zap,
+    eyebrow: "여름 필수 · AI 미사용",
+    inputTitle: "종류·냉방 평수·사용시간, 세 번만 고르면 돼요",
+    userLine: "원룸 벽걸이 6평, 하루 6시간 틀면 이번 달 얼마나 더 나와요?",
+    aiHeadline: "7월 기준 한 달 약 12,000원이 더 나올 것으로 보여요. (범위 7,000~32,000원)",
+    aiSignals: ["하루 6시간 × 30일 = 약 81kWh 추가", "하루 2시간 줄이면 한 달 약 4,000원 절약"],
+    dataChips: ["한전 누진제(하계 300/450kWh)", "요금표 확인일 표기", "라벨 사진 판독", "네이버 제품 검색"],
+    dataNote:
+      "요금 계산은 AI가 아니라 한전 요금표 기반 순수 계산 엔진이 해요. 같은 입력엔 언제나 같은 답, 계산 중 네트워크 0회예요.",
+    actionBadge: "즉시 재계산",
+    actionTitle: "사용시간별 비교 + 내 에어컨 찾기",
+    actionBody:
+      "2·4·6·8시간 비교로 몇 시간을 줄이면 얼마가 절약되는지 보여주고, 제품 라벨을 찍으면 실제 소비전력으로 정확도를 높입니다.",
+    actionChips: ["2·4·6·8시간 비교", "누진구간 변화", "라벨 촬영으로 정확도 ↑"],
+    accent: "from-coral/25 via-sun/20 to-sky/20",
+    appHref: "/utility",
+    appLabel: "요금 계산 열기",
+    presenterLine:
+      "에어컨 요금은 AI에게 묻지 않습니다. 한전 누진제 검증 엔진이 브라우저 안에서 즉시 계산하고, 라벨 사진으로 내 에어컨을 찾아 정확도를 높입니다.",
+    judgeLabel: "엔진 계산",
+    steps: ["입력", "엔진 계산", "데이터 보강", "바로 행동"],
   },
   {
     id: "grocery",
@@ -246,6 +278,24 @@ const DATA_SIGNALS: DataSignal[] = [
     display: "날씨는 보조 맥락으로만 쓰고 단정 근거로 쓰지 않습니다.",
   },
   {
+    key: "kepco",
+    icon: Zap,
+    title: "한전 누진제 계산 엔진",
+    tag: "내장 · AI 미사용",
+    boost: "에어컨 추가요금을 가정 전체 누진요금의 전/후 차이로 브라우저에서 즉시 계산합니다.",
+    fallback: "순수 TypeScript 함수라 키·네트워크 없이 항상 동작합니다. 계산 중 API 호출 0회.",
+    display: "요금표 확인일과 '추정치' 배지, 낮음~높음 범위를 함께 표시해 단정하지 않습니다.",
+  },
+  {
+    key: "naver",
+    icon: Search,
+    title: "네이버 쇼핑 검색",
+    tag: "무키 시 검색 생략",
+    boost: "라벨 사진·모델번호로 실제 제품을 찾아 사진과 소비전력 확인으로 이어줍니다.",
+    fallback: "키가 없으면 검색만 건너뛰고, 평수 기반 요금 계산은 그대로 동작합니다.",
+    display: "후보는 사용자가 '내 에어컨이 맞아요'를 눌러야만 적용되고, 검색 이미지임을 고지합니다.",
+  },
+  {
     key: "openbanking",
     icon: Landmark,
     title: "오픈뱅킹 테스트베드",
@@ -378,7 +428,9 @@ export default function ShowcaseExperience() {
   }
 
   const ActiveIcon = active.icon;
-  // 전체 데모 진행률 (발표자 모드 진행바) — 4시나리오 × 4단계
+  // 시나리오별 스테퍼 라벨 (에어컨 요금은 "AI 판단" 대신 "엔진 계산")
+  const activeSteps = active.steps ?? DEMO_STEPS;
+  // 전체 데모 진행률 (발표자 모드 진행바) — 시나리오 수 × 4단계
   const demoProgress = (activeIndex * DEMO_STEPS.length + step + 1) / (SCENARIOS.length * DEMO_STEPS.length);
 
   return (
@@ -568,7 +620,7 @@ export default function ShowcaseExperience() {
 
           <div
             role="group"
-            aria-label={`데모 미리보기 — ${active.label}, 현재 단계: ${DEMO_STEPS[step]}`}
+            aria-label={`데모 미리보기 — ${active.label}, 현재 단계: ${activeSteps[step]}`}
             className="rounded-[3rem] border border-white/15 bg-white/10 p-3 shadow-[0_30px_90px_rgba(0,0,0,.38)] backdrop-blur-xl"
           >
             <div className="overflow-hidden rounded-[2.35rem] bg-[#f7f8f5] text-ink">
@@ -597,7 +649,7 @@ export default function ShowcaseExperience() {
               {/* 클릭 가능한 스테퍼 */}
               <div className="border-b border-line bg-card/95 px-5 py-2.5">
                 <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="데모 단계 이동">
-                  {DEMO_STEPS.map((name, i) => (
+                  {activeSteps.map((name, i) => (
                     <button
                       key={name}
                       type="button"
@@ -652,7 +704,7 @@ export default function ShowcaseExperience() {
                     {step >= 1 ? (
                       <div className="rounded-3xl bg-[#07150f] p-4 text-white shadow-lift">
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-black text-brand-tint">
-                          <Sparkles size={12} aria-hidden /> AI 판단
+                          <Sparkles size={12} aria-hidden /> {active.judgeLabel ?? "AI 판단"}
                         </span>
                         <p className="mt-2.5 break-keep text-[13px] font-bold leading-5 text-white">{active.aiHeadline}</p>
                         <div className="mt-3 space-y-2">
@@ -960,7 +1012,7 @@ export default function ShowcaseExperience() {
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-black uppercase tracking-wider text-brand-tint">
-                  {activeIndex + 1}/{SCENARIOS.length} {active.label} · {DEMO_STEPS[step]}
+                  {activeIndex + 1}/{SCENARIOS.length} {active.label} · {activeSteps[step]}
                 </p>
                 <p className="mt-0.5 truncate break-keep text-[12px] leading-5 text-white/80 sm:whitespace-normal">
                   {active.presenterLine}

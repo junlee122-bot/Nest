@@ -260,5 +260,39 @@ AI 추측에 기대던 식단·가격을 실데이터로 접지(grounding):
 
 
 > 참고: `/utility`의 **에어컨 전기요금 계산기는 LLM을 호출하지 않는다.**
-> 결정론적 순수 함수 엔진(`lib/electricity/`)으로만 계산하며, 아래 utility 프롬프트는
+> 결정론적 순수 함수 엔진(`lib/electricity/`)으로만 계산하며, 위 utility 프롬프트는
 > '고지서·공과금 점검' 탭(AI 진단)에만 사용된다.
+
+## 6) 에어컨 라벨 판독 — `POST /api/aircon/identify` (v16)
+
+`/utility` "내 에어컨 찾기"에서 제품 명판·에너지효율 라벨 사진을 읽는 Vision 프롬프트.
+원문: `lib/aircon/identify.ts` `airconIdentifyPrompt()`
+
+### 역할 경계 (핵심 설계)
+
+- **AI는 "읽기"만 한다** — 라벨에 보이는 텍스트를 구조화 JSON으로 전사할 뿐,
+  요금 계산에는 관여하지 않는다. 판독된 소비전력도 서버 정제를 통과해야만 계산기에 반영.
+- 추정·보정·일반 지식으로 채운 숫자를 라벨에서 읽은 것처럼 반환 금지.
+  확신 없으면 null + warnings + confidence(0~1).
+
+### 프롬프트가 강제하는 규칙
+
+- **냉방능력 ≠ 냉방 소비전력**: "냉방능력/capacity/kcal/h/BTU"는 coolingCapacityW로만,
+  "냉방 소비전력/rated input/power consumption"만 ratedCoolingPowerW로. (서버에서도
+  소비전력 ≥ 능력이면 능력값 오인으로 기각하는 교차 가드가 한 번 더 돈다)
+- **시리얼·제조번호 절대 반환 금지** (+ 서버측 정규식 마스킹 이중 방어)
+- 0/O, 1/I·L 구분이 어려우면 confidence를 낮추고 다른 읽기를
+  alternativeModelNumbers로 제시 — UI는 "라벨에서 OOO로 읽었어요"라고만 말함
+- 실내기/실외기 모델 구분, kW→W 환산, 에어컨 라벨이 아니면 전부 null + 사유
+- JSON 객체 하나만 출력 (설명문 금지), visibleEvidence로 실제 본 텍스트 근거 제시
+
+### 출력 스키마 요약
+
+brand · modelNumber · alternativeModelNumbers[] · productType(wall/standing/window/
+portable/multi/unknown) · indoorUnitModel · outdoorUnitModel · ratedCoolingPowerW ·
+coolingCapacityW · ratedVoltageV · manufacturingYear · confidence{brand, modelNumber,
+ratedCoolingPowerW} · visibleEvidence[] · warnings[]
+
+> 제품 검색(`GET /api/aircon/products`)은 LLM이 아니라 네이버 쇼핑 검색 API +
+> 결정론 점수화(`lib/aircon/search.ts`)로 동작한다. 후보가 하나여도 자동 확정하지 않고
+> 사용자가 "내 에어컨이 맞아요"를 눌러야만 적용된다.
